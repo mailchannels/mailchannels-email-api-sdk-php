@@ -1,0 +1,84 @@
+image: public.ecr.aws/b4c6f8y3/pipeline-mc-email-api-sdk-php:latest
+
+definitions:
+  caches:
+    composer: ~/.composer/cache
+
+  steps:
+    - step: &checks
+        name: Static analysis, tests, coverage
+        run-as-user: 1000
+        caches:
+          - composer
+        script:
+          - sudo update-alternatives --set php /usr/bin/php8.3
+          - composer install --no-interaction --no-progress --prefer-dist
+          - composer phpstan
+          - composer test:coverage
+          - composer check-coverage
+
+    - step: &php81
+        name: Tests (PHP 8.1)
+        run-as-user: 1000
+        caches:
+          - composer
+        script:
+          - sudo update-alternatives --set php /usr/bin/php8.1
+          - composer install --no-interaction --no-progress --prefer-dist
+          - composer test
+
+    - step: &php82
+        name: Tests (PHP 8.2)
+        run-as-user: 1000
+        caches:
+          - composer
+        script:
+          - sudo update-alternatives --set php /usr/bin/php8.2
+          - composer install --no-interaction --no-progress --prefer-dist
+          - composer test
+
+    - step: &php83
+        name: Tests (PHP 8.3)
+        run-as-user: 1000
+        caches:
+          - composer
+        script:
+          - sudo update-alternatives --set php /usr/bin/php8.3
+          - composer install --no-interaction --no-progress --prefer-dist
+          - composer test
+
+    - step: &php84
+        name: Tests (PHP 8.4)
+        run-as-user: 1000
+        caches:
+          - composer
+        script:
+          - sudo update-alternatives --set php /usr/bin/php8.4
+          - composer install --no-interaction --no-progress --prefer-dist
+          - composer test
+
+pipelines:
+  default:
+    - step: *checks
+
+  branches:
+    main:
+      # On merge to main: run the full checks (PHPStan + PHPUnit + coverage
+      # threshold) on PHP 8.3, then validate the test suite on every
+      # supported PHP version in parallel.
+      - step: *checks
+      - parallel:
+          - step: *php81
+          - step: *php82
+          - step: *php83
+          - step: *php84
+
+  custom:
+    multi-php:
+      # Ad-hoc trigger for the same matrix that runs on main. Useful when
+      # validating a feature branch before merging.
+      - parallel:
+          - step: *php81
+          - step: *php82
+          - step: *php83
+          - step: *php84

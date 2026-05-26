@@ -15,8 +15,11 @@ The SDK targets PHP 8.1 or newer.
 
 ```bash
 composer install
-composer test         # PHPUnit (unit + integration suites)
-composer phpstan      # static analysis at level max
+composer test           # PHPUnit (unit + integration suites)
+composer phpstan        # static analysis at level max
+composer test:coverage  # PHPUnit with Clover + text coverage report
+composer check-coverage # enforce 85% coverage threshold against coverage.xml
+composer ci             # phpstan + test:coverage + check-coverage
 ```
 
 For direct PHPUnit runs, use `vendor/bin/phpunit` from the project root, or
@@ -24,7 +27,14 @@ pass `tests` or a specific test file. Do not pass the project root as the test
 directory (`vendor/bin/phpunit .`), because PHPUnit will discover
 `vendor/**/Test.php` files and third-party package tests.
 
+`composer test:coverage` requires a PHP coverage driver. Install
+[`pcov`](https://github.com/krakjoe/pcov) (faster) or `xdebug` locally;
+CI installs `pcov` automatically.
+
 Tests must pass and PHPStan must remain clean before any change is merged.
+CI (Bitbucket Pipelines, see `bitbucket-pipelines.yml`) runs `composer ci`
+plus a PHP 8.1–8.4 test matrix on every pull request and on merges to
+`main`.
 
 ### Running a single test
 
