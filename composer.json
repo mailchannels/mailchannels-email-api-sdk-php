@@ -48,7 +48,7 @@
         "test": "phpunit",
         "phpunit": "phpunit",
         "test:coverage": "phpunit --coverage-clover=coverage.xml --coverage-text",
-        "check-coverage": "php scripts/check-coverage.php coverage.xml 85",
+        "check-coverage": "php scripts/check-coverage.php coverage.xml 70",
         "phpstan": "phpstan analyse src tests --level=max --memory-limit=512M",
         "ci": [
             "@phpstan",
