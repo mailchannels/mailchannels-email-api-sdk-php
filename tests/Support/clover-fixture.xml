@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1234567890">
+  <project timestamp="1234567890">
+    <file name="src/Foo.php">
+      <class name="Foo" namespace="MailChannels">
+        <metrics complexity="3" methods="2" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="40" coveredstatements="30" elements="42" coveredelements="31"/>
+      </class>
+      <line num="10" type="method" name="bar" visibility="public" complexity="1" crap="1" count="1"/>
+      <line num="11" type="stmt" count="1"/>
+      <metrics loc="50" ncloc="30" classes="1" methods="2" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="40" coveredstatements="30" elements="42" coveredelements="31"/>
+    </file>
+    <file name="src/Bar.php">
+      <class name="Bar" namespace="MailChannels">
+        <metrics complexity="2" methods="3" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="55" coveredstatements="49" elements="58" coveredelements="49"/>
+      </class>
+      <metrics loc="60" ncloc="40" classes="1" methods="3" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="55" coveredstatements="49" elements="58" coveredelements="49"/>
+    </file>
+    <metrics files="2" loc="110" ncloc="70" classes="2" methods="5" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="95" coveredstatements="79" elements="100" coveredelements="80"/>
+  </project>
+</coverage>

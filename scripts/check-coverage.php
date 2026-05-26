@@ -6,8 +6,11 @@ declare(strict_types=1);
  *
  * Usage: php scripts/check-coverage.php <clover-file> <threshold>
  *
- * Parses the top-level <project><metrics ... elements="N" coveredelements="M">
- * element with a regex so the script has no dependency on ext-dom or
+ * Reads the project-level aggregate <metrics> element. Clover output places
+ * the aggregate at the end of <project> after all <file> children, and it is
+ * the only <metrics> element with a `files="N"` attribute — per-file metrics
+ * describe a single file, per-class metrics only carry method counts. Matching
+ * on `files=` is position-independent and avoids depending on ext-dom or
  * ext-simplexml (which Ubuntu's php-cli package omits by default).
  *
  * Exit codes:
@@ -30,20 +33,18 @@ if ($contents === false || $contents === '') {
     exit(2);
 }
 
-// Match the first <metrics ...> inside <project>. PHPUnit's Clover output
-// always places aggregate totals on this element.
 if (
     !preg_match(
-        '/<project\b[^>]*>\s*<metrics\b([^>]*)\/?>/',
+        '/<metrics\b[^>]*\bfiles="\d+"[^>]*\/?>/',
         $contents,
-        $projectMetricsMatch,
+        $metricsMatch,
     )
 ) {
-    fwrite(STDERR, "No <project><metrics> element in {$cloverPath}\n");
+    fwrite(STDERR, "No project-level <metrics files=\"...\"> element in {$cloverPath}\n");
     exit(2);
 }
 
-$attributes = $projectMetricsMatch[1];
+$attributes = $metricsMatch[0];
 
 if (!preg_match('/\belements="(\d+)"/', $attributes, $elementsMatch)) {
     fwrite(STDERR, "No 'elements' attribute on <metrics>\n");
