@@ -293,9 +293,16 @@ $client = new Client(apiKey: 'mc-...', logger: $logger);
 
 The SDK never logs API keys or request bodies.
 
-## API coverage
+## Further reading
 
-See [`docs/API_COVERAGE.md`](docs/API_COVERAGE.md) for the full route map.
+- [`docs/API_COVERAGE.md`](docs/API_COVERAGE.md) — full route map.
+- [`docs/ADVANCED.md`](docs/ADVANCED.md) — version/user-agent, client
+  reuse, multi-tenancy, custom HTTP transports, PSR-3 logging, the
+  PSR-18 discovery warning, error-handling reference, and low-level
+  webhook helpers.
+- [`docs/DKIM.md`](docs/DKIM.md) — hosted vs customer-managed DKIM keys,
+  key lifecycle, and a Cloudflare DNS publication recipe.
+- [`examples/`](examples/) — runnable scripts for each endpoint group.
 
 ## Development
 
