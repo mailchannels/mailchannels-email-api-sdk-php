@@ -280,4 +280,368 @@ final class EmailsTest extends TestCase
         $this->assertSame([['email' => 'c@x.com']], $personalization['cc']);
         $this->assertSame([['email' => 'd@x.com']], $personalization['bcc']);
     }
+
+    public function testSendingWithoutSubjectRaises(): void
+    {
+        $http = new MockHttpClient();
+        $client = Fixtures::client($http);
+        $this->expectException(ValidationException::class);
+        $client->emails->send(['from' => 'a@b.com', 'to' => 'c@d.com', 'text' => 't']);
+    }
+
+    public function testSendingWithEmptySubjectRaises(): void
+    {
+        $http = new MockHttpClient();
+        $client = Fixtures::client($http);
+        $this->expectException(ValidationException::class);
+        $client->emails->send([
+            'from' => 'a@b.com',
+            'to' => 'c@d.com',
+            'subject' => '',
+            'text' => 't',
+        ]);
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function fromAliasProvider(): array
+    {
+        return [
+            'from_email' => ['from_email'],
+            'from_address' => ['from_address'],
+            'from_field' => ['from_field'],
+        ];
+    }
+
+    /** @dataProvider fromAliasProvider */
+    public function testFromAddressAcceptsAlternativeKeys(string $key): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, []));
+        $client = Fixtures::client($http);
+
+        $client->emails->send([
+            $key => 'sender@example.com',
+            'to' => 'c@d.com',
+            'subject' => 's',
+            'text' => 't',
+        ]);
+
+        $this->assertSame(['email' => 'sender@example.com'], $http->lastJson()['from']);
+    }
+
+    public function testReplyToIsPropagated(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, []));
+        $client = Fixtures::client($http);
+
+        $client->emails->send([
+            'from' => 'sender@example.com',
+            'reply_to' => ['email' => 'replies@example.com', 'name' => 'Support'],
+            'to' => 'c@d.com',
+            'subject' => 's',
+            'text' => 't',
+        ]);
+
+        $this->assertSame(
+            ['email' => 'replies@example.com', 'name' => 'Support'],
+            $http->lastJson()['reply_to'],
+        );
+    }
+
+    public function testCustomerDkimFieldsPassThroughFromArrayForm(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, []));
+        $client = Fixtures::client($http);
+
+        $client->emails->send([
+            'from' => 'sender@example.com',
+            'to' => 'c@d.com',
+            'subject' => 's',
+            'text' => 't',
+            'dkim_domain' => 'example.com',
+            'dkim_selector' => 'sel1',
+            'dkim_private_key' => 'fake-key',
+            'transactional' => true,
+        ]);
+
+        $payload = $http->lastJson();
+        $this->assertSame('example.com', $payload['dkim_domain']);
+        $this->assertSame('sel1', $payload['dkim_selector']);
+        $this->assertSame('fake-key', $payload['dkim_private_key']);
+        $this->assertTrue($payload['transactional']);
+    }
+
+    public function testContentArrayFormWithExplicitListAndTemplateType(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, []));
+        $client = Fixtures::client($http);
+
+        $client->emails->send([
+            'from' => 'sender@example.com',
+            'to' => 'c@d.com',
+            'subject' => 's',
+            'content' => [
+                ['type' => 'text/plain', 'value' => 'hello {{ name }}', 'template_type' => 'mustache'],
+                ['type' => 'text/html', 'value' => '<p>hello</p>'],
+            ],
+        ]);
+
+        $content = $http->lastJson()['content'] ?? null;
+        $this->assertIsArray($content);
+        $this->assertCount(2, $content);
+        $this->assertIsArray($content[0]);
+        $this->assertIsArray($content[1]);
+        $this->assertSame('mustache', $content[0]['template_type']);
+        $this->assertArrayNotHasKey('template_type', $content[1]);
+    }
+
+    public function testContentArrayFormAcceptsContentObjectsInList(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, []));
+        $client = Fixtures::client($http);
+
+        $client->emails->send([
+            'from' => 'sender@example.com',
+            'to' => 'c@d.com',
+            'subject' => 's',
+            'content' => [Content::plain('text'), Content::html('<p>hi</p>')],
+        ]);
+
+        $this->assertSame(
+            [
+                ['type' => 'text/plain', 'value' => 'text'],
+                ['type' => 'text/html', 'value' => '<p>hi</p>'],
+            ],
+            $http->lastJson()['content'],
+        );
+    }
+
+    public function testContentMustBeIterable(): void
+    {
+        $http = new MockHttpClient();
+        $client = Fixtures::client($http);
+        $this->expectException(ValidationException::class);
+        $client->emails->send([
+            'from' => 'a@b.com',
+            'to' => 'c@d.com',
+            'subject' => 's',
+            'content' => 'not-iterable',
+        ]);
+    }
+
+    public function testContentEntriesRequireTypeAndValue(): void
+    {
+        $http = new MockHttpClient();
+        $client = Fixtures::client($http);
+        $this->expectException(ValidationException::class);
+        $client->emails->send([
+            'from' => 'a@b.com',
+            'to' => 'c@d.com',
+            'subject' => 's',
+            'content' => [['type' => 'text/plain']],
+        ]);
+    }
+
+    public function testPersonalizationsAcceptsListOfObjects(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, []));
+        $client = Fixtures::client($http);
+
+        $client->emails->send([
+            'from' => 'sender@example.com',
+            'subject' => 's',
+            'text' => 't',
+            'personalizations' => [
+                new Personalization(to: ['a@example.com']),
+                new Personalization(to: ['b@example.com'], dynamicTemplateData: ['name' => 'Bob']),
+            ],
+        ]);
+
+        $personalizations = $http->lastJson()['personalizations'] ?? null;
+        $this->assertIsArray($personalizations);
+        $this->assertCount(2, $personalizations);
+        $this->assertIsArray($personalizations[1]);
+        $this->assertSame(['name' => 'Bob'], $personalizations[1]['dynamic_template_data']);
+    }
+
+    public function testPersonalizationsMustBeIterable(): void
+    {
+        $http = new MockHttpClient();
+        $client = Fixtures::client($http);
+        $this->expectException(ValidationException::class);
+        $client->emails->send([
+            'from' => 'a@b.com',
+            'subject' => 's',
+            'text' => 't',
+            'personalizations' => 'not-a-list',
+        ]);
+    }
+
+    public function testEmptyPersonalizationsArrayRaises(): void
+    {
+        $http = new MockHttpClient();
+        $client = Fixtures::client($http);
+        $this->expectException(ValidationException::class);
+        $client->emails->send([
+            'from' => 'a@b.com',
+            'subject' => 's',
+            'text' => 't',
+            'personalizations' => [],
+        ]);
+    }
+
+    public function testAttachmentObjectInArrayForm(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, []));
+        $client = Fixtures::client($http);
+
+        $client->emails->send([
+            'from' => 'a@b.com',
+            'to' => 'c@d.com',
+            'subject' => 's',
+            'text' => 't',
+            'attachments' => [Attachment::fromBytes('hello', 'note.txt')],
+        ]);
+
+        $attachments = $http->lastJson()['attachments'] ?? null;
+        $this->assertIsArray($attachments);
+        $this->assertCount(1, $attachments);
+        $this->assertIsArray($attachments[0]);
+        $this->assertSame('note.txt', $attachments[0]['filename']);
+        $this->assertSame(base64_encode('hello'), $attachments[0]['content']);
+    }
+
+    public function testAttachmentArrayShapeRequiresContentAndFilename(): void
+    {
+        $http = new MockHttpClient();
+        $client = Fixtures::client($http);
+        $this->expectException(ValidationException::class);
+        $client->emails->send([
+            'from' => 'a@b.com',
+            'to' => 'c@d.com',
+            'subject' => 's',
+            'text' => 't',
+            'attachments' => [['content' => 'xxx']],
+        ]);
+    }
+
+    public function testAttachmentsMustBeIterable(): void
+    {
+        $http = new MockHttpClient();
+        $client = Fixtures::client($http);
+        $this->expectException(ValidationException::class);
+        $client->emails->send([
+            'from' => 'a@b.com',
+            'to' => 'c@d.com',
+            'subject' => 's',
+            'text' => 't',
+            'attachments' => 'not-a-list',
+        ]);
+    }
+
+    public function testHeadersMustBeArray(): void
+    {
+        $http = new MockHttpClient();
+        $client = Fixtures::client($http);
+        $this->expectException(ValidationException::class);
+        $client->emails->send([
+            'from' => 'a@b.com',
+            'to' => 'c@d.com',
+            'subject' => 's',
+            'text' => 't',
+            'headers' => 'string-not-array',
+        ]);
+    }
+
+    public function testHeadersRequireStringValues(): void
+    {
+        $http = new MockHttpClient();
+        $client = Fixtures::client($http);
+        $this->expectException(ValidationException::class);
+        $client->emails->send([
+            'from' => 'a@b.com',
+            'to' => 'c@d.com',
+            'subject' => 's',
+            'text' => 't',
+            'headers' => ['X-Tag' => 42],
+        ]);
+    }
+
+    public function testAddressListAcceptsEmailAddressObject(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, []));
+        $client = Fixtures::client($http);
+
+        $client->emails->send([
+            'from' => 'sender@example.com',
+            'to' => new EmailAddress('recipient@example.com', 'Recipient'),
+            'subject' => 's',
+            'text' => 't',
+        ]);
+
+        $personalizations = $http->lastJson()['personalizations'] ?? null;
+        $this->assertIsArray($personalizations);
+        $first = $personalizations[0] ?? null;
+        $this->assertIsArray($first);
+        $this->assertSame(
+            [['email' => 'recipient@example.com', 'name' => 'Recipient']],
+            $first['to'],
+        );
+    }
+
+    public function testAddressListAcceptsListOfEmailAddressObjects(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, []));
+        $client = Fixtures::client($http);
+
+        $client->emails->send([
+            'from' => 'sender@example.com',
+            'to' => [
+                new EmailAddress('a@example.com', 'Alice'),
+                new EmailAddress('b@example.com'),
+            ],
+            'subject' => 's',
+            'text' => 't',
+        ]);
+
+        $personalizations = $http->lastJson()['personalizations'] ?? null;
+        $this->assertIsArray($personalizations);
+        $first = $personalizations[0] ?? null;
+        $this->assertIsArray($first);
+        $this->assertSame(
+            [
+                ['email' => 'a@example.com', 'name' => 'Alice'],
+                ['email' => 'b@example.com'],
+            ],
+            $first['to'],
+        );
+    }
+
+    public function testAddressListRejectsScalarTypes(): void
+    {
+        $http = new MockHttpClient();
+        $client = Fixtures::client($http);
+        $this->expectException(ValidationException::class);
+        $client->emails->send([
+            'from' => 'a@b.com',
+            'to' => 42,
+            'subject' => 's',
+            'text' => 't',
+        ]);
+    }
+
+    public function testTrackingSettingsMustBeArray(): void
+    {
+        $http = new MockHttpClient();
+        $client = Fixtures::client($http);
+        $this->expectException(ValidationException::class);
+        $client->emails->send([
+            'from' => 'a@b.com',
+            'to' => 'c@d.com',
+            'subject' => 's',
+            'text' => 't',
+            'tracking_settings' => 'not-array',
+        ]);
+    }
 }
