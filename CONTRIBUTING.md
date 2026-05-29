@@ -19,8 +19,15 @@ composer test           # PHPUnit (unit + integration suites)
 composer phpstan        # static analysis at level max
 composer test:coverage  # PHPUnit with Clover + text coverage report
 composer check-coverage # enforce 85% coverage threshold against coverage.xml
-composer ci             # phpstan + test:coverage + check-coverage
+composer api-reference  # regenerate docs/API_REFERENCE.md from src/
+composer ci             # phpstan + test:coverage + check-coverage + api-reference + freshness diff
 ```
+
+When you touch the public surface in `src/` (new class, renamed method,
+changed signature, updated PHPDoc), run `composer api-reference` and commit
+the regenerated `docs/API_REFERENCE.md`. CI runs the generator and then
+`git diff --exit-code -- docs/API_REFERENCE.md`, so a stale reference
+fails the build.
 
 For direct PHPUnit runs, use `vendor/bin/phpunit` from the project root, or
 pass `tests` or a specific test file. Do not pass the project root as the test

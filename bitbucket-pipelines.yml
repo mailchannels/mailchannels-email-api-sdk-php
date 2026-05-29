@@ -6,7 +6,7 @@ definitions:
 
   steps:
     - step: &checks
-        name: Static analysis, tests, coverage
+        name: Static analysis, tests, coverage, docs freshness
         run-as-user: 1000
         caches:
           - composer
@@ -16,6 +16,8 @@ definitions:
           - composer phpstan
           - composer test:coverage
           - composer check-coverage
+          - composer api-reference
+          - git diff --exit-code -- docs/API_REFERENCE.md
 
     - step: &php81
         name: Tests (PHP 8.1)
