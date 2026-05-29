@@ -82,6 +82,104 @@ final class Attachment implements JsonSerializable
         );
     }
 
+    /**
+     * Fetch a remote URL and build an attachment from its bytes. Content type
+     * resolution cascades: caller-supplied `$contentType` → server's
+     * `Content-Type` response header → filename-extension guess.
+     *
+     * `$timeout` is the per-stream read timeout in seconds; it does not cover
+     * connect time on every platform. Each call blocks the caller, so prefer
+     * a short value when fetching multiple attachments before a send.
+     */
+    public static function fromUrl(
+        string $url,
+        ?string $filename = null,
+        ?string $contentType = null,
+        string $disposition = self::DISPOSITION_ATTACHMENT,
+        ?string $contentId = null,
+        float $timeout = 10.0,
+    ): self {
+        $context = stream_context_create([
+            'http' => ['timeout' => $timeout, 'follow_location' => 1],
+            'https' => ['timeout' => $timeout, 'follow_location' => 1],
+        ]);
+
+        $stream = @fopen($url, 'rb', false, $context);
+        if ($stream === false) {
+            $errorMessage = error_get_last()['message'] ?? 'unknown error';
+            throw new ValidationException(
+                "Unable to fetch attachment URL: {$url} ({$errorMessage})",
+                errorCode: 'AttachmentFetchError',
+            );
+        }
+
+        try {
+            $metadata = stream_get_meta_data($stream);
+            $bytes = stream_get_contents($stream);
+        } finally {
+            fclose($stream);
+        }
+
+        if (!is_string($bytes)) {
+            throw new ValidationException(
+                "Failed to read attachment URL response: {$url}",
+                errorCode: 'AttachmentFetchError',
+            );
+        }
+
+        $wrapperData = $metadata['wrapper_data'] ?? null;
+        /** @var list<string>|null $headers */
+        $headers = is_array($wrapperData) ? array_values(array_filter(
+            $wrapperData,
+            static fn (mixed $v): bool => is_string($v),
+        )) : null;
+
+        $resolvedFilename = $filename ?? self::filenameFromUrl($url);
+        $resolvedContentType = $contentType
+            ?? self::contentTypeFromHeaders($headers)
+            ?? self::guessContentType($resolvedFilename);
+
+        return self::fromBytes(
+            data: $bytes,
+            filename: $resolvedFilename,
+            contentType: $resolvedContentType,
+            disposition: $disposition,
+            contentId: $contentId,
+        );
+    }
+
+    private static function filenameFromUrl(string $url): string
+    {
+        $parsed = parse_url($url);
+        if ($parsed === false) {
+            return 'attachment';
+        }
+        $path = $parsed['path'] ?? '';
+        if (!is_string($path) || $path === '') {
+            return 'attachment';
+        }
+        $base = basename($path);
+        if ($base === '' || $base === '/' || $base === '.') {
+            return 'attachment';
+        }
+        return $base;
+    }
+
+    /** @param list<string>|null $headers */
+    private static function contentTypeFromHeaders(?array $headers): ?string
+    {
+        if ($headers === null) {
+            return null;
+        }
+        foreach ($headers as $line) {
+            if (preg_match('/^Content-Type:\s*([^;]+)(?:;.*)?$/i', $line, $match)) {
+                $value = trim($match[1]);
+                return $value === '' ? null : $value;
+            }
+        }
+        return null;
+    }
+
     /** @return array<string, string> */
     public function toArray(): array
     {
