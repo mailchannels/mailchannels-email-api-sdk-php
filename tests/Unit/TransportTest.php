@@ -66,7 +66,7 @@ final class TransportTest extends TestCase
         $client->usage->retrieve();
     }
 
-    public function testUnmappedNon2xxStatusRaisesApiException(): void
+    public function testUnmapped3xxStatusRaisesApiException(): void
     {
         $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(304, null));
         $client = Fixtures::client($http);
