@@ -9,6 +9,11 @@ use MailChannels\Enum\MetricsInterval;
 use MailChannels\Enum\MetricsSenderType;
 use MailChannels\Enum\MetricsSortOrder;
 use MailChannels\Response;
+use MailChannels\Response\MetricsEngagementResponse;
+use MailChannels\Response\MetricsPerformanceResponse;
+use MailChannels\Response\MetricsRecipientBehaviourResponse;
+use MailChannels\Response\MetricsSenderResponse;
+use MailChannels\Response\MetricsVolumeResponse;
 
 final class Metrics extends AbstractResource
 {
@@ -17,8 +22,10 @@ final class Metrics extends AbstractResource
         DateTimeInterface|string|null $endTime = null,
         ?string $campaignId = null,
         MetricsInterval|string|null $interval = null,
-    ): Response {
-        return $this->timeSeries('/metrics/engagement', $startTime, $endTime, $campaignId, $interval);
+    ): MetricsEngagementResponse {
+        return MetricsEngagementResponse::fromResponse(
+            $this->timeSeries('/metrics/engagement', $startTime, $endTime, $campaignId, $interval),
+        );
     }
 
     public function performance(
@@ -26,8 +33,10 @@ final class Metrics extends AbstractResource
         DateTimeInterface|string|null $endTime = null,
         ?string $campaignId = null,
         MetricsInterval|string|null $interval = null,
-    ): Response {
-        return $this->timeSeries('/metrics/performance', $startTime, $endTime, $campaignId, $interval);
+    ): MetricsPerformanceResponse {
+        return MetricsPerformanceResponse::fromResponse(
+            $this->timeSeries('/metrics/performance', $startTime, $endTime, $campaignId, $interval),
+        );
     }
 
     public function recipientBehaviour(
@@ -35,8 +44,10 @@ final class Metrics extends AbstractResource
         DateTimeInterface|string|null $endTime = null,
         ?string $campaignId = null,
         MetricsInterval|string|null $interval = null,
-    ): Response {
-        return $this->timeSeries('/metrics/recipient-behaviour', $startTime, $endTime, $campaignId, $interval);
+    ): MetricsRecipientBehaviourResponse {
+        return MetricsRecipientBehaviourResponse::fromResponse(
+            $this->timeSeries('/metrics/recipient-behaviour', $startTime, $endTime, $campaignId, $interval),
+        );
     }
 
     public function recipientBehavior(
@@ -44,7 +55,7 @@ final class Metrics extends AbstractResource
         DateTimeInterface|string|null $endTime = null,
         ?string $campaignId = null,
         MetricsInterval|string|null $interval = null,
-    ): Response {
+    ): MetricsRecipientBehaviourResponse {
         return $this->recipientBehaviour($startTime, $endTime, $campaignId, $interval);
     }
 
@@ -53,8 +64,10 @@ final class Metrics extends AbstractResource
         DateTimeInterface|string|null $endTime = null,
         ?string $campaignId = null,
         MetricsInterval|string|null $interval = null,
-    ): Response {
-        return $this->timeSeries('/metrics/volume', $startTime, $endTime, $campaignId, $interval);
+    ): MetricsVolumeResponse {
+        return MetricsVolumeResponse::fromResponse(
+            $this->timeSeries('/metrics/volume', $startTime, $endTime, $campaignId, $interval),
+        );
     }
 
     public function senders(
@@ -64,7 +77,7 @@ final class Metrics extends AbstractResource
         ?int $limit = null,
         ?int $offset = null,
         MetricsSortOrder|string|null $sortOrder = null,
-    ): Response {
+    ): MetricsSenderResponse {
         $type = $senderType instanceof MetricsSenderType ? $senderType->value : $senderType;
         $query = self::compactOrNull([
             'start_time' => $startTime,
@@ -73,7 +86,9 @@ final class Metrics extends AbstractResource
             'offset' => $offset,
             'sort_order' => $sortOrder,
         ]);
-        return $this->request('GET', "/metrics/senders/{$type}", null, $query);
+        return MetricsSenderResponse::fromResponse(
+            $this->request('GET', "/metrics/senders/{$type}", null, $query),
+        );
     }
 
     private function timeSeries(

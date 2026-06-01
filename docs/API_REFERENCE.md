@@ -64,6 +64,13 @@ For task-oriented examples, start with the [README](../README.md). This file is 
 | `MailChannels\Response\DkimKeyListResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Dkim::list()}. Wraps a list of typed {@see DkimKeyInfo} entries. |
 | `MailChannels\Response\DkimKeyResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Dkim::create()} for `POST /domains/{domain}/dkim-keys`. |
 | `MailChannels\Response\DkimRotateResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Dkim::rotate()}. Exposes both the freshly-minted selector (`$newKey`) and the just- rotated old selector (`$rotatedKey`), with the new key carrying the `dkimDnsRecords` you need to publish before sending traffic under the new selector. |
+| `MailChannels\Response\MetricsBucket` | final class | One time-series bucket entry: an event count for a single time interval. The `metrics/engagement`, `/performance`, `/volume`, and `/recipient-behaviour` endpoints all return lists of these grouped under named bucket categories (`open`, `click`, `delivered`, ...). |
+| `MailChannels\Response\MetricsEngagementResponse` | final class | Typed response for `GET /metrics/engagement`. Spec schema: `MetricsEngagement`. |
+| `MailChannels\Response\MetricsPerformanceResponse` | final class | Typed response for `GET /metrics/performance`. Spec schema: `MetricsPerformance`. |
+| `MailChannels\Response\MetricsRecipientBehaviourResponse` | final class | Typed response for `GET /metrics/recipient-behaviour`. Spec schema: `MetricsRecipientBehaviour`. |
+| `MailChannels\Response\MetricsSender` | final class | One entry in the `MetricsSenderResponse::$senders` list — a per-sender (campaign or sub-account, depending on `sender_type`) rollup of message outcomes during the queried time range. |
+| `MailChannels\Response\MetricsSenderResponse` | final class | Typed response for `GET /metrics/senders/{sender_type}`. Spec schema: `MetricsSenderResponse`. |
+| `MailChannels\Response\MetricsVolumeResponse` | final class | Typed response for `GET /metrics/volume`. Spec schema: `MetricsVolume`. |
 | `MailChannels\Response\QueuedSendResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Emails::queue()} for the `/send-async` endpoint. The server queues the message and acks with a request id plus a queued-at timestamp — there is **no** message id at this point because delivery hasn't happened yet. The actual per-message identifiers arrive later via webhook events. |
 | `MailChannels\Response\SendResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Emails::send()}. |
 | `MailChannels\Response\SuppressionEntry` | final class | One suppression list entry returned by `/suppression-list`. |
@@ -1115,7 +1122,7 @@ public function engagement(
     DateTimeInterface|string|null $endTime = null,
     ?string $campaignId = null,
     MailChannels\Enum\MetricsInterval|string|null $interval = null
-): MailChannels\Response
+): MailChannels\Response\MetricsEngagementResponse
 ```
 
 **Parameters:**
@@ -1124,7 +1131,7 @@ public function engagement(
 - `$campaignId` (`?string`)
 - `$interval` (`MailChannels\Enum\MetricsInterval|string|null`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\MetricsEngagementResponse`
 
 #### `performance()`
 
@@ -1134,7 +1141,7 @@ public function performance(
     DateTimeInterface|string|null $endTime = null,
     ?string $campaignId = null,
     MailChannels\Enum\MetricsInterval|string|null $interval = null
-): MailChannels\Response
+): MailChannels\Response\MetricsPerformanceResponse
 ```
 
 **Parameters:**
@@ -1143,7 +1150,7 @@ public function performance(
 - `$campaignId` (`?string`)
 - `$interval` (`MailChannels\Enum\MetricsInterval|string|null`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\MetricsPerformanceResponse`
 
 #### `recipientBehavior()`
 
@@ -1153,7 +1160,7 @@ public function recipientBehavior(
     DateTimeInterface|string|null $endTime = null,
     ?string $campaignId = null,
     MailChannels\Enum\MetricsInterval|string|null $interval = null
-): MailChannels\Response
+): MailChannels\Response\MetricsRecipientBehaviourResponse
 ```
 
 **Parameters:**
@@ -1162,7 +1169,7 @@ public function recipientBehavior(
 - `$campaignId` (`?string`)
 - `$interval` (`MailChannels\Enum\MetricsInterval|string|null`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\MetricsRecipientBehaviourResponse`
 
 #### `recipientBehaviour()`
 
@@ -1172,7 +1179,7 @@ public function recipientBehaviour(
     DateTimeInterface|string|null $endTime = null,
     ?string $campaignId = null,
     MailChannels\Enum\MetricsInterval|string|null $interval = null
-): MailChannels\Response
+): MailChannels\Response\MetricsRecipientBehaviourResponse
 ```
 
 **Parameters:**
@@ -1181,7 +1188,7 @@ public function recipientBehaviour(
 - `$campaignId` (`?string`)
 - `$interval` (`MailChannels\Enum\MetricsInterval|string|null`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\MetricsRecipientBehaviourResponse`
 
 #### `senders()`
 
@@ -1193,7 +1200,7 @@ public function senders(
     ?int $limit = null,
     ?int $offset = null,
     MailChannels\Enum\MetricsSortOrder|string|null $sortOrder = null
-): MailChannels\Response
+): MailChannels\Response\MetricsSenderResponse
 ```
 
 **Parameters:**
@@ -1204,7 +1211,7 @@ public function senders(
 - `$offset` (`?int`)
 - `$sortOrder` (`MailChannels\Enum\MetricsSortOrder|string|null`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\MetricsSenderResponse`
 
 #### `volume()`
 
@@ -1214,7 +1221,7 @@ public function volume(
     DateTimeInterface|string|null $endTime = null,
     ?string $campaignId = null,
     MailChannels\Enum\MetricsInterval|string|null $interval = null
-): MailChannels\Response
+): MailChannels\Response\MetricsVolumeResponse
 ```
 
 **Parameters:**
@@ -1223,7 +1230,7 @@ public function volume(
 - `$campaignId` (`?string`)
 - `$interval` (`MailChannels\Enum\MetricsInterval|string|null`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\MetricsVolumeResponse`
 
 
 ## `MailChannels\Resource\SubAccountApiKeys`
@@ -2234,6 +2241,494 @@ public function __construct(
 - `$rawBody` (`?string`)
 - `$newKey` (`?MailChannels\Response\DkimKeyInfo`)
 - `$rotatedKey` (`?MailChannels\Response\DkimKeyInfo`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
+
+
+## `MailChannels\Response\MetricsBucket`
+
+_final class_
+
+One time-series bucket entry: an event count for a single time interval. The `metrics/engagement`, `/performance`, `/volume`, and `/recipient-behaviour` endpoints all return lists of these grouped under named bucket categories (`open`, `click`, `delivered`, ...).
+
+Plain value object — not a `Response` subclass.
+
+### Public Properties
+
+- `readonly ?int $count`
+- `readonly ?string $periodStart`
+
+### Constructor
+
+```php
+public function __construct(
+    ?int $count = null,
+    ?string $periodStart = null
+)
+```
+
+**Parameters:**
+- `$count` (`?int`)
+- `$periodStart` (`?string`)
+
+### Methods
+
+#### `fromArray()`
+
+```php
+public static function fromArray(
+    array $data
+): self
+```
+
+**Parameters:**
+- `$data` (`array`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
+
+#### `jsonSerialize()`
+
+```php
+public function jsonSerialize(): array
+```
+
+**Returns:** `array<string,` — mixed>
+
+#### `listFromParent()`
+
+```php
+public static function listFromParent(
+    ?array $parent,
+    string $key
+): ?array
+```
+
+Extract a list of MetricsBucket from `$parent[$key]`. Returns null when the parent itself is null or the key is absent.
+
+**Parameters:**
+- `$parent` (`?array`)
+- `$key` (`string`)
+
+**Returns:** `list<self>|null`
+
+
+## `MailChannels\Response\MetricsEngagementResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response for `GET /metrics/engagement`. Spec schema: `MetricsEngagement`.
+
+Exposes top-level open/click counts plus their time-series breakdowns
+under the `*Buckets` properties.
+
+### Public Properties
+
+- `readonly ?int $click`
+- `readonly ?array $clickBuckets`
+- `readonly ?int $clickTrackingDelivered`
+- `readonly ?array $clickTrackingDeliveredBuckets`
+- `readonly ?string $endTime`
+- `readonly ?int $open`
+- `readonly ?array $openBuckets`
+- `readonly ?int $openTrackingDelivered`
+- `readonly ?array $openTrackingDeliveredBuckets`
+- `readonly ?string $startTime`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?string $startTime = null,
+    ?string $endTime = null,
+    ?int $open = null,
+    ?int $click = null,
+    ?int $openTrackingDelivered = null,
+    ?int $clickTrackingDelivered = null,
+    ?array $openBuckets = null,
+    ?array $clickBuckets = null,
+    ?array $openTrackingDeliveredBuckets = null,
+    ?array $clickTrackingDeliveredBuckets = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$startTime` (`?string`)
+- `$endTime` (`?string`)
+- `$open` (`?int`)
+- `$click` (`?int`)
+- `$openTrackingDelivered` (`?int`)
+- `$clickTrackingDelivered` (`?int`)
+- `$openBuckets` (`list<MetricsBucket>|null`)
+- `$clickBuckets` (`list<MetricsBucket>|null`)
+- `$openTrackingDeliveredBuckets` (`list<MetricsBucket>|null`)
+- `$clickTrackingDeliveredBuckets` (`list<MetricsBucket>|null`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
+
+
+## `MailChannels\Response\MetricsPerformanceResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response for `GET /metrics/performance`. Spec schema: `MetricsPerformance`.
+
+Exposes top-level processed/delivered/bounced counts plus their
+time-series breakdowns under the `*Buckets` properties.
+
+### Public Properties
+
+- `readonly ?int $bounced`
+- `readonly ?array $bouncedBuckets`
+- `readonly ?int $delivered`
+- `readonly ?array $deliveredBuckets`
+- `readonly ?string $endTime`
+- `readonly ?int $processed`
+- `readonly ?array $processedBuckets`
+- `readonly ?string $startTime`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?string $startTime = null,
+    ?string $endTime = null,
+    ?int $processed = null,
+    ?int $delivered = null,
+    ?int $bounced = null,
+    ?array $processedBuckets = null,
+    ?array $deliveredBuckets = null,
+    ?array $bouncedBuckets = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$startTime` (`?string`)
+- `$endTime` (`?string`)
+- `$processed` (`?int`)
+- `$delivered` (`?int`)
+- `$bounced` (`?int`)
+- `$processedBuckets` (`list<MetricsBucket>|null`)
+- `$deliveredBuckets` (`list<MetricsBucket>|null`)
+- `$bouncedBuckets` (`list<MetricsBucket>|null`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
+
+
+## `MailChannels\Response\MetricsRecipientBehaviourResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response for `GET /metrics/recipient-behaviour`. Spec schema: `MetricsRecipientBehaviour`.
+
+Exposes top-level unsubscribe counts plus their time-series
+breakdowns under the `*Buckets` properties.
+
+### Public Properties
+
+- `readonly ?string $endTime`
+- `readonly ?string $startTime`
+- `readonly ?int $unsubscribeDelivered`
+- `readonly ?array $unsubscribeDeliveredBuckets`
+- `readonly ?int $unsubscribed`
+- `readonly ?array $unsubscribedBuckets`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?string $startTime = null,
+    ?string $endTime = null,
+    ?int $unsubscribed = null,
+    ?int $unsubscribeDelivered = null,
+    ?array $unsubscribedBuckets = null,
+    ?array $unsubscribeDeliveredBuckets = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$startTime` (`?string`)
+- `$endTime` (`?string`)
+- `$unsubscribed` (`?int`)
+- `$unsubscribeDelivered` (`?int`)
+- `$unsubscribedBuckets` (`list<MetricsBucket>|null`)
+- `$unsubscribeDeliveredBuckets` (`list<MetricsBucket>|null`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
+
+
+## `MailChannels\Response\MetricsSender`
+
+_final class_
+
+One entry in the `MetricsSenderResponse::$senders` list — a per-sender (campaign or sub-account, depending on `sender_type`) rollup of message outcomes during the queried time range.
+
+Plain value object — not a `Response` subclass.
+
+### Public Properties
+
+- `readonly ?int $bounced`
+- `readonly ?int $delivered`
+- `readonly ?int $dropped`
+- `readonly ?string $name`
+- `readonly ?int $processed`
+
+### Constructor
+
+```php
+public function __construct(
+    ?string $name = null,
+    ?int $processed = null,
+    ?int $delivered = null,
+    ?int $bounced = null,
+    ?int $dropped = null
+)
+```
+
+**Parameters:**
+- `$name` (`?string`)
+- `$processed` (`?int`)
+- `$delivered` (`?int`)
+- `$bounced` (`?int`)
+- `$dropped` (`?int`)
+
+### Methods
+
+#### `fromArray()`
+
+```php
+public static function fromArray(
+    array $data
+): self
+```
+
+**Parameters:**
+- `$data` (`array`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
+
+#### `jsonSerialize()`
+
+```php
+public function jsonSerialize(): array
+```
+
+**Returns:** `array<string,` — mixed>
+
+
+## `MailChannels\Response\MetricsSenderResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response for `GET /metrics/senders/{sender_type}`. Spec schema: `MetricsSenderResponse`.
+
+Differs from the time-series metrics endpoints: this one is a
+paginated list of per-sender rollups (`$senders`), not a bucketed
+time series. `$limit`/`$offset`/`$total` describe the pagination
+window.
+
+### Public Properties
+
+- `readonly ?string $endTime`
+- `readonly ?int $limit`
+- `readonly ?int $offset`
+- `readonly ?array $senders`
+- `readonly ?string $startTime`
+- `readonly ?int $total`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?string $startTime = null,
+    ?string $endTime = null,
+    ?int $limit = null,
+    ?int $offset = null,
+    ?int $total = null,
+    ?array $senders = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$startTime` (`?string`)
+- `$endTime` (`?string`)
+- `$limit` (`?int`)
+- `$offset` (`?int`)
+- `$total` (`?int`)
+- `$senders` (`list<MetricsSender>|null`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
+
+
+## `MailChannels\Response\MetricsVolumeResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response for `GET /metrics/volume`. Spec schema: `MetricsVolume`.
+
+Exposes top-level processed/delivered/dropped counts plus their
+time-series breakdowns under the `*Buckets` properties.
+
+### Public Properties
+
+- `readonly ?int $delivered`
+- `readonly ?array $deliveredBuckets`
+- `readonly ?int $dropped`
+- `readonly ?array $droppedBuckets`
+- `readonly ?string $endTime`
+- `readonly ?int $processed`
+- `readonly ?array $processedBuckets`
+- `readonly ?string $startTime`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?string $startTime = null,
+    ?string $endTime = null,
+    ?int $processed = null,
+    ?int $delivered = null,
+    ?int $dropped = null,
+    ?array $processedBuckets = null,
+    ?array $deliveredBuckets = null,
+    ?array $droppedBuckets = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$startTime` (`?string`)
+- `$endTime` (`?string`)
+- `$processed` (`?int`)
+- `$delivered` (`?int`)
+- `$dropped` (`?int`)
+- `$processedBuckets` (`list<MetricsBucket>|null`)
+- `$deliveredBuckets` (`list<MetricsBucket>|null`)
+- `$droppedBuckets` (`list<MetricsBucket>|null`)
 
 ### Methods
 
