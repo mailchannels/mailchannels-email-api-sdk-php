@@ -5,8 +5,8 @@ This reference is generated from public class signatures and PHPDoc blocks in `s
 For task-oriented examples, start with the [README](../README.md). This file is the formal public surface reference.
 
 - SDK version: `0.2.0`
-- Top-level exports: `49`
-- Documented public methods: `132`
+- Top-level exports: `53`
+- Documented public methods: `140`
 
 ## Top-Level Exports
 
@@ -35,6 +35,7 @@ For task-oriented examples, start with the [README](../README.md). This file is 
 | `MailChannels\Exception\NotFoundException` | exception |  |
 | `MailChannels\Exception\PayloadTooLargeException` | exception |  |
 | `MailChannels\Exception\RateLimitException` | exception |  |
+| `MailChannels\Exception\ResponseValidationException` | exception | Raised when the MailChannels API returns a 2xx response whose body doesn't match the SDK's expected shape for that endpoint (missing required fields or fields with the wrong type). |
 | `MailChannels\Exception\ServerException` | exception |  |
 | `MailChannels\Exception\TransportException` | exception |  |
 | `MailChannels\Exception\ValidationException` | exception |  |
@@ -56,7 +57,10 @@ For task-oriented examples, start with the [README](../README.md). This file is 
 | `MailChannels\Resource\Suppressions` | final class |  |
 | `MailChannels\Resource\Usage` | final class |  |
 | `MailChannels\Resource\Webhooks` | final class | Webhook subscription management. For inbound signature verification, see {@see \MailChannels\Webhook\Verifier} — those helpers are stateless and do not need a Client instance. |
-| `MailChannels\Response` | final class | Response object returned by SDK calls. Behaves as the decoded JSON body (array-accessible and iterable) while also exposing HTTP metadata. |
+| `MailChannels\Response` | class | Response object returned by SDK calls. Behaves as the decoded JSON body (array-accessible and iterable) while also exposing HTTP metadata. |
+| `MailChannels\Response\QueuedSendResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Emails::queue()} for the `/send-async` endpoint. The server queues the message and acks with a request id plus a queued-at timestamp — there is **no** message id at this point because delivery hasn't happened yet. The actual per-message identifiers arrive later via webhook events. |
+| `MailChannels\Response\ResponseValidator` | final class | Internal helpers used by typed response classes (`SendResponse`, `QueuedSendResponse`, etc.) to extract and type-validate fields out of the decoded response body. Missing fields become `null`; present fields with the wrong type throw {@see ResponseValidationException}. |
+| `MailChannels\Response\SendResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Emails::send()}. |
 | `MailChannels\Transport` | final class | Internal HTTP transport. Builds PSR-7 requests, sends them through a PSR-18 client, and decodes responses into MailChannels\Response — or raises a typed exception from the MailChannels\Exception namespace. |
 | `MailChannels\Version` | final class |  |
 | `MailChannels\Webhook\SignatureParameters` | final class | Parsed RFC 9421 Signature-Input header parameters. |
@@ -475,6 +479,16 @@ _exception_ — extends [`MailChannels\Exception\ApiException`](#mailchannelsexc
 ## `MailChannels\Exception\RateLimitException`
 
 _exception_ — extends [`MailChannels\Exception\ApiException`](#mailchannelsexceptionapiexception)
+
+
+## `MailChannels\Exception\ResponseValidationException`
+
+_exception_ — extends [`MailChannels\Exception\MailChannelsException`](#mailchannelsexceptionmailchannelsexception)
+
+Raised when the MailChannels API returns a 2xx response whose body doesn't match the SDK's expected shape for that endpoint (missing required fields or fields with the wrong type).
+
+Distinct from {@see ValidationException}, which is raised pre-flight when
+the *request* payload built by the caller is malformed.
 
 
 ## `MailChannels\Exception\ServerException`
@@ -1053,7 +1067,7 @@ public static function normalize(
 ```php
 public function queue(
     MailChannels\Message\EmailParams|array $params
-): MailChannels\Response
+): MailChannels\Response\QueuedSendResponse
 ```
 
 Queue an email through `/send-async`. The server queues the message and returns a message ID immediately; delivery happens later. This is server-side async — it does NOT make the HTTP call itself async.
@@ -1061,7 +1075,7 @@ Queue an email through `/send-async`. The server queues the message and returns 
 **Parameters:**
 - `$params` (`MailChannels\Message\EmailParams|array`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\QueuedSendResponse`
 
 #### `send()`
 
@@ -1069,14 +1083,14 @@ Queue an email through `/send-async`. The server queues the message and returns 
 public function send(
     MailChannels\Message\EmailParams|array $params,
     bool $dryRun = false
-): MailChannels\Response
+): MailChannels\Response\SendResponse
 ```
 
 **Parameters:**
 - `$params` (`MailChannels\Message\EmailParams|array`)
 - `$dryRun` (`bool`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\SendResponse`
 
 
 ## `MailChannels\Resource\Metrics`
@@ -1696,9 +1710,13 @@ Validate that an endpoint is a well-formed http(s) URL. MailChannels delivers we
 
 ## `MailChannels\Response`
 
-_final class_
+_class_
 
 Response object returned by SDK calls. Behaves as the decoded JSON body (array-accessible and iterable) while also exposing HTTP metadata.
+
+Subclassed by per-endpoint typed responses under `MailChannels\Response\`
+(e.g. {@see \MailChannels\Response\SendResponse}) — those add typed
+properties on top of the array-accessible base.
 
 ### Public Properties
 
@@ -1839,6 +1857,182 @@ public function toArray(): array
 ```
 
 **Returns:** `array<string,` — mixed>
+
+
+## `MailChannels\Response\QueuedSendResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response returned by {@see \MailChannels\Resource\Emails::queue()} for the `/send-async` endpoint. The server queues the message and acks with a request id plus a queued-at timestamp — there is **no** message id at this point because delivery hasn't happened yet. The actual per-message identifiers arrive later via webhook events.
+
+Inherits {@see Response}'s array-access, HTTP-metadata, and raw-body
+helpers. `requestId()` is overridden to check the body's `request_id`
+field first, falling back to header inspection.
+
+### Public Properties
+
+- `readonly ?string $queuedAt`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?string $queuedAt = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$queuedAt` (`?string`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+Build a QueuedSendResponse from a generic {@see Response}, validating field types as it goes.
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
+
+#### `requestId()`
+
+```php
+public function requestId(): ?string
+```
+
+**Returns:** `?string`
+
+
+## `MailChannels\Response\ResponseValidator`
+
+_final class_
+
+Internal helpers used by typed response classes (`SendResponse`, `QueuedSendResponse`, etc.) to extract and type-validate fields out of the decoded response body. Missing fields become `null`; present fields with the wrong type throw {@see ResponseValidationException}.
+
+### Methods
+
+#### `asNullableListOfArrays()`
+
+```php
+public static function asNullableListOfArrays(
+    array $body,
+    string $key
+): ?array
+```
+
+**Parameters:**
+- `$body` (`array`)
+- `$key` (`string`)
+
+**Returns:** `list<array<string,` — mixed>>|null
+
+#### `asNullableString()`
+
+```php
+public static function asNullableString(
+    array $body,
+    string $key
+): ?string
+```
+
+**Parameters:**
+- `$body` (`array`)
+- `$key` (`string`)
+
+**Returns:** `?string`
+
+
+## `MailChannels\Response\SendResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response returned by {@see \MailChannels\Resource\Emails::send()}.
+
+Covers both the normal `/send` success body (`message_id` + optional
+per-recipient `results`) and the dry-run body (a `data` list of rendered
+messages). All typed fields are nullable because the API omits a given
+field whenever it doesn't apply to that response shape.
+
+Inherits {@see Response}'s array-access, HTTP-metadata, and raw-body
+helpers — `$response['message_id']`, `$response->statusCode`,
+`$response->headers`, and `$response->requestId()` all keep working.
+`requestId()` is overridden here to check the response body's
+`request_id` field before falling back to header inspection.
+
+### Public Properties
+
+- `readonly ?array $dryRunData`
+- `readonly ?string $messageId`
+- `readonly ?array $results`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?string $messageId = null,
+    ?array $results = null,
+    ?array $dryRunData = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$messageId` (`?string`)
+- `$results` (`?array`)
+- `$dryRunData` (`?array`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+Build a SendResponse from a generic {@see Response}, validating field types as it goes.
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are not errors — they're nulled out so callers can branch on `dryRunData !== null` etc.
+
+#### `requestId()`
+
+```php
+public function requestId(): ?string
+```
+
+**Returns:** `?string`
 
 
 ## `MailChannels\Transport`

@@ -31,7 +31,7 @@ $oneClick = $client->emails->queue([
         ],
     ],
 ]);
-echo "Queued one-click unsubscribe message: message_id={$oneClick->get('message_id')}\n";
+echo "Queued one-click unsubscribe message at {$oneClick->queuedAt}\n";
 
 // Approach 2 — let MailChannels add RFC 8058 List-Unsubscribe and
 // List-Unsubscribe-Post headers automatically. Marketing/promotional sends
@@ -49,4 +49,4 @@ $listHeaders = $client->emails->queue([
     'text' => 'Hello',
     'transactional' => false,
 ]);
-echo "Queued List-Unsubscribe message: message_id={$listHeaders->get('message_id')}\n";
+echo "Queued List-Unsubscribe message at {$listHeaders->queuedAt}\n";

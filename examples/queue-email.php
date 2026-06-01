@@ -16,6 +16,10 @@ $client = new Client(apiKey: $apiKey);
 
 // /send-async returns immediately; delivery happens asynchronously on the
 // MailChannels side. Use this for high-throughput senders.
+//
+// The ack carries a request id and a queued-at timestamp — not a message
+// id (the message hasn't been delivered yet). Per-message identifiers
+// arrive later via webhook events.
 $response = $client->emails->queue([
     'from'    => ['email' => 'sender@example.com'],
     'to'      => 'recipient@example.net',
@@ -23,4 +27,4 @@ $response = $client->emails->queue([
     'html'    => '<strong>Hello from MailChannels</strong>',
 ]);
 
-echo "Queued with message_id={$response->get('message_id')}\n";
+echo "Queued at={$response->queuedAt} request_id={$response->requestId()}\n";

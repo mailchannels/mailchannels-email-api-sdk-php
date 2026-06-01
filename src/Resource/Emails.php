@@ -11,7 +11,8 @@ use MailChannels\Message\EmailAddress;
 use MailChannels\Message\EmailHeaders;
 use MailChannels\Message\EmailParams;
 use MailChannels\Message\Personalization;
-use MailChannels\Response;
+use MailChannels\Response\QueuedSendResponse;
+use MailChannels\Response\SendResponse;
 
 /**
  * `POST /send` and `POST /send-async`.
@@ -23,12 +24,14 @@ use MailChannels\Response;
 final class Emails extends AbstractResource
 {
     /** @param EmailParams|array<string, mixed> $params */
-    public function send(EmailParams|array $params, bool $dryRun = false): Response
+    public function send(EmailParams|array $params, bool $dryRun = false): SendResponse
     {
         $payload = self::normalize($params);
         $query = $dryRun ? ['dry-run' => 'true'] : null;
         $this->client->config()->logger->info('Sending email through MailChannels', ['dry_run' => $dryRun]);
-        return $this->request('POST', '/send', $payload, $query);
+        return SendResponse::fromResponse(
+            $this->request('POST', '/send', $payload, $query),
+        );
     }
 
     /**
@@ -38,11 +41,13 @@ final class Emails extends AbstractResource
      *
      * @param EmailParams|array<string, mixed> $params
      */
-    public function queue(EmailParams|array $params): Response
+    public function queue(EmailParams|array $params): QueuedSendResponse
     {
         $payload = self::normalize($params);
         $this->client->config()->logger->info('Queueing email through MailChannels /send-async');
-        return $this->request('POST', '/send-async', $payload);
+        return QueuedSendResponse::fromResponse(
+            $this->request('POST', '/send-async', $payload),
+        );
     }
 
     /**

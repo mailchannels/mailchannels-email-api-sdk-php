@@ -6,6 +6,29 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+- `Resource\Emails::send()` now returns `MailChannels\Response\SendResponse`
+  and `Resource\Emails::queue()` now returns
+  `MailChannels\Response\QueuedSendResponse`. Both extend the existing
+  `MailChannels\Response`, so array-access (`$response['message_id']`),
+  iteration, and HTTP-metadata helpers continue to work; the new classes
+  add typed properties — `SendResponse` exposes `$messageId`, `$results`,
+  `$dryRunData`; `QueuedSendResponse` exposes `$queuedAt` (no message id
+  because `/send-async` returns a queue ack before delivery; the per-
+  message identifiers arrive via webhook events). `requestId()` is
+  overridden on both subclasses to prefer the response body's
+  `request_id` field over HTTP headers when present.
+- `MailChannels\Response` is no longer `final` so per-endpoint typed
+  responses can extend it.
+
+### Added
+- `MailChannels\Response\SendResponse` and
+  `MailChannels\Response\QueuedSendResponse` typed-response value objects
+  for `/send` (normal + dry-run) and `/send-async`.
+- `MailChannels\Exception\ResponseValidationException` raised when a 2xx
+  response body has a field of the wrong type. Missing fields are nulled,
+  not errors — strictness only fires on type mismatches.
+
 ## [0.2.0] - 2026-05-29
 
 ### Added

@@ -13,10 +13,14 @@ use Traversable;
  * Response object returned by SDK calls. Behaves as the decoded JSON body
  * (array-accessible and iterable) while also exposing HTTP metadata.
  *
+ * Subclassed by per-endpoint typed responses under `MailChannels\Response\`
+ * (e.g. {@see \MailChannels\Response\SendResponse}) — those add typed
+ * properties on top of the array-accessible base.
+ *
  * @implements ArrayAccess<string, mixed>
  * @implements IteratorAggregate<string, mixed>
  */
-final class Response implements ArrayAccess, IteratorAggregate, Countable
+class Response implements ArrayAccess, IteratorAggregate, Countable
 {
     /**
      * @param array<string, mixed> $data Decoded response body (or wrapped list under `data`).

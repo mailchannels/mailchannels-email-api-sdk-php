@@ -3,6 +3,63 @@
 This document covers SDK behavior that is useful in production code but too
 detailed for the README quick path.
 
+## Typed Responses
+
+Resource methods that have a stable, documented response shape return a
+typed value object instead of the generic `MailChannels\Response`. The
+typed classes extend `Response`, so array access, iteration, and HTTP
+metadata (`statusCode`, `headers`, `rawBody`, `requestId()`) all keep
+working — typed properties are layered on top.
+
+```php
+use MailChannels\Response\SendResponse;
+
+$response = $client->emails->send($params);
+// Static return type: SendResponse (a subclass of Response).
+
+echo $response->messageId;             // typed string|null
+echo $response->statusCode;            // inherited from Response
+echo $response->requestId();           // inherited; checks body's
+                                       // request_id first, then headers
+print_r($response->results);           // typed: list<array<string,mixed>>|null
+print_r($response['message_id']);      // array access still works
+```
+
+The typed properties are nullable because the API omits a given field
+whenever it doesn't apply to that response shape — for example, `/send`
+in normal mode populates `messageId` and `results`, while dry-run mode
+populates `dryRunData` instead. Branch on which one is non-null.
+
+Currently typed: `Emails::send()` → `SendResponse`,
+`Emails::queue()` → `QueuedSendResponse`. Other endpoints still return
+the generic `Response` for now.
+
+### Response validation
+
+When a typed response is constructed, the SDK validates the *type* of
+every modeled field that's present in the body. If, say,
+`message_id` arrives as an array instead of a string, the SDK throws
+`MailChannels\Exception\ResponseValidationException`. **Missing fields
+are not errors** — they're nulled out, so the SDK stays forward-
+compatible when the API adds or omits optional fields.
+
+```php
+use MailChannels\Exception\ResponseValidationException;
+
+try {
+    $response = $client->emails->send($params);
+} catch (ResponseValidationException $e) {
+    // The HTTP call succeeded but the response shape doesn't match the
+    // SDK's model — usually a sign of a server-side API regression.
+    $myLogger->error('MailChannels response shape mismatch', $e->toArray());
+    throw $e;
+}
+```
+
+This is distinct from `MailChannels\Exception\ValidationException`,
+which fires *pre-flight* when the request payload your code passed in
+is malformed.
+
 ## Version And User-Agent
 
 The package exports its version so applications can log it at startup or
