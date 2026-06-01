@@ -57,6 +57,25 @@ final class ResponseValidator
     }
 
     /** @param array<string, mixed> $body */
+    public static function asNullableBool(array $body, string $key): ?bool
+    {
+        if (!array_key_exists($key, $body)) {
+            return null;
+        }
+        $value = $body[$key];
+        if ($value === null) {
+            return null;
+        }
+        if (!is_bool($value)) {
+            throw new ResponseValidationException(
+                "Response field '{$key}' must be a bool; got " . get_debug_type($value) . '.',
+                errorCode: 'InvalidResponseShape',
+            );
+        }
+        return $value;
+    }
+
+    /** @param array<string, mixed> $body */
     public static function asNullableInt(array $body, string $key): ?int
     {
         if (!array_key_exists($key, $body)) {

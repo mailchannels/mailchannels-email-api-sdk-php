@@ -7,6 +7,11 @@ namespace MailChannels\Resource;
 use MailChannels\Enum\WebhookBatchStatus;
 use MailChannels\Exception\ValidationException;
 use MailChannels\Response;
+use MailChannels\Response\WebhookBatchListResponse;
+use MailChannels\Response\WebhookListResponse;
+use MailChannels\Response\WebhookPublicKeyResponse;
+use MailChannels\Response\WebhookResendResponse;
+use MailChannels\Response\WebhookValidationResultsResponse;
 
 /**
  * Webhook subscription management. For inbound signature verification, see
@@ -15,9 +20,9 @@ use MailChannels\Response;
  */
 final class Webhooks extends AbstractResource
 {
-    public function list(): Response
+    public function list(): WebhookListResponse
     {
-        return $this->request('GET', '/webhook');
+        return WebhookListResponse::fromResponse($this->request('GET', '/webhook'));
     }
 
     public function create(string $endpoint): Response
@@ -65,7 +70,7 @@ final class Webhooks extends AbstractResource
         ?string $webhook = null,
         ?int $limit = null,
         ?int $offset = null,
-    ): Response {
+    ): WebhookBatchListResponse {
         $resolvedStatuses = $statuses === null ? null : array_map(
             static fn ($s) => $s instanceof WebhookBatchStatus ? $s->value : (string) $s,
             $statuses,
@@ -78,38 +83,46 @@ final class Webhooks extends AbstractResource
             'limit' => $limit,
             'offset' => $offset,
         ]);
-        return $this->request('GET', '/webhook-batch', null, $query);
+        return WebhookBatchListResponse::fromResponse(
+            $this->request('GET', '/webhook-batch', null, $query),
+        );
     }
 
     /**
      * `POST /webhook-batch/{batch_id}/resend`. Uses `X-Customer-Handle`
      * header for authentication instead of an API key.
      */
-    public function resendBatch(int $batchId, string $customerHandle): Response
+    public function resendBatch(int $batchId, string $customerHandle): WebhookResendResponse
     {
         $this->client->config()->logger->info('Resending webhook batch', [
             'batch_id' => $batchId,
             'customer_handle' => $customerHandle,
         ]);
-        return $this->request(
-            'POST',
-            "/webhook-batch/{$batchId}/resend",
-            null,
-            null,
-            ['X-Customer-Handle' => $customerHandle],
-            requireApiKey: false,
+        return WebhookResendResponse::fromResponse(
+            $this->request(
+                'POST',
+                "/webhook-batch/{$batchId}/resend",
+                null,
+                null,
+                ['X-Customer-Handle' => $customerHandle],
+                requireApiKey: false,
+            ),
         );
     }
 
     /** `GET /webhook/public-key?id=...` — does not require an API key. */
-    public function publicKey(string $keyId): Response
+    public function publicKey(string $keyId): WebhookPublicKeyResponse
     {
-        return $this->request('GET', '/webhook/public-key', null, ['id' => $keyId], requireApiKey: false);
+        return WebhookPublicKeyResponse::fromResponse(
+            $this->request('GET', '/webhook/public-key', null, ['id' => $keyId], requireApiKey: false),
+        );
     }
 
-    public function validate(?string $requestId = null): Response
+    public function validate(?string $requestId = null): WebhookValidationResultsResponse
     {
         $payload = self::compactOrNull(['request_id' => $requestId]);
-        return $this->request('POST', '/webhook/validate', $payload);
+        return WebhookValidationResultsResponse::fromResponse(
+            $this->request('POST', '/webhook/validate', $payload),
+        );
     }
 }

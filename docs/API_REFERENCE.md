@@ -76,6 +76,16 @@ For task-oriented examples, start with the [README](../README.md). This file is 
 | `MailChannels\Response\SuppressionEntry` | final class | One suppression list entry returned by `/suppression-list`. |
 | `MailChannels\Response\SuppressionListResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Suppressions::list()} and {@see \MailChannels\Resource\Suppressions::create()}. |
 | `MailChannels\Response\UsageResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Usage::retrieve()}. |
+| `MailChannels\Response\WebhookBatch` | final class | One webhook batch record returned in {@see WebhookBatchListResponse::$webhookBatches}. Spec schema: `WebhookBatch`. |
+| `MailChannels\Response\WebhookBatchDuration` | final class | Duration of a webhook batch attempt — how long the receiving endpoint took to respond. Spec schema: `WebhookBatchDuration`. `$unit` is always `"milliseconds"` today but is exposed as a string for forward- compat in case the API ever adds other units. |
+| `MailChannels\Response\WebhookBatchListResponse` | final class | Typed response for `GET /webhook-batch`. Spec schema: `WebhookBatchResult`. Wraps a list of {@see WebhookBatch} entries under the `webhook_batches` JSON key. |
+| `MailChannels\Response\WebhookEndpointResponse` | final class | The HTTP response MailChannels received from a customer's webhook endpoint during a validation test. Spec schema: `WebhookResponse` (renamed in the SDK to avoid colliding with the SDK's own {@see \MailChannels\Response}). |
+| `MailChannels\Response\WebhookListResponse` | final class | Typed response for `GET /webhook`. The API returns a bare JSON array of {@see WebhookSubscription} entries (no envelope); the SDK's {@see \MailChannels\Transport} wraps bare arrays under the `data` key in the decoded body, and this class extracts the typed list from there. |
+| `MailChannels\Response\WebhookPublicKeyResponse` | final class | Typed response for `GET /webhook/public-key`. Spec schema: `Key`. |
+| `MailChannels\Response\WebhookResendResponse` | final class | Typed response for `POST /webhook-batch/{batch_id}/resend`. Spec schema: `WebhookResendResponse`. |
+| `MailChannels\Response\WebhookSubscription` | final class | One enrolled webhook subscription entry returned by `GET /webhook`. Spec schema: `Webhook` (renamed in the SDK to avoid confusion with {@see \MailChannels\Resource\Webhooks}). |
+| `MailChannels\Response\WebhookValidationResult` | final class | One per-webhook entry in {@see WebhookValidationResultsResponse::$results}. Spec schema: `WebhookValidationResult`. |
+| `MailChannels\Response\WebhookValidationResultsResponse` | final class | Typed response for `POST /webhook/validate`. Spec schema: `WebhookValidationResults`. |
 | `MailChannels\Transport` | final class | Internal HTTP transport. Builds PSR-7 requests, sends them through a PSR-18 client, and decodes responses into MailChannels\Response — or raises a typed exception from the MailChannels\Exception namespace. |
 | `MailChannels\Version` | final class |  |
 | `MailChannels\Webhook\SignatureParameters` | final class | Parsed RFC 9421 Signature-Input header parameters. |
@@ -1620,7 +1630,7 @@ public function batches(
     ?string $webhook = null,
     ?int $limit = null,
     ?int $offset = null
-): MailChannels\Response
+): MailChannels\Response\WebhookBatchListResponse
 ```
 
 **Parameters:**
@@ -1631,7 +1641,7 @@ public function batches(
 - `$limit` (`?int`)
 - `$offset` (`?int`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\WebhookBatchListResponse`
 
 #### `create()`
 
@@ -1657,17 +1667,17 @@ public function deleteAll(): MailChannels\Response
 #### `list()`
 
 ```php
-public function list(): MailChannels\Response
+public function list(): MailChannels\Response\WebhookListResponse
 ```
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\WebhookListResponse`
 
 #### `publicKey()`
 
 ```php
 public function publicKey(
     string $keyId
-): MailChannels\Response
+): MailChannels\Response\WebhookPublicKeyResponse
 ```
 
 `GET /webhook/public-key?id=...` — does not require an API key.
@@ -1675,7 +1685,7 @@ public function publicKey(
 **Parameters:**
 - `$keyId` (`string`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\WebhookPublicKeyResponse`
 
 #### `resendBatch()`
 
@@ -1683,7 +1693,7 @@ public function publicKey(
 public function resendBatch(
     int $batchId,
     string $customerHandle
-): MailChannels\Response
+): MailChannels\Response\WebhookResendResponse
 ```
 
 `POST /webhook-batch/{batch_id}/resend`. Uses `X-Customer-Handle` header for authentication instead of an API key.
@@ -1692,20 +1702,20 @@ public function resendBatch(
 - `$batchId` (`int`)
 - `$customerHandle` (`string`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\WebhookResendResponse`
 
 #### `validate()`
 
 ```php
 public function validate(
     ?string $requestId = null
-): MailChannels\Response
+): MailChannels\Response\WebhookValidationResultsResponse
 ```
 
 **Parameters:**
 - `$requestId` (`?string`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\WebhookValidationResultsResponse`
 
 #### `validateEndpoint()`
 
@@ -3027,6 +3037,604 @@ public static function fromResponse(
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
+
+
+## `MailChannels\Response\WebhookBatch`
+
+_final class_
+
+One webhook batch record returned in {@see WebhookBatchListResponse::$webhookBatches}. Spec schema: `WebhookBatch`.
+
+`$status` carries the response-form enum (`1xx_response` /
+`2xx_response` / ... / `no_response`) — distinct from the query-form
+filter used by {@see \MailChannels\Enum\WebhookBatchStatus} (which
+lacks the `_response` suffix). Exposed as a plain string here to
+mirror the wire value exactly.
+
+Plain value object — not a `Response` subclass.
+
+### Public Properties
+
+- `readonly ?int $batchId`
+- `readonly ?string $createdAt`
+- `readonly ?string $customerHandle`
+- `readonly ?MailChannels\Response\WebhookBatchDuration $duration`
+- `readonly ?int $eventCount`
+- `readonly ?string $status`
+- `readonly ?int $statusCode`
+- `readonly ?string $webhook`
+
+### Constructor
+
+```php
+public function __construct(
+    ?int $batchId = null,
+    ?string $customerHandle = null,
+    ?string $webhook = null,
+    ?string $status = null,
+    ?int $statusCode = null,
+    ?int $eventCount = null,
+    ?string $createdAt = null,
+    ?MailChannels\Response\WebhookBatchDuration $duration = null
+)
+```
+
+**Parameters:**
+- `$batchId` (`?int`)
+- `$customerHandle` (`?string`)
+- `$webhook` (`?string`)
+- `$status` (`?string`)
+- `$statusCode` (`?int`)
+- `$eventCount` (`?int`)
+- `$createdAt` (`?string`)
+- `$duration` (`?MailChannels\Response\WebhookBatchDuration`)
+
+### Methods
+
+#### `fromArray()`
+
+```php
+public static function fromArray(
+    array $data
+): self
+```
+
+**Parameters:**
+- `$data` (`array`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type.
+
+#### `jsonSerialize()`
+
+```php
+public function jsonSerialize(): array
+```
+
+**Returns:** `array<string,` — mixed>
+
+
+## `MailChannels\Response\WebhookBatchDuration`
+
+_final class_
+
+Duration of a webhook batch attempt — how long the receiving endpoint took to respond. Spec schema: `WebhookBatchDuration`. `$unit` is always `"milliseconds"` today but is exposed as a string for forward- compat in case the API ever adds other units.
+
+Plain value object — not a `Response` subclass.
+
+### Public Properties
+
+- `readonly ?string $unit`
+- `readonly ?int $value`
+
+### Constructor
+
+```php
+public function __construct(
+    ?int $value = null,
+    ?string $unit = null
+)
+```
+
+**Parameters:**
+- `$value` (`?int`)
+- `$unit` (`?string`)
+
+### Methods
+
+#### `fromArray()`
+
+```php
+public static function fromArray(
+    array $data
+): self
+```
+
+**Parameters:**
+- `$data` (`array`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type.
+
+#### `jsonSerialize()`
+
+```php
+public function jsonSerialize(): array
+```
+
+**Returns:** `array<string,` — mixed>
+
+
+## `MailChannels\Response\WebhookBatchListResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response for `GET /webhook-batch`. Spec schema: `WebhookBatchResult`. Wraps a list of {@see WebhookBatch} entries under the `webhook_batches` JSON key.
+
+### Public Properties
+
+- `readonly ?array $webhookBatches`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?array $webhookBatches = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$webhookBatches` (`list<WebhookBatch>|null`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type.
+
+
+## `MailChannels\Response\WebhookEndpointResponse`
+
+_final class_
+
+The HTTP response MailChannels received from a customer's webhook endpoint during a validation test. Spec schema: `WebhookResponse` (renamed in the SDK to avoid colliding with the SDK's own {@see \MailChannels\Response}).
+
+A null status indicates no response was received (timeout, connection
+failure, etc.).
+
+Plain value object — not a `Response` subclass.
+
+### Public Properties
+
+- `readonly ?string $body`
+- `readonly ?int $status`
+
+### Constructor
+
+```php
+public function __construct(
+    ?int $status = null,
+    ?string $body = null
+)
+```
+
+**Parameters:**
+- `$status` (`?int`)
+- `$body` (`?string`)
+
+### Methods
+
+#### `fromArray()`
+
+```php
+public static function fromArray(
+    array $data
+): self
+```
+
+**Parameters:**
+- `$data` (`array`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type.
+
+#### `jsonSerialize()`
+
+```php
+public function jsonSerialize(): array
+```
+
+**Returns:** `array<string,` — mixed>
+
+
+## `MailChannels\Response\WebhookListResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response for `GET /webhook`. The API returns a bare JSON array of {@see WebhookSubscription} entries (no envelope); the SDK's {@see \MailChannels\Transport} wraps bare arrays under the `data` key in the decoded body, and this class extracts the typed list from there.
+
+```php
+foreach ($client->webhooks->list()->webhooks ?? [] as $sub) {
+    echo $sub->webhook, "\n";
+}
+```
+
+### Public Properties
+
+- `readonly ?array $webhooks`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?array $webhooks = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$webhooks` (`list<WebhookSubscription>|null`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type.
+
+
+## `MailChannels\Response\WebhookPublicKeyResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response for `GET /webhook/public-key`. Spec schema: `Key`.
+
+`$id` is the key identifier referenced by the `keyid` parameter in
+webhook signature headers; `$key` is the public key body (typically
+base64-encoded Ed25519) used by
+{@see \MailChannels\Webhook\Verifier} to verify inbound signatures.
+
+### Public Properties
+
+- `readonly ?string $id`
+- `readonly ?string $key`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?string $id = null,
+    ?string $key = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$id` (`?string`)
+- `$key` (`?string`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type.
+
+
+## `MailChannels\Response\WebhookResendResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response for `POST /webhook-batch/{batch_id}/resend`. Spec schema: `WebhookResendResponse`.
+
+Similar in shape to {@see WebhookBatch} but flatter: duration is
+inlined as `$durationInMs` (nullable int when no response was
+received) instead of a nested object, and there's no top-level
+`status` enum.
+
+Note: the body field `status_code` (the HTTP status returned by the
+customer's webhook endpoint during the resend) is exposed as
+`$webhookStatusCode` rather than `$statusCode` to avoid shadowing
+the inherited {@see Response::$statusCode} (which is MailChannels'
+own HTTP response status for this SDK call).
+
+### Public Properties
+
+- `readonly ?int $batchId`
+- `readonly ?string $createdAt`
+- `readonly ?string $customerHandle`
+- `readonly ?int $durationInMs`
+- `readonly ?int $eventCount`
+- `readonly ?string $webhook`
+- `readonly ?int $webhookStatusCode`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?int $batchId = null,
+    ?string $customerHandle = null,
+    ?string $webhook = null,
+    ?int $webhookStatusCode = null,
+    ?int $eventCount = null,
+    ?int $durationInMs = null,
+    ?string $createdAt = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$batchId` (`?int`)
+- `$customerHandle` (`?string`)
+- `$webhook` (`?string`)
+- `$webhookStatusCode` (`?int`)
+- `$eventCount` (`?int`)
+- `$durationInMs` (`?int`)
+- `$createdAt` (`?string`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type.
+
+
+## `MailChannels\Response\WebhookSubscription`
+
+_final class_
+
+One enrolled webhook subscription entry returned by `GET /webhook`. Spec schema: `Webhook` (renamed in the SDK to avoid confusion with {@see \MailChannels\Resource\Webhooks}).
+
+Plain value object — not a `Response` subclass.
+
+### Public Properties
+
+- `readonly ?string $webhook`
+
+### Constructor
+
+```php
+public function __construct(
+    ?string $webhook = null
+)
+```
+
+**Parameters:**
+- `$webhook` (`?string`)
+
+### Methods
+
+#### `fromArray()`
+
+```php
+public static function fromArray(
+    array $data
+): self
+```
+
+**Parameters:**
+- `$data` (`array`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type.
+
+#### `jsonSerialize()`
+
+```php
+public function jsonSerialize(): array
+```
+
+**Returns:** `array<string,` — mixed>
+
+
+## `MailChannels\Response\WebhookValidationResult`
+
+_final class_
+
+One per-webhook entry in {@see WebhookValidationResultsResponse::$results}. Spec schema: `WebhookValidationResult`.
+
+`$result` is `"passed"` when the endpoint returned a 2xx during the
+validation test, `"failed"` otherwise. `$response` carries the actual
+HTTP response MailChannels received.
+
+Plain value object — not a `Response` subclass.
+
+### Public Properties
+
+- `readonly ?MailChannels\Response\WebhookEndpointResponse $response`
+- `readonly ?string $result`
+- `readonly ?string $webhook`
+
+### Constructor
+
+```php
+public function __construct(
+    ?string $webhook = null,
+    ?string $result = null,
+    ?MailChannels\Response\WebhookEndpointResponse $response = null
+)
+```
+
+**Parameters:**
+- `$webhook` (`?string`)
+- `$result` (`?string`)
+- `$response` (`?MailChannels\Response\WebhookEndpointResponse`)
+
+### Methods
+
+#### `fromArray()`
+
+```php
+public static function fromArray(
+    array $data
+): self
+```
+
+**Parameters:**
+- `$data` (`array`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type.
+
+#### `jsonSerialize()`
+
+```php
+public function jsonSerialize(): array
+```
+
+**Returns:** `array<string,` — mixed>
+
+
+## `MailChannels\Response\WebhookValidationResultsResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response for `POST /webhook/validate`. Spec schema: `WebhookValidationResults`.
+
+`$allPassed` is true when every enrolled webhook returned a 2xx HTTP
+status during the validation test. `$results` carries the per-
+webhook outcomes including the actual HTTP response MailChannels
+received from each endpoint.
+
+```php
+$results = $client->webhooks->validate();
+if ($results->allPassed !== true) {
+    foreach ($results->results ?? [] as $r) {
+        if ($r->result === 'failed') {
+            echo $r->webhook, ' failed: HTTP ', $r->response?->status, "\n";
+        }
+    }
+}
+```
+
+### Public Properties
+
+- `readonly ?bool $allPassed`
+- `readonly ?array $results`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?bool $allPassed = null,
+    ?array $results = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$allPassed` (`?bool`)
+- `$results` (`list<WebhookValidationResult>|null`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type.
 
 
 ## `MailChannels\Transport`
