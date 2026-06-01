@@ -57,6 +57,64 @@ final class ResponseValidator
 
     /**
      * @param array<string, mixed> $body
+     * @return array<string, mixed>|null
+     */
+    public static function asNullableAssocArray(array $body, string $key): ?array
+    {
+        if (!array_key_exists($key, $body)) {
+            return null;
+        }
+        $value = $body[$key];
+        if ($value === null) {
+            return null;
+        }
+        if (!is_array($value) || array_is_list($value)) {
+            throw new ResponseValidationException(
+                "Response field '{$key}' must be an associative array; got " . get_debug_type($value) . '.',
+                errorCode: 'InvalidResponseShape',
+            );
+        }
+        $out = [];
+        foreach ($value as $k => $v) {
+            $out[(string) $k] = $v;
+        }
+        return $out;
+    }
+
+    /**
+     * @param array<string, mixed> $body
+     * @return list<string>|null
+     */
+    public static function asNullableListOfStrings(array $body, string $key): ?array
+    {
+        if (!array_key_exists($key, $body)) {
+            return null;
+        }
+        $value = $body[$key];
+        if ($value === null) {
+            return null;
+        }
+        if (!is_array($value) || !array_is_list($value)) {
+            throw new ResponseValidationException(
+                "Response field '{$key}' must be a list; got " . get_debug_type($value) . '.',
+                errorCode: 'InvalidResponseShape',
+            );
+        }
+        $out = [];
+        foreach ($value as $i => $item) {
+            if (!is_string($item)) {
+                throw new ResponseValidationException(
+                    "Response field '{$key}'[{$i}] must be a string; got " . get_debug_type($item) . '.',
+                    errorCode: 'InvalidResponseShape',
+                );
+            }
+            $out[] = $item;
+        }
+        return $out;
+    }
+
+    /**
+     * @param array<string, mixed> $body
      * @return list<array<string, mixed>>|null
      */
     public static function asNullableListOfArrays(array $body, string $key): ?array

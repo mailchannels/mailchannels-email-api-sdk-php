@@ -58,6 +58,7 @@ For task-oriented examples, start with the [README](../README.md). This file is 
 | `MailChannels\Resource\Usage` | final class |  |
 | `MailChannels\Resource\Webhooks` | final class | Webhook subscription management. For inbound signature verification, see {@see \MailChannels\Webhook\Verifier} — those helpers are stateless and do not need a Client instance. |
 | `MailChannels\Response` | class | Response object returned by SDK calls. Behaves as the decoded JSON body (array-accessible and iterable) while also exposing HTTP metadata. |
+| `MailChannels\Response\CheckDomainResponse` | final class | Typed response returned by {@see \MailChannels\Resource\CheckDomain::check()}. |
 | `MailChannels\Response\QueuedSendResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Emails::queue()} for the `/send-async` endpoint. The server queues the message and acks with a request id plus a queued-at timestamp — there is **no** message id at this point because delivery hasn't happened yet. The actual per-message identifiers arrive later via webhook events. |
 | `MailChannels\Response\SendResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Emails::send()}. |
 | `MailChannels\Response\UsageResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Usage::retrieve()}. |
@@ -943,7 +944,7 @@ public function check(
     string $domain,
     ?string $senderId = null,
     ?array $dkimSettings = null
-): MailChannels\Response
+): MailChannels\Response\CheckDomainResponse
 ```
 
 **Parameters:**
@@ -951,7 +952,7 @@ public function check(
 - `$senderId` (`?string`)
 - `$dkimSettings` (`?array`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\CheckDomainResponse`
 
 
 ## `MailChannels\Resource\Dkim`
@@ -1857,6 +1858,77 @@ public function toArray(): array
 ```
 
 **Returns:** `array<string,` — mixed>
+
+
+## `MailChannels\Response\CheckDomainResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response returned by {@see \MailChannels\Resource\CheckDomain::check()}.
+
+The `/check-domain` endpoint returns deeply nested verdict data — DKIM
+results (one per selector), SPF status, Domain Lockdown verdict, and
+sender-domain DNS (A/MX) checks. The SDK exposes the top-level grouping
+as `$checkResults` (an associative array preserving the API's shape)
+and `$references` (documentation URLs the API points at). Drill into
+the verdicts via array access:
+
+```php
+$r = $client->checkDomain->check('example.com');
+echo $r->checkResults['spf']['verdict'];                // 'passed' | 'failed'
+echo $r->checkResults['domain_lockdown']['verdict'];
+foreach ($r->checkResults['dkim'] ?? [] as $dkim) {
+    echo $dkim['dkim_selector'], ': ', $dkim['verdict'], "\n";
+}
+```
+
+Both fields are nullable. The nested shapes are not further typed at
+this layer; callers that want stronger typing should construct their
+own value objects from the arrays.
+
+### Public Properties
+
+- `readonly ?array $checkResults`
+- `readonly ?array $references`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?array $checkResults = null,
+    ?array $references = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$checkResults` (`?array`)
+- `$references` (`list<string>|null`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
 
 
 ## `MailChannels\Response\QueuedSendResponse`
