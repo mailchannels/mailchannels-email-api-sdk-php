@@ -9,8 +9,8 @@ declare(strict_types=1);
  *   - You want to attach Guzzle middleware (retries, logging, etc.),
  *   - You're running behind a corporate proxy that needs custom config.
  *
- * Two interchangeable client setups are shown below; uncomment the one
- * matching the PSR-18 implementation you have installed.
+ * Two interchangeable client setups are shown below; use the one matching
+ * the PSR-18 implementation you have installed.
  */
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -24,25 +24,25 @@ if (!is_string($apiKey) || $apiKey === '') {
 }
 
 // Option A — Guzzle. Provides both the PSR-18 client and PSR-17 factories.
-$guzzle  = new GuzzleHttp\Client(['timeout' => 10.0]);
-$factory = new GuzzleHttp\Psr7\HttpFactory();
-$client  = new Client(
+$guzzleClient  = new GuzzleHttp\Client(['timeout' => 10.0]);
+$guzzleFactory = new GuzzleHttp\Psr7\HttpFactory();
+$client = new Client(
     apiKey: $apiKey,
-    httpClient: $guzzle,
-    requestFactory: $factory,
-    streamFactory: $factory,
+    httpClient: $guzzleClient,
+    requestFactory: $guzzleFactory,
+    streamFactory: $guzzleFactory,
 );
 
 // Option B — Symfony HTTP Client + nyholm/psr7.
-// $symfony = (new Symfony\Component\HttpClient\Psr18Client(
+// $symfonyClient  = new Symfony\Component\HttpClient\Psr18Client(
 //     Symfony\Component\HttpClient\HttpClient::create(['timeout' => 10.0]),
-// ));
-// $factory = new Nyholm\Psr7\Factory\Psr17Factory();
+// );
+// $symfonyFactory = new Nyholm\Psr7\Factory\Psr17Factory();
 // $client = new Client(
 //     apiKey: $apiKey,
-//     httpClient: $symfony,
-//     requestFactory: $factory,
-//     streamFactory: $factory,
+//     httpClient: $symfonyClient,
+//     requestFactory: $symfonyFactory,
+//     streamFactory: $symfonyFactory,
 // );
 
 $response = $client->usage->retrieve();
