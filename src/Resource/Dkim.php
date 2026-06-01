@@ -8,6 +8,9 @@ use MailChannels\Enum\DkimAlgorithm;
 use MailChannels\Enum\DkimKeyStatus;
 use MailChannels\Enum\DkimUpdateStatus;
 use MailChannels\Response;
+use MailChannels\Response\DkimKeyListResponse;
+use MailChannels\Response\DkimKeyResponse;
+use MailChannels\Response\DkimRotateResponse;
 
 final class Dkim extends AbstractResource
 {
@@ -16,14 +19,16 @@ final class Dkim extends AbstractResource
         string $selector,
         DkimAlgorithm|string|null $algorithm = null,
         ?int $keyLength = null,
-    ): Response {
+    ): DkimKeyResponse {
         $payload = self::compact([
             'selector' => $selector,
             'algorithm' => $algorithm instanceof DkimAlgorithm ? $algorithm->value : $algorithm,
             'key_length' => $keyLength,
         ]);
         $this->client->config()->logger->info('Creating DKIM key pair', ['domain' => $domain, 'selector' => $selector]);
-        return $this->request('POST', "/domains/{$domain}/dkim-keys", $payload);
+        return DkimKeyResponse::fromResponse(
+            $this->request('POST', "/domains/{$domain}/dkim-keys", $payload),
+        );
     }
 
     public function list(
@@ -33,7 +38,7 @@ final class Dkim extends AbstractResource
         ?int $offset = null,
         ?int $limit = null,
         ?bool $includeDnsRecord = null,
-    ): Response {
+    ): DkimKeyListResponse {
         $query = self::compactOrNull([
             'selector' => $selector,
             'status' => $status instanceof DkimKeyStatus ? $status->value : $status,
@@ -41,7 +46,9 @@ final class Dkim extends AbstractResource
             'limit' => $limit,
             'include_dns_record' => $includeDnsRecord,
         ]);
-        return $this->request('GET', "/domains/{$domain}/dkim-keys", null, $query);
+        return DkimKeyListResponse::fromResponse(
+            $this->request('GET', "/domains/{$domain}/dkim-keys", null, $query),
+        );
     }
 
     public function updateStatus(string $domain, string $selector, DkimUpdateStatus|string $status): Response
@@ -55,17 +62,19 @@ final class Dkim extends AbstractResource
         return $this->request('PATCH', "/domains/{$domain}/dkim-keys/{$selector}", ['status' => $statusValue]);
     }
 
-    public function rotate(string $domain, string $selector, string $newSelector): Response
+    public function rotate(string $domain, string $selector, string $newSelector): DkimRotateResponse
     {
         $this->client->config()->logger->info('Rotating DKIM key', [
             'domain' => $domain,
             'selector' => $selector,
             'new_selector' => $newSelector,
         ]);
-        return $this->request(
-            'POST',
-            "/domains/{$domain}/dkim-keys/{$selector}/rotate",
-            ['new_key' => ['selector' => $newSelector]],
+        return DkimRotateResponse::fromResponse(
+            $this->request(
+                'POST',
+                "/domains/{$domain}/dkim-keys/{$selector}/rotate",
+                ['new_key' => ['selector' => $newSelector]],
+            ),
         );
     }
 }

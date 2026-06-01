@@ -59,6 +59,11 @@ For task-oriented examples, start with the [README](../README.md). This file is 
 | `MailChannels\Resource\Webhooks` | final class | Webhook subscription management. For inbound signature verification, see {@see \MailChannels\Webhook\Verifier} — those helpers are stateless and do not need a Client instance. |
 | `MailChannels\Response` | class | Response object returned by SDK calls. Behaves as the decoded JSON body (array-accessible and iterable) while also exposing HTTP metadata. |
 | `MailChannels\Response\CheckDomainResponse` | final class | Typed response returned by {@see \MailChannels\Resource\CheckDomain::check()}. |
+| `MailChannels\Response\DkimDnsRecord` | final class | One DKIM DNS record suggestion returned by MailChannels — the TXT record you need to publish in your authoritative DNS for the selector to validate. |
+| `MailChannels\Response\DkimKeyInfo` | final class | MailChannels-hosted DKIM key metadata. Returned (inside a list or pair) by the DKIM endpoints. |
+| `MailChannels\Response\DkimKeyListResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Dkim::list()}. Wraps a list of typed {@see DkimKeyInfo} entries. |
+| `MailChannels\Response\DkimKeyResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Dkim::create()} for `POST /domains/{domain}/dkim-keys`. |
+| `MailChannels\Response\DkimRotateResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Dkim::rotate()}. Exposes both the freshly-minted selector (`$newKey`) and the just- rotated old selector (`$rotatedKey`), with the new key carrying the `dkimDnsRecords` you need to publish before sending traffic under the new selector. |
 | `MailChannels\Response\QueuedSendResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Emails::queue()} for the `/send-async` endpoint. The server queues the message and acks with a request id plus a queued-at timestamp — there is **no** message id at this point because delivery hasn't happened yet. The actual per-message identifiers arrive later via webhook events. |
 | `MailChannels\Response\SendResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Emails::send()}. |
 | `MailChannels\Response\SuppressionEntry` | final class | One suppression list entry returned by `/suppression-list`. |
@@ -971,7 +976,7 @@ public function create(
     string $selector,
     MailChannels\Enum\DkimAlgorithm|string|null $algorithm = null,
     ?int $keyLength = null
-): MailChannels\Response
+): MailChannels\Response\DkimKeyResponse
 ```
 
 **Parameters:**
@@ -980,7 +985,7 @@ public function create(
 - `$algorithm` (`MailChannels\Enum\DkimAlgorithm|string|null`)
 - `$keyLength` (`?int`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\DkimKeyResponse`
 
 #### `list()`
 
@@ -992,7 +997,7 @@ public function list(
     ?int $offset = null,
     ?int $limit = null,
     ?bool $includeDnsRecord = null
-): MailChannels\Response
+): MailChannels\Response\DkimKeyListResponse
 ```
 
 **Parameters:**
@@ -1003,7 +1008,7 @@ public function list(
 - `$limit` (`?int`)
 - `$includeDnsRecord` (`?bool`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\DkimKeyListResponse`
 
 #### `rotate()`
 
@@ -1012,7 +1017,7 @@ public function rotate(
     string $domain,
     string $selector,
     string $newSelector
-): MailChannels\Response
+): MailChannels\Response\DkimRotateResponse
 ```
 
 **Parameters:**
@@ -1020,7 +1025,7 @@ public function rotate(
 - `$selector` (`string`)
 - `$newSelector` (`string`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\DkimRotateResponse`
 
 #### `updateStatus()`
 
@@ -1913,6 +1918,322 @@ public function __construct(
 - `$rawBody` (`?string`)
 - `$checkResults` (`?array`)
 - `$references` (`list<string>|null`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
+
+
+## `MailChannels\Response\DkimDnsRecord`
+
+_final class_
+
+One DKIM DNS record suggestion returned by MailChannels — the TXT record you need to publish in your authoritative DNS for the selector to validate.
+
+Plain value object — not a `Response` subclass. Instances live inside
+{@see DkimKeyInfo::$dkimDnsRecords}.
+
+### Public Properties
+
+- `readonly ?string $name`
+- `readonly ?string $type`
+- `readonly ?string $value`
+
+### Constructor
+
+```php
+public function __construct(
+    ?string $name = null,
+    ?string $type = null,
+    ?string $value = null
+)
+```
+
+**Parameters:**
+- `$name` (`?string`)
+- `$type` (`?string`)
+- `$value` (`?string`)
+
+### Methods
+
+#### `fromArray()`
+
+```php
+public static function fromArray(
+    array $data
+): self
+```
+
+**Parameters:**
+- `$data` (`array`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
+
+#### `jsonSerialize()`
+
+```php
+public function jsonSerialize(): array
+```
+
+**Returns:** `array<string,` — mixed>
+
+
+## `MailChannels\Response\DkimKeyInfo`
+
+_final class_
+
+MailChannels-hosted DKIM key metadata. Returned (inside a list or pair) by the DKIM endpoints.
+
+Most fields use snake_case in the API; `$gracePeriodExpiresAt` and
+`$retiresAt` are camelCase in the v1 response body — that's a known
+API inconsistency the SDK abstracts away. The SDK reads both wire
+forms (canonical snake_case first, falling back to the v1 camelCase)
+and always exposes them via the camelCase PHP properties, so a future
+v2 fix is transparent to callers.
+
+Plain value object — not a `Response` subclass. Instances live inside
+{@see DkimKeyListResponse::$keys} or
+{@see DkimRotateResponse::$newKey}/`$rotatedKey`.
+
+### Public Properties
+
+- `readonly ?string $algorithm`
+- `readonly ?string $createdAt`
+- `readonly ?array $dkimDnsRecords`
+- `readonly ?string $domain`
+- `readonly ?string $gracePeriodExpiresAt`
+- `readonly ?int $keyLength`
+- `readonly ?string $publicKey`
+- `readonly ?string $retiresAt`
+- `readonly ?string $selector`
+- `readonly ?string $status`
+- `readonly ?string $statusModifiedAt`
+
+### Constructor
+
+```php
+public function __construct(
+    ?string $domain = null,
+    ?string $selector = null,
+    ?string $publicKey = null,
+    ?string $status = null,
+    ?string $algorithm = null,
+    ?int $keyLength = null,
+    ?array $dkimDnsRecords = null,
+    ?string $createdAt = null,
+    ?string $statusModifiedAt = null,
+    ?string $gracePeriodExpiresAt = null,
+    ?string $retiresAt = null
+)
+```
+
+**Parameters:**
+- `$domain` (`?string`)
+- `$selector` (`?string`)
+- `$publicKey` (`?string`)
+- `$status` (`?string`)
+- `$algorithm` (`?string`)
+- `$keyLength` (`?int`)
+- `$dkimDnsRecords` (`list<DkimDnsRecord>|null`)
+- `$createdAt` (`?string`)
+- `$statusModifiedAt` (`?string`)
+- `$gracePeriodExpiresAt` (`?string`)
+- `$retiresAt` (`?string`)
+
+### Methods
+
+#### `fromArray()`
+
+```php
+public static function fromArray(
+    array $data
+): self
+```
+
+**Parameters:**
+- `$data` (`array`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
+
+#### `jsonSerialize()`
+
+```php
+public function jsonSerialize(): array
+```
+
+**Returns:** `array<string,` — mixed>
+
+
+## `MailChannels\Response\DkimKeyListResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response returned by {@see \MailChannels\Resource\Dkim::list()}. Wraps a list of typed {@see DkimKeyInfo} entries.
+
+```php
+$list = $client->dkim->list('example.com', includeDnsRecord: true);
+foreach ($list->keys ?? [] as $key) {
+    echo $key->selector, ' (', $key->status, ")\n";
+    foreach ($key->dkimDnsRecords ?? [] as $record) {
+        echo "  publish ", $record->name, ' ', $record->type, ' ', $record->value, "\n";
+    }
+}
+```
+
+### Public Properties
+
+- `readonly ?array $keys`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?array $keys = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$keys` (`list<DkimKeyInfo>|null`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
+
+
+## `MailChannels\Response\DkimKeyResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response returned by {@see \MailChannels\Resource\Dkim::create()} for `POST /domains/{domain}/dkim-keys`.
+
+The API returns the created `DKIMKeyInfo` object directly as the
+response body (no wrapper key in the JSON). This class exposes that
+info as `$key` for ergonomic typed access while keeping the body
+itself array-accessible via the inherited {@see Response} surface.
+
+```php
+$created = $client->dkim->create('example.com', 'mc1', algorithm: DkimAlgorithm::Rsa);
+echo $created->key->selector;
+foreach ($created->key->dkimDnsRecords ?? [] as $record) {
+    echo "publish ", $record->name, ' ', $record->type, ' ', $record->value, "\n";
+}
+```
+
+### Public Properties
+
+- `readonly ?MailChannels\Response\DkimKeyInfo $key`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?MailChannels\Response\DkimKeyInfo $key = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$key` (`?MailChannels\Response\DkimKeyInfo`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. An empty body leaves `$key` null.
+
+
+## `MailChannels\Response\DkimRotateResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response returned by {@see \MailChannels\Resource\Dkim::rotate()}. Exposes both the freshly-minted selector (`$newKey`) and the just- rotated old selector (`$rotatedKey`), with the new key carrying the `dkimDnsRecords` you need to publish before sending traffic under the new selector.
+
+### Public Properties
+
+- `readonly ?MailChannels\Response\DkimKeyInfo $newKey`
+- `readonly ?MailChannels\Response\DkimKeyInfo $rotatedKey`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?MailChannels\Response\DkimKeyInfo $newKey = null,
+    ?MailChannels\Response\DkimKeyInfo $rotatedKey = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$newKey` (`?MailChannels\Response\DkimKeyInfo`)
+- `$rotatedKey` (`?MailChannels\Response\DkimKeyInfo`)
 
 ### Methods
 

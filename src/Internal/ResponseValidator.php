@@ -36,6 +36,26 @@ final class ResponseValidator
         return $value;
     }
 
+    /**
+     * Try multiple keys in order, returning the first one that's present.
+     * Useful when the API has aliases or evolving field names — e.g. the
+     * DKIM endpoints emit `gracePeriodExpiresAt` today but a v2 fix may
+     * normalize to `grace_period_expires_at`. Accepting both lets the SDK
+     * keep working across the transition.
+     *
+     * @param array<string, mixed> $body
+     * @param list<string> $keys
+     */
+    public static function asNullableStringFromKeys(array $body, array $keys): ?string
+    {
+        foreach ($keys as $key) {
+            if (array_key_exists($key, $body) && $body[$key] !== null) {
+                return self::asNullableString($body, $key);
+            }
+        }
+        return null;
+    }
+
     /** @param array<string, mixed> $body */
     public static function asNullableInt(array $body, string $key): ?int
     {
