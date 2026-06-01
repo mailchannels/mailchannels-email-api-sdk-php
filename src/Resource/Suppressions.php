@@ -7,6 +7,7 @@ namespace MailChannels\Resource;
 use MailChannels\Enum\SuppressionDeleteSource;
 use MailChannels\Enum\SuppressionSource;
 use MailChannels\Response;
+use MailChannels\Response\SuppressionListResponse;
 
 final class Suppressions extends AbstractResource
 {
@@ -17,7 +18,7 @@ final class Suppressions extends AbstractResource
         ?string $createdAfter = null,
         ?int $limit = null,
         ?int $offset = null,
-    ): Response {
+    ): SuppressionListResponse {
         $query = self::compactOrNull([
             'recipient' => $recipient,
             'source' => $source instanceof SuppressionSource ? $source->value : $source,
@@ -26,20 +27,24 @@ final class Suppressions extends AbstractResource
             'limit' => $limit,
             'offset' => $offset,
         ]);
-        return $this->request('GET', '/suppression-list', null, $query);
+        return SuppressionListResponse::fromResponse(
+            $this->request('GET', '/suppression-list', null, $query),
+        );
     }
 
     /**
      * @param list<array<string, mixed>> $entries Each entry: {recipient, source, ...}.
      */
-    public function create(array $entries, ?bool $addToSubAccounts = null): Response
+    public function create(array $entries, ?bool $addToSubAccounts = null): SuppressionListResponse
     {
         $payload = self::compact([
             'suppression_entries' => $entries,
             'add_to_sub_accounts' => $addToSubAccounts,
         ]);
         $this->client->config()->logger->info('Creating suppression entries', ['count' => count($entries)]);
-        return $this->request('POST', '/suppression-list', $payload);
+        return SuppressionListResponse::fromResponse(
+            $this->request('POST', '/suppression-list', $payload),
+        );
     }
 
     public function delete(string $recipient, SuppressionDeleteSource|string|null $source = null): Response

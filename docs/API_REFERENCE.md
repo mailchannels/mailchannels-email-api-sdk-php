@@ -61,6 +61,8 @@ For task-oriented examples, start with the [README](../README.md). This file is 
 | `MailChannels\Response\CheckDomainResponse` | final class | Typed response returned by {@see \MailChannels\Resource\CheckDomain::check()}. |
 | `MailChannels\Response\QueuedSendResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Emails::queue()} for the `/send-async` endpoint. The server queues the message and acks with a request id plus a queued-at timestamp — there is **no** message id at this point because delivery hasn't happened yet. The actual per-message identifiers arrive later via webhook events. |
 | `MailChannels\Response\SendResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Emails::send()}. |
+| `MailChannels\Response\SuppressionEntry` | final class | One suppression list entry returned by `/suppression-list`. |
+| `MailChannels\Response\SuppressionListResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Suppressions::list()} and {@see \MailChannels\Resource\Suppressions::create()}. |
 | `MailChannels\Response\UsageResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Usage::retrieve()}. |
 | `MailChannels\Transport` | final class | Internal HTTP transport. Builds PSR-7 requests, sends them through a PSR-18 client, and decodes responses into MailChannels\Response — or raises a typed exception from the MailChannels\Exception namespace. |
 | `MailChannels\Version` | final class |  |
@@ -1525,14 +1527,14 @@ _final class_ — extends [`MailChannels\Resource\AbstractResource`](#mailchanne
 public function create(
     array $entries,
     ?bool $addToSubAccounts = null
-): MailChannels\Response
+): MailChannels\Response\SuppressionListResponse
 ```
 
 **Parameters:**
 - `$entries` (`array`)
 - `$addToSubAccounts` (`?bool`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\SuppressionListResponse`
 
 #### `delete()`
 
@@ -1559,7 +1561,7 @@ public function list(
     ?string $createdAfter = null,
     ?int $limit = null,
     ?int $offset = null
-): MailChannels\Response
+): MailChannels\Response\SuppressionListResponse
 ```
 
 **Parameters:**
@@ -1570,7 +1572,7 @@ public function list(
 - `$limit` (`?int`)
 - `$offset` (`?int`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\SuppressionListResponse`
 
 
 ## `MailChannels\Resource\Usage`
@@ -2020,6 +2022,133 @@ public function requestId(): ?string
 ```
 
 **Returns:** `?string`
+
+
+## `MailChannels\Response\SuppressionEntry`
+
+_final class_
+
+One suppression list entry returned by `/suppression-list`.
+
+Plain value object — not a `Response` subclass. Instances live inside
+{@see SuppressionListResponse::$suppressionList} and are constructed by
+that class's `fromResponse()` factory.
+
+### Public Properties
+
+- `readonly ?string $createdAt`
+- `readonly ?string $notes`
+- `readonly ?string $recipient`
+- `readonly ?string $sender`
+- `readonly ?string $source`
+- `readonly ?array $suppressionTypes`
+
+### Constructor
+
+```php
+public function __construct(
+    ?string $recipient = null,
+    ?array $suppressionTypes = null,
+    ?string $notes = null,
+    ?string $source = null,
+    ?string $sender = null,
+    ?string $createdAt = null
+)
+```
+
+**Parameters:**
+- `$recipient` (`?string`)
+- `$suppressionTypes` (`list<string>|null`)
+- `$notes` (`?string`)
+- `$source` (`?string`)
+- `$sender` (`?string`)
+- `$createdAt` (`?string`)
+
+### Methods
+
+#### `fromArray()`
+
+```php
+public static function fromArray(
+    array $data
+): self
+```
+
+**Parameters:**
+- `$data` (`array`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
+
+#### `jsonSerialize()`
+
+```php
+public function jsonSerialize(): array
+```
+
+**Returns:** `array<string,` — mixed>
+
+
+## `MailChannels\Response\SuppressionListResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response returned by {@see \MailChannels\Resource\Suppressions::list()} and {@see \MailChannels\Resource\Suppressions::create()}.
+
+Both endpoints return a `suppression_list` array of entries; this class
+exposes them as `list<SuppressionEntry>` for typed iteration:
+
+```php
+foreach ($client->suppressions->list()->suppressionList ?? [] as $entry) {
+    echo $entry->recipient, ' (', $entry->source, ")\n";
+}
+```
+
+Inherits {@see Response}'s array-access, HTTP-metadata, and raw-body
+helpers.
+
+### Public Properties
+
+- `readonly ?array $suppressionList`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?array $suppressionList = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$suppressionList` (`list<SuppressionEntry>|null`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
 
 
 ## `MailChannels\Response\UsageResponse`
