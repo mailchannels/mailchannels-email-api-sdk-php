@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace MailChannels\Resource;
 
-use MailChannels\Response;
+use MailChannels\Response\UsageResponse;
 
 final class Usage extends AbstractResource
 {
-    public function retrieve(): Response
+    public function retrieve(): UsageResponse
     {
-        return $this->request('GET', '/usage');
+        return UsageResponse::fromResponse($this->request('GET', '/usage'));
     }
 }

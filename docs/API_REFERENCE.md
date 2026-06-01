@@ -60,6 +60,7 @@ For task-oriented examples, start with the [README](../README.md). This file is 
 | `MailChannels\Response` | class | Response object returned by SDK calls. Behaves as the decoded JSON body (array-accessible and iterable) while also exposing HTTP metadata. |
 | `MailChannels\Response\QueuedSendResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Emails::queue()} for the `/send-async` endpoint. The server queues the message and acks with a request id plus a queued-at timestamp — there is **no** message id at this point because delivery hasn't happened yet. The actual per-message identifiers arrive later via webhook events. |
 | `MailChannels\Response\SendResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Emails::send()}. |
+| `MailChannels\Response\UsageResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Usage::retrieve()}. |
 | `MailChannels\Transport` | final class | Internal HTTP transport. Builds PSR-7 requests, sends them through a PSR-18 client, and decodes responses into MailChannels\Response — or raises a typed exception from the MailChannels\Exception namespace. |
 | `MailChannels\Version` | final class |  |
 | `MailChannels\Webhook\SignatureParameters` | final class | Parsed RFC 9421 Signature-Input header parameters. |
@@ -1580,10 +1581,10 @@ _final class_ — extends [`MailChannels\Resource\AbstractResource`](#mailchanne
 #### `retrieve()`
 
 ```php
-public function retrieve(): MailChannels\Response
+public function retrieve(): MailChannels\Response\UsageResponse
 ```
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\UsageResponse`
 
 
 ## `MailChannels\Resource\Webhooks`
@@ -1947,6 +1948,68 @@ public function requestId(): ?string
 ```
 
 **Returns:** `?string`
+
+
+## `MailChannels\Response\UsageResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response returned by {@see \MailChannels\Resource\Usage::retrieve()}.
+
+`$totalUsage` is the count of accepted send-requests for the current
+billing period; `$periodStartDate` / `$periodEndDate` bracket the period
+the count covers. All fields are nullable — missing fields stay null so
+the SDK stays forward-compatible with future API additions.
+
+Inherits {@see Response}'s array-access, HTTP-metadata, and raw-body
+helpers.
+
+### Public Properties
+
+- `readonly ?string $periodEndDate`
+- `readonly ?string $periodStartDate`
+- `readonly ?int $totalUsage`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?int $totalUsage = null,
+    ?string $periodStartDate = null,
+    ?string $periodEndDate = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$totalUsage` (`?int`)
+- `$periodStartDate` (`?string`)
+- `$periodEndDate` (`?string`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
 
 
 ## `MailChannels\Transport`

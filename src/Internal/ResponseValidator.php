@@ -36,6 +36,25 @@ final class ResponseValidator
         return $value;
     }
 
+    /** @param array<string, mixed> $body */
+    public static function asNullableInt(array $body, string $key): ?int
+    {
+        if (!array_key_exists($key, $body)) {
+            return null;
+        }
+        $value = $body[$key];
+        if ($value === null) {
+            return null;
+        }
+        if (!is_int($value)) {
+            throw new ResponseValidationException(
+                "Response field '{$key}' must be an int; got " . get_debug_type($value) . '.',
+                errorCode: 'InvalidResponseShape',
+            );
+        }
+        return $value;
+    }
+
     /**
      * @param array<string, mixed> $body
      * @return list<array<string, mixed>>|null
