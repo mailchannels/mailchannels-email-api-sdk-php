@@ -26,7 +26,7 @@ $oneClick = $client->emails->queue([
         [
             'type' => 'text/html',
             'value' => '<p>Hello</p>'
-                . '<a href="{{ unsubscribe_url }}">Unsubscribe</a>',
+                . '<a href="{{ mc-unsubscribe-url }}">Unsubscribe</a>',
             'template_type' => 'mustache',
         ],
     ],
