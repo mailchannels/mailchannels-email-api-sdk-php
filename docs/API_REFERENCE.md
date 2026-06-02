@@ -6,7 +6,7 @@ For task-oriented examples, start with the [README](../README.md). This file is 
 
 - SDK version: `0.2.0`
 - Top-level exports: `49`
-- Documented public methods: `135`
+- Documented public methods: `132`
 
 ## Top-Level Exports
 
@@ -548,75 +548,6 @@ public static function fromBytes(
 - `$contentType` (`?string`)
 - `$disposition` (`string`)
 - `$contentId` (`?string`)
-
-**Returns:** `self`
-
-#### `fromFile()`
-
-```php
-public static function fromFile(
-    string $path,
-    ?string $filename = null,
-    ?string $contentType = null,
-    string $disposition = 'attachment',
-    ?string $contentId = null
-): self
-```
-
-**Parameters:**
-- `$path` (`string`)
-- `$filename` (`?string`)
-- `$contentType` (`?string`)
-- `$disposition` (`string`)
-- `$contentId` (`?string`)
-
-**Returns:** `self`
-
-#### `fromUrl()`
-
-```php
-public static function fromUrl(
-    string $url,
-    ?string $filename = null,
-    ?string $contentType = null,
-    string $disposition = 'attachment',
-    ?string $contentId = null,
-    float $timeout = 10
-): self
-```
-
-Fetch a remote URL and build an attachment from its bytes. Content type resolution cascades: caller-supplied `$contentType` → server's `Content-Type` response header → filename-extension guess.
-
-`$timeout` is the per-stream read timeout in seconds; it does not cover
-connect time on every platform. Each call blocks the caller, so prefer
-a short value when fetching multiple attachments before a send.
-
-**Parameters:**
-- `$url` (`string`)
-- `$filename` (`?string`)
-- `$contentType` (`?string`)
-- `$disposition` (`string`)
-- `$contentId` (`?string`)
-- `$timeout` (`float`)
-
-**Returns:** `self`
-
-#### `inlineFile()`
-
-```php
-public static function inlineFile(
-    string $path,
-    string $contentId,
-    ?string $filename = null,
-    ?string $contentType = null
-): self
-```
-
-**Parameters:**
-- `$path` (`string`)
-- `$contentId` (`string`)
-- `$filename` (`?string`)
-- `$contentType` (`?string`)
 
 **Returns:** `self`
 

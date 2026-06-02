@@ -118,7 +118,11 @@ $params = new EmailParams(
         new Personalization(to: ['recipient@example.net']),
     ],
     content: [Content::html('<p>Thanks for your order.</p>')],
-    attachments: [Attachment::fromFile('/tmp/receipt.pdf')],
+    attachments: [Attachment::fromBytes(
+        (string) file_get_contents('/tmp/receipt.pdf'),
+        'receipt.pdf',
+        'application/pdf',
+    )],
     transactional: true,
 );
 

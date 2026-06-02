@@ -9,10 +9,6 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [0.2.0] - 2026-05-29
 
 ### Added
-- `Attachment::fromUrl(...)` to fetch a remote URL and build an attachment
-  from its bytes. Content-type cascades from explicit argument → server's
-  `Content-Type` response header → filename-extension guess. 10-second
-  default read timeout.
 - Bitbucket Pipelines CI on a PHP 8.1–8.4 matrix with an 85% line-coverage
   gate enforced via `scripts/check-coverage.php` against PHPUnit's Clover
   output. CI image lives in
@@ -30,8 +26,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Thirteen new examples under `examples/` (check-domain, cloudflare-dkim,
   custom-headers, custom-http-client, dkim lifecycle, error-handling,
   metrics, queue-email, suppressions, templates, unsubscribe, usage,
-  webhooks management, plus `attachments-from-url.php`) for parity with
-  the Python SDK example set.
+  webhooks management) for parity with the Python SDK example set.
 - Substantial unit-test additions covering `Resource\Emails` edge cases,
   `Transport` HTTP status mapping and query serialization, and a new
   `tests/Unit/Message/` suite for the typed value objects. New
