@@ -5,8 +5,8 @@ This reference is generated from public class signatures and PHPDoc blocks in `s
 For task-oriented examples, start with the [README](../README.md). This file is the formal public surface reference.
 
 - SDK version: `0.2.0`
-- Top-level exports: `52`
-- Documented public methods: `136`
+- Top-level exports: `88`
+- Documented public methods: `222`
 
 ## Top-Level Exports
 
