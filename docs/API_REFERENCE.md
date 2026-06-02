@@ -1069,7 +1069,7 @@ public function queue(
 ): MailChannels\Response\QueuedSendResponse
 ```
 
-Queue an email through `/send-async`. The server queues the message and returns a message ID immediately; delivery happens later. This is server-side async — it does NOT make the HTTP call itself async.
+Queue an email through `/send-async`. The server queues the message and acks with a `request_id` and `queued_at` timestamp — there is no message ID at this point because delivery hasn't happened yet. This is server-side async — it does NOT make the HTTP call itself async.
 
 **Parameters:**
 - `$params` (`MailChannels\Message\EmailParams|array`)
