@@ -33,7 +33,7 @@ final class WebhookResponsesTest extends TestCase
             ],
         ];
 
-        $typed = WebhookListResponse::fromResponse(new Response(data: $body, statusCode: 200));
+        $typed = new WebhookListResponse(new Response(data: $body, statusCode: 200));
 
         $this->assertNotNull($typed->webhooks);
         $this->assertCount(2, $typed->webhooks);
@@ -44,13 +44,13 @@ final class WebhookResponsesTest extends TestCase
 
     public function testListResponseLeavesWebhooksNullWhenBodyEmpty(): void
     {
-        $typed = WebhookListResponse::fromResponse(new Response(data: [], statusCode: 200));
+        $typed = new WebhookListResponse(new Response(data: [], statusCode: 200));
         $this->assertNull($typed->webhooks);
     }
 
     public function testListResponseAcceptsEmptyArray(): void
     {
-        $typed = WebhookListResponse::fromResponse(
+        $typed = new WebhookListResponse(
             new Response(data: ['data' => []], statusCode: 200),
         );
         $this->assertSame([], $typed->webhooks);
@@ -84,7 +84,7 @@ final class WebhookResponsesTest extends TestCase
             ],
         ];
 
-        $typed = WebhookBatchListResponse::fromResponse(new Response(data: $body, statusCode: 200));
+        $typed = new WebhookBatchListResponse(new Response(data: $body, statusCode: 200));
 
         $this->assertNotNull($typed->webhookBatches);
         $this->assertCount(2, $typed->webhookBatches);
@@ -110,7 +110,7 @@ final class WebhookResponsesTest extends TestCase
     {
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'webhook_batches' must be a list");
-        WebhookBatchListResponse::fromResponse(new Response(
+        new WebhookBatchListResponse(new Response(
             data: ['webhook_batches' => ['batch_id' => 1]],
             statusCode: 200,
         ));
@@ -130,7 +130,7 @@ final class WebhookResponsesTest extends TestCase
             'created_at' => '2026-05-30T12:00:00Z',
         ];
 
-        $typed = WebhookResendResponse::fromResponse(new Response(data: $body, statusCode: 200));
+        $typed = new WebhookResendResponse(new Response(data: $body, statusCode: 200));
 
         $this->assertSame(12345, $typed->batchId);
         $this->assertSame('tenant42', $typed->customerHandle);
@@ -144,7 +144,7 @@ final class WebhookResponsesTest extends TestCase
     {
         // The SDK call returned 200 (response success); the receiving webhook
         // endpoint returned 500. Both should be visible, with no collision.
-        $typed = WebhookResendResponse::fromResponse(new Response(
+        $typed = new WebhookResendResponse(new Response(
             data: ['batch_id' => 99, 'status_code' => 500],
             statusCode: 200,
         ));
@@ -159,7 +159,7 @@ final class WebhookResponsesTest extends TestCase
     {
         $body = ['id' => 'key-2026-01', 'key' => 'MCowBQYDK2VwAyEA...'];
 
-        $typed = WebhookPublicKeyResponse::fromResponse(new Response(data: $body, statusCode: 200));
+        $typed = new WebhookPublicKeyResponse(new Response(data: $body, statusCode: 200));
 
         $this->assertSame('key-2026-01', $typed->id);
         $this->assertSame('MCowBQYDK2VwAyEA...', $typed->key);
@@ -185,7 +185,7 @@ final class WebhookResponsesTest extends TestCase
             ],
         ];
 
-        $typed = WebhookValidationResultsResponse::fromResponse(new Response(data: $body, statusCode: 200));
+        $typed = new WebhookValidationResultsResponse(new Response(data: $body, statusCode: 200));
 
         $this->assertFalse($typed->allPassed);
         $this->assertNotNull($typed->results);
@@ -209,7 +209,7 @@ final class WebhookResponsesTest extends TestCase
     {
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'all_passed' must be a bool");
-        WebhookValidationResultsResponse::fromResponse(new Response(
+        new WebhookValidationResultsResponse(new Response(
             data: ['all_passed' => 'yes'],
             statusCode: 200,
         ));
@@ -221,11 +221,11 @@ final class WebhookResponsesTest extends TestCase
     {
         $raw = new Response(data: [], statusCode: 200, headers: ['X-Request-ID' => 'rid-wh']);
 
-        $this->assertSame('rid-wh', WebhookListResponse::fromResponse($raw)->requestId());
-        $this->assertSame('rid-wh', WebhookBatchListResponse::fromResponse($raw)->requestId());
-        $this->assertSame('rid-wh', WebhookResendResponse::fromResponse($raw)->requestId());
-        $this->assertSame('rid-wh', WebhookPublicKeyResponse::fromResponse($raw)->requestId());
-        $this->assertSame('rid-wh', WebhookValidationResultsResponse::fromResponse($raw)->requestId());
+        $this->assertSame('rid-wh', (new WebhookListResponse($raw))->requestId());
+        $this->assertSame('rid-wh', (new WebhookBatchListResponse($raw))->requestId());
+        $this->assertSame('rid-wh', (new WebhookResendResponse($raw))->requestId());
+        $this->assertSame('rid-wh', (new WebhookPublicKeyResponse($raw))->requestId());
+        $this->assertSame('rid-wh', (new WebhookValidationResultsResponse($raw))->requestId());
     }
 
     public function testWebhookSubscriptionJsonSerialize(): void

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MailChannels\Response;
 
 use MailChannels\Exception\ResponseValidationException;
+use MailChannels\Internal\ResponseValidator;
 use MailChannels\Response;
 
 /**
@@ -17,35 +18,23 @@ use MailChannels\Response;
  */
 final class WebhookPublicKeyResponse extends Response
 {
-    /**
-     * @param array<string, mixed> $data
-     * @param array<string, string> $headers
-     */
-    public function __construct(
-        array $data,
-        int $statusCode,
-        array $headers = [],
-        ?string $rawBody = null,
-        public readonly ?string $id = null,
-        public readonly ?string $key = null,
-    ) {
-        parent::__construct($data, $statusCode, $headers, $rawBody);
-    }
+    public readonly ?string $id;
+    public readonly ?string $key;
 
     /**
      * @throws ResponseValidationException when a present field has the
      *     wrong type.
      */
-    public static function fromResponse(Response $response): self
+    public function __construct(Response $response)
     {
         $body = $response->data;
-        return new self(
-            data: $body,
-            statusCode: $response->statusCode,
-            headers: $response->headers,
-            rawBody: $response->rawBody,
-            id: ResponseValidator::asNullableString($body, 'id'),
-            key: ResponseValidator::asNullableString($body, 'key'),
+        parent::__construct(
+            $response->data,
+            $response->statusCode,
+            $response->headers,
+            $response->rawBody,
         );
+        $this->id = ResponseValidator::asNullableString($body, 'id');
+        $this->key = ResponseValidator::asNullableString($body, 'key');
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MailChannels\Response;
 
 use MailChannels\Exception\ResponseValidationException;
+use MailChannels\Internal\ResponseValidator;
 use MailChannels\Response;
 
 /**
@@ -18,42 +19,28 @@ use MailChannels\Response;
  */
 final class SubAccountApiKeyListResponse extends Response
 {
-    /**
-     * @param array<string, mixed> $data
-     * @param array<string, string> $headers
-     * @param list<SubAccountApiKey>|null $apiKeys
-     */
-    public function __construct(
-        array $data,
-        int $statusCode,
-        array $headers = [],
-        ?string $rawBody = null,
-        public readonly ?array $apiKeys = null,
-    ) {
-        parent::__construct($data, $statusCode, $headers, $rawBody);
-    }
+    /** @var list<SubAccountApiKey>|null */
+    public readonly ?array $apiKeys;
 
     /**
      * @throws ResponseValidationException when a present field has the
      *     wrong type.
      */
-    public static function fromResponse(Response $response): self
+    public function __construct(Response $response)
     {
         $body = $response->data;
+        parent::__construct(
+            $response->data,
+            $response->statusCode,
+            $response->headers,
+            $response->rawBody,
+        );
         $rawList = ResponseValidator::asNullableListOfArrays($body, 'data');
-        $apiKeys = $rawList === null
+        $this->apiKeys = $rawList === null
             ? null
             : array_map(
                 static fn (array $k): SubAccountApiKey => SubAccountApiKey::fromArray($k),
                 $rawList,
             );
-
-        return new self(
-            data: $body,
-            statusCode: $response->statusCode,
-            headers: $response->headers,
-            rawBody: $response->rawBody,
-            apiKeys: $apiKeys,
-        );
     }
 }

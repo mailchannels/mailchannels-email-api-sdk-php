@@ -6,6 +6,7 @@ namespace MailChannels\Response;
 
 use JsonSerializable;
 use MailChannels\Exception\ResponseValidationException;
+use MailChannels\Internal\ResponseValidator;
 
 /**
  * Duration of a webhook batch attempt — how long the receiving endpoint

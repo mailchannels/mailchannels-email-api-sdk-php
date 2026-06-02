@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MailChannels\Response;
 
 use MailChannels\Exception\ResponseValidationException;
+use MailChannels\Internal\ResponseValidator;
 use MailChannels\Response;
 
 /**
@@ -24,45 +25,33 @@ use MailChannels\Response;
  */
 final class WebhookResendResponse extends Response
 {
-    /**
-     * @param array<string, mixed> $data
-     * @param array<string, string> $headers
-     */
-    public function __construct(
-        array $data,
-        int $statusCode,
-        array $headers = [],
-        ?string $rawBody = null,
-        public readonly ?int $batchId = null,
-        public readonly ?string $customerHandle = null,
-        public readonly ?string $webhook = null,
-        public readonly ?int $webhookStatusCode = null,
-        public readonly ?int $eventCount = null,
-        public readonly ?int $durationInMs = null,
-        public readonly ?string $createdAt = null,
-    ) {
-        parent::__construct($data, $statusCode, $headers, $rawBody);
-    }
+    public readonly ?int $batchId;
+    public readonly ?string $customerHandle;
+    public readonly ?string $webhook;
+    public readonly ?int $webhookStatusCode;
+    public readonly ?int $eventCount;
+    public readonly ?int $durationInMs;
+    public readonly ?string $createdAt;
 
     /**
      * @throws ResponseValidationException when a present field has the
      *     wrong type.
      */
-    public static function fromResponse(Response $response): self
+    public function __construct(Response $response)
     {
         $body = $response->data;
-        return new self(
-            data: $body,
-            statusCode: $response->statusCode,
-            headers: $response->headers,
-            rawBody: $response->rawBody,
-            batchId: ResponseValidator::asNullableInt($body, 'batch_id'),
-            customerHandle: ResponseValidator::asNullableString($body, 'customer_handle'),
-            webhook: ResponseValidator::asNullableString($body, 'webhook'),
-            webhookStatusCode: ResponseValidator::asNullableInt($body, 'status_code'),
-            eventCount: ResponseValidator::asNullableInt($body, 'event_count'),
-            durationInMs: ResponseValidator::asNullableInt($body, 'duration_in_ms'),
-            createdAt: ResponseValidator::asNullableString($body, 'created_at'),
+        parent::__construct(
+            $response->data,
+            $response->statusCode,
+            $response->headers,
+            $response->rawBody,
         );
+        $this->batchId = ResponseValidator::asNullableInt($body, 'batch_id');
+        $this->customerHandle = ResponseValidator::asNullableString($body, 'customer_handle');
+        $this->webhook = ResponseValidator::asNullableString($body, 'webhook');
+        $this->webhookStatusCode = ResponseValidator::asNullableInt($body, 'status_code');
+        $this->eventCount = ResponseValidator::asNullableInt($body, 'event_count');
+        $this->durationInMs = ResponseValidator::asNullableInt($body, 'duration_in_ms');
+        $this->createdAt = ResponseValidator::asNullableString($body, 'created_at');
     }
 }

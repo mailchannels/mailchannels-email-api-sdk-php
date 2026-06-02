@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MailChannels\Response;
 
 use MailChannels\Exception\ResponseValidationException;
+use MailChannels\Internal\ResponseValidator;
 use MailChannels\Response;
 
 /**
@@ -14,44 +15,31 @@ use MailChannels\Response;
  *
  * The two endpoints have semantically equivalent payloads but
  * structurally different shapes — GET returns the limit fields at the
- * top level, PUT wraps them under a `limit` key. `fromResponse()`
+ * top level, PUT wraps them under a `limit` key. The constructor
  * unwraps the PUT shape transparently so callers see the same typed
  * `$sends` property in both cases.
  */
 final class SubAccountLimitResponse extends Response
 {
-    /**
-     * @param array<string, mixed> $data
-     * @param array<string, string> $headers
-     */
-    public function __construct(
-        array $data,
-        int $statusCode,
-        array $headers = [],
-        ?string $rawBody = null,
-        public readonly ?int $sends = null,
-    ) {
-        parent::__construct($data, $statusCode, $headers, $rawBody);
-    }
+    public readonly ?int $sends;
 
     /**
      * @throws ResponseValidationException when a present field has the
      *     wrong type.
      */
-    public static function fromResponse(Response $response): self
+    public function __construct(Response $response)
     {
         $body = $response->data;
+        parent::__construct(
+            $response->data,
+            $response->statusCode,
+            $response->headers,
+            $response->rawBody,
+        );
         // The PUT response wraps the limit fields under a `limit` key
         // (LimitUpdateResult schema). The GET response inlines them
         // directly (Limit schema). Unwrap transparently.
         $limitData = ResponseValidator::asNullableAssocArray($body, 'limit') ?? $body;
-
-        return new self(
-            data: $body,
-            statusCode: $response->statusCode,
-            headers: $response->headers,
-            rawBody: $response->rawBody,
-            sends: ResponseValidator::asNullableInt($limitData, 'sends'),
-        );
+        $this->sends = ResponseValidator::asNullableInt($limitData, 'sends');
     }
 }

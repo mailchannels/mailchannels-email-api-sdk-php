@@ -36,7 +36,7 @@ final class DkimRotateResponseTest extends TestCase
             statusCode: 200,
         );
 
-        $typed = DkimRotateResponse::fromResponse($response);
+        $typed = new DkimRotateResponse($response);
 
         $this->assertInstanceOf(DkimKeyInfo::class, $typed->newKey);
         $this->assertSame('mc2', $typed->newKey->selector);
@@ -52,7 +52,7 @@ final class DkimRotateResponseTest extends TestCase
 
     public function testFromResponseLeavesKeysNullWhenBodyEmpty(): void
     {
-        $typed = DkimRotateResponse::fromResponse(new Response(data: [], statusCode: 200));
+        $typed = new DkimRotateResponse(new Response(data: [], statusCode: 200));
 
         $this->assertNull($typed->newKey);
         $this->assertNull($typed->rotatedKey);
@@ -67,7 +67,7 @@ final class DkimRotateResponseTest extends TestCase
 
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'new_key' must be an associative array");
-        DkimRotateResponse::fromResponse($response);
+        new DkimRotateResponse($response);
     }
 
     public function testPreservesHttpMetadata(): void
@@ -79,7 +79,7 @@ final class DkimRotateResponseTest extends TestCase
             rawBody: '{"new_key":{"selector":"mc2"}}',
         );
 
-        $typed = DkimRotateResponse::fromResponse($response);
+        $typed = new DkimRotateResponse($response);
 
         $this->assertSame(200, $typed->statusCode);
         $this->assertSame('rid-dkim-rotate', $typed->requestId());

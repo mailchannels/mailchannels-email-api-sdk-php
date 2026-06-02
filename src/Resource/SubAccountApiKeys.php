@@ -14,7 +14,7 @@ final class SubAccountApiKeys extends AbstractResource
     {
         SubAccounts::validateHandle($handle);
         $this->client->config()->logger->info('Creating sub-account API key', ['handle' => $handle]);
-        return SubAccountApiKeyResponse::fromResponse(
+        return new SubAccountApiKeyResponse(
             $this->request('POST', "/sub-account/{$handle}/api-key"),
         );
     }
@@ -23,7 +23,7 @@ final class SubAccountApiKeys extends AbstractResource
     {
         SubAccounts::validateHandle($handle);
         $this->client->config()->logger->info('Listing sub-account API keys', ['handle' => $handle]);
-        return SubAccountApiKeyListResponse::fromResponse(
+        return new SubAccountApiKeyListResponse(
             $this->request('GET', "/sub-account/{$handle}/api-key"),
         );
     }

@@ -50,7 +50,7 @@ final class SubAccounts extends AbstractResource
         }
         $payload = self::compact(['company_name' => $companyName, 'handle' => $handle]);
         $this->client->config()->logger->info('Creating sub-account', ['handle' => $handle]);
-        return SubAccountResponse::fromResponse(
+        return new SubAccountResponse(
             $this->request('POST', '/sub-account', $payload),
         );
     }
@@ -102,7 +102,7 @@ final class SubAccounts extends AbstractResource
 
     public function list(?int $limit = null, ?int $offset = null): SubAccountListResponse
     {
-        return SubAccountListResponse::fromResponse(
+        return new SubAccountListResponse(
             $this->request('GET', '/sub-account', null, self::compactOrNull(['limit' => $limit, 'offset' => $offset])),
         );
     }
@@ -110,7 +110,7 @@ final class SubAccounts extends AbstractResource
     public function retrieveUsage(string $handle): UsageResponse
     {
         self::validateHandle($handle);
-        return UsageResponse::fromResponse($this->request('GET', "/sub-account/{$handle}/usage"));
+        return new UsageResponse($this->request('GET', "/sub-account/{$handle}/usage"));
     }
 
     public function suspend(string $handle): Response

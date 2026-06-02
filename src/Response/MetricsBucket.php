@@ -6,6 +6,7 @@ namespace MailChannels\Response;
 
 use JsonSerializable;
 use MailChannels\Exception\ResponseValidationException;
+use MailChannels\Internal\ResponseValidator;
 
 /**
  * One time-series bucket entry: an event count for a single time

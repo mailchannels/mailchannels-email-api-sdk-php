@@ -33,7 +33,7 @@ final class CheckDomainResponseTest extends TestCase
             ],
         ];
 
-        $typed = CheckDomainResponse::fromResponse(new Response(data: $body, statusCode: 200));
+        $typed = new CheckDomainResponse(new Response(data: $body, statusCode: 200));
 
         $this->assertIsArray($typed->checkResults);
         $spf = $typed->checkResults['spf'] ?? null;
@@ -55,7 +55,7 @@ final class CheckDomainResponseTest extends TestCase
 
     public function testFromResponseLeavesFieldsNullWhenBodyEmpty(): void
     {
-        $typed = CheckDomainResponse::fromResponse(new Response(data: [], statusCode: 200));
+        $typed = new CheckDomainResponse(new Response(data: [], statusCode: 200));
 
         $this->assertNull($typed->checkResults);
         $this->assertNull($typed->references);
@@ -70,7 +70,7 @@ final class CheckDomainResponseTest extends TestCase
 
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'check_results' must be an associative array");
-        CheckDomainResponse::fromResponse($response);
+        new CheckDomainResponse($response);
     }
 
     public function testFromResponseRejectsReferencesContainingNonString(): void
@@ -82,7 +82,7 @@ final class CheckDomainResponseTest extends TestCase
 
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'references'[1] must be a string");
-        CheckDomainResponse::fromResponse($response);
+        new CheckDomainResponse($response);
     }
 
     public function testFromResponseRejectsReferencesAsAssoc(): void
@@ -94,7 +94,7 @@ final class CheckDomainResponseTest extends TestCase
 
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'references' must be a list");
-        CheckDomainResponse::fromResponse($response);
+        new CheckDomainResponse($response);
     }
 
     public function testPreservesHttpMetadata(): void
@@ -106,7 +106,7 @@ final class CheckDomainResponseTest extends TestCase
             rawBody: '{"check_results":{"spf":{"verdict":"passed"}}}',
         );
 
-        $typed = CheckDomainResponse::fromResponse($response);
+        $typed = new CheckDomainResponse($response);
 
         $this->assertSame(200, $typed->statusCode);
         $this->assertSame('rid-check', $typed->requestId());

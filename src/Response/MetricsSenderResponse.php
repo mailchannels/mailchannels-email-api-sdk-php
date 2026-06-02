@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MailChannels\Response;
 
 use MailChannels\Exception\ResponseValidationException;
+use MailChannels\Internal\ResponseValidator;
 use MailChannels\Response;
 
 /**
@@ -18,52 +19,39 @@ use MailChannels\Response;
  */
 final class MetricsSenderResponse extends Response
 {
-    /**
-     * @param array<string, mixed> $data
-     * @param array<string, string> $headers
-     * @param list<MetricsSender>|null $senders
-     */
-    public function __construct(
-        array $data,
-        int $statusCode,
-        array $headers = [],
-        ?string $rawBody = null,
-        public readonly ?string $startTime = null,
-        public readonly ?string $endTime = null,
-        public readonly ?int $limit = null,
-        public readonly ?int $offset = null,
-        public readonly ?int $total = null,
-        public readonly ?array $senders = null,
-    ) {
-        parent::__construct($data, $statusCode, $headers, $rawBody);
-    }
+    public readonly ?string $startTime;
+    public readonly ?string $endTime;
+    public readonly ?int $limit;
+    public readonly ?int $offset;
+    public readonly ?int $total;
+
+    /** @var list<MetricsSender>|null */
+    public readonly ?array $senders;
 
     /**
      * @throws ResponseValidationException when a present field has the
      *     wrong type. Missing fields are nulled out.
      */
-    public static function fromResponse(Response $response): self
+    public function __construct(Response $response)
     {
         $body = $response->data;
+        parent::__construct(
+            $response->data,
+            $response->statusCode,
+            $response->headers,
+            $response->rawBody,
+        );
         $rawSenders = ResponseValidator::asNullableListOfArrays($body, 'senders');
-        $senders = $rawSenders === null
+        $this->startTime = ResponseValidator::asNullableString($body, 'start_time');
+        $this->endTime = ResponseValidator::asNullableString($body, 'end_time');
+        $this->limit = ResponseValidator::asNullableInt($body, 'limit');
+        $this->offset = ResponseValidator::asNullableInt($body, 'offset');
+        $this->total = ResponseValidator::asNullableInt($body, 'total');
+        $this->senders = $rawSenders === null
             ? null
             : array_map(
                 static fn (array $s): MetricsSender => MetricsSender::fromArray($s),
                 $rawSenders,
             );
-
-        return new self(
-            data: $body,
-            statusCode: $response->statusCode,
-            headers: $response->headers,
-            rawBody: $response->rawBody,
-            startTime: ResponseValidator::asNullableString($body, 'start_time'),
-            endTime: ResponseValidator::asNullableString($body, 'end_time'),
-            limit: ResponseValidator::asNullableInt($body, 'limit'),
-            offset: ResponseValidator::asNullableInt($body, 'offset'),
-            total: ResponseValidator::asNullableInt($body, 'total'),
-            senders: $senders,
-        );
     }
 }

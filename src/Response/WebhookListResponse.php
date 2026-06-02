@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MailChannels\Response;
 
 use MailChannels\Exception\ResponseValidationException;
+use MailChannels\Internal\ResponseValidator;
 use MailChannels\Response;
 
 /**
@@ -22,43 +23,29 @@ use MailChannels\Response;
  */
 final class WebhookListResponse extends Response
 {
-    /**
-     * @param array<string, mixed> $data
-     * @param array<string, string> $headers
-     * @param list<WebhookSubscription>|null $webhooks
-     */
-    public function __construct(
-        array $data,
-        int $statusCode,
-        array $headers = [],
-        ?string $rawBody = null,
-        public readonly ?array $webhooks = null,
-    ) {
-        parent::__construct($data, $statusCode, $headers, $rawBody);
-    }
+    /** @var list<WebhookSubscription>|null */
+    public readonly ?array $webhooks;
 
     /**
      * @throws ResponseValidationException when a present field has the
      *     wrong type.
      */
-    public static function fromResponse(Response $response): self
+    public function __construct(Response $response)
     {
         $body = $response->data;
+        parent::__construct(
+            $response->data,
+            $response->statusCode,
+            $response->headers,
+            $response->rawBody,
+        );
         // Transport wraps bare-array responses as ['data' => [...]].
         $rawList = ResponseValidator::asNullableListOfArrays($body, 'data');
-        $subs = $rawList === null
+        $this->webhooks = $rawList === null
             ? null
             : array_map(
                 static fn (array $s): WebhookSubscription => WebhookSubscription::fromArray($s),
                 $rawList,
             );
-
-        return new self(
-            data: $body,
-            statusCode: $response->statusCode,
-            headers: $response->headers,
-            rawBody: $response->rawBody,
-            webhooks: $subs,
-        );
     }
 }

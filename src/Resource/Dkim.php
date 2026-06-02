@@ -26,7 +26,7 @@ final class Dkim extends AbstractResource
             'key_length' => $keyLength,
         ]);
         $this->client->config()->logger->info('Creating DKIM key pair', ['domain' => $domain, 'selector' => $selector]);
-        return DkimKeyResponse::fromResponse(
+        return new DkimKeyResponse(
             $this->request('POST', "/domains/{$domain}/dkim-keys", $payload),
         );
     }
@@ -46,7 +46,7 @@ final class Dkim extends AbstractResource
             'limit' => $limit,
             'include_dns_record' => $includeDnsRecord,
         ]);
-        return DkimKeyListResponse::fromResponse(
+        return new DkimKeyListResponse(
             $this->request('GET', "/domains/{$domain}/dkim-keys", null, $query),
         );
     }
@@ -69,7 +69,7 @@ final class Dkim extends AbstractResource
             'selector' => $selector,
             'new_selector' => $newSelector,
         ]);
-        return DkimRotateResponse::fromResponse(
+        return new DkimRotateResponse(
             $this->request(
                 'POST',
                 "/domains/{$domain}/dkim-keys/{$selector}/rotate",

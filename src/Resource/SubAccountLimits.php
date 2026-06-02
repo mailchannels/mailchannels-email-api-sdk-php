@@ -32,7 +32,7 @@ final class SubAccountLimits extends AbstractResource
             );
         }
         $this->client->config()->logger->info('Setting sub-account limit', ['handle' => $handle, 'sends' => $resolved]);
-        return SubAccountLimitResponse::fromResponse(
+        return new SubAccountLimitResponse(
             $this->request('PUT', "/sub-account/{$handle}/limit", ['sends' => $resolved]),
         );
     }
@@ -40,7 +40,7 @@ final class SubAccountLimits extends AbstractResource
     public function retrieve(string $handle): SubAccountLimitResponse
     {
         SubAccounts::validateHandle($handle);
-        return SubAccountLimitResponse::fromResponse(
+        return new SubAccountLimitResponse(
             $this->request('GET', "/sub-account/{$handle}/limit"),
         );
     }

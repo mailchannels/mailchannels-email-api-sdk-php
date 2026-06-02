@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MailChannels\Response;
 
 use MailChannels\Exception\ResponseValidationException;
+use MailChannels\Internal\ResponseValidator;
 use MailChannels\Response;
 
 /**
@@ -32,37 +33,26 @@ use MailChannels\Response;
  */
 final class CheckDomainResponse extends Response
 {
-    /**
-     * @param array<string, mixed> $data
-     * @param array<string, string> $headers
-     * @param array<string, mixed>|null $checkResults
-     * @param list<string>|null $references
-     */
-    public function __construct(
-        array $data,
-        int $statusCode,
-        array $headers = [],
-        ?string $rawBody = null,
-        public readonly ?array $checkResults = null,
-        public readonly ?array $references = null,
-    ) {
-        parent::__construct($data, $statusCode, $headers, $rawBody);
-    }
+    /** @var array<string, mixed>|null */
+    public readonly ?array $checkResults;
+
+    /** @var list<string>|null */
+    public readonly ?array $references;
 
     /**
      * @throws ResponseValidationException when a present field has the
      *     wrong type. Missing fields are nulled out.
      */
-    public static function fromResponse(Response $response): self
+    public function __construct(Response $response)
     {
         $body = $response->data;
-        return new self(
-            data: $body,
-            statusCode: $response->statusCode,
-            headers: $response->headers,
-            rawBody: $response->rawBody,
-            checkResults: ResponseValidator::asNullableAssocArray($body, 'check_results'),
-            references: ResponseValidator::asNullableListOfStrings($body, 'references'),
+        parent::__construct(
+            $response->data,
+            $response->statusCode,
+            $response->headers,
+            $response->rawBody,
         );
+        $this->checkResults = ResponseValidator::asNullableAssocArray($body, 'check_results');
+        $this->references = ResponseValidator::asNullableListOfStrings($body, 'references');
     }
 }

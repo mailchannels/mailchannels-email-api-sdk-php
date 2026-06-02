@@ -6,7 +6,7 @@ For task-oriented examples, start with the [README](../README.md). This file is 
 
 - SDK version: `0.2.0`
 - Top-level exports: `88`
-- Documented public methods: `222`
+- Documented public methods: `199`
 
 ## Top-Level Exports
 
@@ -1929,37 +1929,12 @@ own value objects from the arrays.
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?array $checkResults = null,
-    ?array $references = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$checkResults` (`?array`)
-- `$references` (`list<string>|null`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
@@ -2135,35 +2110,12 @@ foreach ($list->keys ?? [] as $key) {
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?array $keys = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$keys` (`list<DkimKeyInfo>|null`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
@@ -2196,35 +2148,12 @@ foreach ($created->key->dkimDnsRecords ?? [] as $record) {
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?MailChannels\Response\DkimKeyInfo $key = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$key` (`?MailChannels\Response\DkimKeyInfo`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type. An empty body leaves `$key` null.
@@ -2245,37 +2174,12 @@ Typed response returned by {@see \MailChannels\Resource\Dkim::rotate()}. Exposes
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?MailChannels\Response\DkimKeyInfo $newKey = null,
-    ?MailChannels\Response\DkimKeyInfo $rotatedKey = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$newKey` (`?MailChannels\Response\DkimKeyInfo`)
-- `$rotatedKey` (`?MailChannels\Response\DkimKeyInfo`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
@@ -2377,53 +2281,12 @@ under the `*Buckets` properties.
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?string $startTime = null,
-    ?string $endTime = null,
-    ?int $open = null,
-    ?int $click = null,
-    ?int $openTrackingDelivered = null,
-    ?int $clickTrackingDelivered = null,
-    ?array $openBuckets = null,
-    ?array $clickBuckets = null,
-    ?array $openTrackingDeliveredBuckets = null,
-    ?array $clickTrackingDeliveredBuckets = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$startTime` (`?string`)
-- `$endTime` (`?string`)
-- `$open` (`?int`)
-- `$click` (`?int`)
-- `$openTrackingDelivered` (`?int`)
-- `$clickTrackingDelivered` (`?int`)
-- `$openBuckets` (`list<MetricsBucket>|null`)
-- `$clickBuckets` (`list<MetricsBucket>|null`)
-- `$openTrackingDeliveredBuckets` (`list<MetricsBucket>|null`)
-- `$clickTrackingDeliveredBuckets` (`list<MetricsBucket>|null`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
@@ -2453,49 +2316,12 @@ time-series breakdowns under the `*Buckets` properties.
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?string $startTime = null,
-    ?string $endTime = null,
-    ?int $processed = null,
-    ?int $delivered = null,
-    ?int $bounced = null,
-    ?array $processedBuckets = null,
-    ?array $deliveredBuckets = null,
-    ?array $bouncedBuckets = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$startTime` (`?string`)
-- `$endTime` (`?string`)
-- `$processed` (`?int`)
-- `$delivered` (`?int`)
-- `$bounced` (`?int`)
-- `$processedBuckets` (`list<MetricsBucket>|null`)
-- `$deliveredBuckets` (`list<MetricsBucket>|null`)
-- `$bouncedBuckets` (`list<MetricsBucket>|null`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
@@ -2523,45 +2349,12 @@ breakdowns under the `*Buckets` properties.
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?string $startTime = null,
-    ?string $endTime = null,
-    ?int $unsubscribed = null,
-    ?int $unsubscribeDelivered = null,
-    ?array $unsubscribedBuckets = null,
-    ?array $unsubscribeDeliveredBuckets = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$startTime` (`?string`)
-- `$endTime` (`?string`)
-- `$unsubscribed` (`?int`)
-- `$unsubscribeDelivered` (`?int`)
-- `$unsubscribedBuckets` (`list<MetricsBucket>|null`)
-- `$unsubscribeDeliveredBuckets` (`list<MetricsBucket>|null`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
@@ -2653,45 +2446,12 @@ window.
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?string $startTime = null,
-    ?string $endTime = null,
-    ?int $limit = null,
-    ?int $offset = null,
-    ?int $total = null,
-    ?array $senders = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$startTime` (`?string`)
-- `$endTime` (`?string`)
-- `$limit` (`?int`)
-- `$offset` (`?int`)
-- `$total` (`?int`)
-- `$senders` (`list<MetricsSender>|null`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
@@ -2721,49 +2481,12 @@ time-series breakdowns under the `*Buckets` properties.
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?string $startTime = null,
-    ?string $endTime = null,
-    ?int $processed = null,
-    ?int $delivered = null,
-    ?int $dropped = null,
-    ?array $processedBuckets = null,
-    ?array $deliveredBuckets = null,
-    ?array $droppedBuckets = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$startTime` (`?string`)
-- `$endTime` (`?string`)
-- `$processed` (`?int`)
-- `$delivered` (`?int`)
-- `$dropped` (`?int`)
-- `$processedBuckets` (`list<MetricsBucket>|null`)
-- `$deliveredBuckets` (`list<MetricsBucket>|null`)
-- `$droppedBuckets` (`list<MetricsBucket>|null`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
@@ -2934,35 +2657,12 @@ each entry; only `$id` is reliably populated.
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?array $apiKeys = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$apiKeys` (`list<SubAccountApiKey>|null`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type.
@@ -2986,35 +2686,12 @@ secret material.
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?MailChannels\Response\SubAccountApiKey $apiKey = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$apiKey` (`?MailChannels\Response\SubAccountApiKey`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type.
@@ -3086,7 +2763,7 @@ Typed response for both `GET /sub-account/{handle}/limit` (returns `Limit`: `{"s
 
 The two endpoints have semantically equivalent payloads but
 structurally different shapes — GET returns the limit fields at the
-top level, PUT wraps them under a `limit` key. `fromResponse()`
+top level, PUT wraps them under a `limit` key. The constructor
 unwraps the PUT shape transparently so callers see the same typed
 `$sends` property in both cases.
 
@@ -3098,35 +2775,12 @@ unwraps the PUT shape transparently so callers see the same typed
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?int $sends = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$sends` (`?int`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type.
@@ -3146,35 +2800,12 @@ Typed response for `GET /sub-account`. The API returns a bare JSON array of `Sub
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?array $subAccounts = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$subAccounts` (`list<SubAccountDetails>|null`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type.
@@ -3194,35 +2825,12 @@ Typed response for `POST /sub-account` (create). The API returns a single `SubAc
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?MailChannels\Response\SubAccountDetails $subAccount = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$subAccount` (`?MailChannels\Response\SubAccountDetails`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type.
@@ -3305,35 +2913,12 @@ on each entry; only `$id` and `$enabled` are reliably populated.
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?array $smtpPasswords = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$smtpPasswords` (`list<SubAccountSmtpPassword>|null`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type.
@@ -3356,35 +2941,12 @@ create endpoint — treat as a secret.
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?MailChannels\Response\SubAccountSmtpPassword $smtpPassword = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$smtpPassword` (`?MailChannels\Response\SubAccountSmtpPassword`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type.
@@ -3398,7 +2960,7 @@ One suppression list entry returned by `/suppression-list`.
 
 Plain value object — not a `Response` subclass. Instances live inside
 {@see SuppressionListResponse::$suppressionList} and are constructed by
-that class's `fromResponse()` factory.
+that class's constructor.
 
 ### Public Properties
 
@@ -3483,35 +3045,12 @@ helpers.
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?array $suppressionList = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$suppressionList` (`list<SuppressionEntry>|null`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
@@ -3541,39 +3080,12 @@ helpers.
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?int $totalUsage = null,
-    ?string $periodStartDate = null,
-    ?string $periodEndDate = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$totalUsage` (`?int`)
-- `$periodStartDate` (`?string`)
-- `$periodEndDate` (`?string`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
@@ -3723,35 +3235,12 @@ Typed response for `GET /webhook-batch`. Spec schema: `WebhookBatchResult`. Wrap
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?array $webhookBatches = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$webhookBatches` (`list<WebhookBatch>|null`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type.
@@ -3833,35 +3322,12 @@ foreach ($client->webhooks->list()->webhooks ?? [] as $sub) {
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?array $webhooks = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$webhooks` (`list<WebhookSubscription>|null`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type.
@@ -3887,37 +3353,12 @@ base64-encoded Ed25519) used by
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?string $id = null,
-    ?string $key = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$id` (`?string`)
-- `$key` (`?string`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type.
@@ -3954,47 +3395,12 @@ own HTTP response status for this SDK call).
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?int $batchId = null,
-    ?string $customerHandle = null,
-    ?string $webhook = null,
-    ?int $webhookStatusCode = null,
-    ?int $eventCount = null,
-    ?int $durationInMs = null,
-    ?string $createdAt = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$batchId` (`?int`)
-- `$customerHandle` (`?string`)
-- `$webhook` (`?string`)
-- `$webhookStatusCode` (`?int`)
-- `$eventCount` (`?int`)
-- `$durationInMs` (`?int`)
-- `$createdAt` (`?string`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type.
@@ -4141,37 +3547,12 @@ if ($results->allPassed !== true) {
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?bool $allPassed = null,
-    ?array $results = null
+    MailChannels\Response $response
 )
 ```
 
 **Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$allPassed` (`?bool`)
-- `$results` (`list<WebhookValidationResult>|null`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
-    MailChannels\Response $response
-): self
-```
-
-**Parameters:**
 - `$response` (`MailChannels\Response`)
-
-**Returns:** `self`
 
 **Throws:**
 - ResponseValidationException when a present field has the wrong type.

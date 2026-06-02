@@ -6,13 +6,14 @@ namespace MailChannels\Response;
 
 use JsonSerializable;
 use MailChannels\Exception\ResponseValidationException;
+use MailChannels\Internal\ResponseValidator;
 
 /**
  * One suppression list entry returned by `/suppression-list`.
  *
  * Plain value object — not a `Response` subclass. Instances live inside
  * {@see SuppressionListResponse::$suppressionList} and are constructed by
- * that class's `fromResponse()` factory.
+ * that class's constructor.
  */
 final class SuppressionEntry implements JsonSerializable
 {

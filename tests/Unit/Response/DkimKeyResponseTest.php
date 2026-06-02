@@ -30,7 +30,7 @@ final class DkimKeyResponseTest extends TestCase
             ],
         ];
 
-        $typed = DkimKeyResponse::fromResponse(new Response(data: $body, statusCode: 201));
+        $typed = new DkimKeyResponse(new Response(data: $body, statusCode: 201));
 
         $this->assertInstanceOf(DkimKeyInfo::class, $typed->key);
         $this->assertSame('example.com', $typed->key->domain);
@@ -45,7 +45,7 @@ final class DkimKeyResponseTest extends TestCase
 
     public function testFromResponseLeavesKeyNullForEmptyBody(): void
     {
-        $typed = DkimKeyResponse::fromResponse(new Response(data: [], statusCode: 201));
+        $typed = new DkimKeyResponse(new Response(data: [], statusCode: 201));
 
         $this->assertNull($typed->key);
     }
@@ -60,7 +60,7 @@ final class DkimKeyResponseTest extends TestCase
 
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'key_length' must be an int");
-        DkimKeyResponse::fromResponse(new Response(data: $body, statusCode: 201));
+        new DkimKeyResponse(new Response(data: $body, statusCode: 201));
     }
 
     public function testFromResponseHonorsBothWireFormsForApiQuirkFields(): void
@@ -73,7 +73,7 @@ final class DkimKeyResponseTest extends TestCase
             'grace_period_expires_at' => '2026-06-15T10:00:00Z',  // hypothetical v2
         ];
 
-        $typed = DkimKeyResponse::fromResponse(new Response(data: $body, statusCode: 201));
+        $typed = new DkimKeyResponse(new Response(data: $body, statusCode: 201));
 
         $this->assertNotNull($typed->key);
         $this->assertSame('2026-06-15T10:00:00Z', $typed->key->gracePeriodExpiresAt);
@@ -88,7 +88,7 @@ final class DkimKeyResponseTest extends TestCase
             rawBody: '{"selector":"mc1"}',
         );
 
-        $typed = DkimKeyResponse::fromResponse($response);
+        $typed = new DkimKeyResponse($response);
 
         $this->assertSame(201, $typed->statusCode);
         $this->assertSame('rid-dkim-create', $typed->requestId());

@@ -6,6 +6,7 @@ namespace MailChannels\Response;
 
 use JsonSerializable;
 use MailChannels\Exception\ResponseValidationException;
+use MailChannels\Internal\ResponseValidator;
 
 /**
  * One webhook batch record returned in

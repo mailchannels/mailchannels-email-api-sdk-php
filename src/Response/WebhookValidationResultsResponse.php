@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MailChannels\Response;
 
 use MailChannels\Exception\ResponseValidationException;
+use MailChannels\Internal\ResponseValidator;
 use MailChannels\Response;
 
 /**
@@ -29,44 +30,31 @@ use MailChannels\Response;
  */
 final class WebhookValidationResultsResponse extends Response
 {
-    /**
-     * @param array<string, mixed> $data
-     * @param array<string, string> $headers
-     * @param list<WebhookValidationResult>|null $results
-     */
-    public function __construct(
-        array $data,
-        int $statusCode,
-        array $headers = [],
-        ?string $rawBody = null,
-        public readonly ?bool $allPassed = null,
-        public readonly ?array $results = null,
-    ) {
-        parent::__construct($data, $statusCode, $headers, $rawBody);
-    }
+    public readonly ?bool $allPassed;
+
+    /** @var list<WebhookValidationResult>|null */
+    public readonly ?array $results;
 
     /**
      * @throws ResponseValidationException when a present field has the
      *     wrong type.
      */
-    public static function fromResponse(Response $response): self
+    public function __construct(Response $response)
     {
         $body = $response->data;
+        parent::__construct(
+            $response->data,
+            $response->statusCode,
+            $response->headers,
+            $response->rawBody,
+        );
         $rawList = ResponseValidator::asNullableListOfArrays($body, 'results');
-        $results = $rawList === null
+        $this->allPassed = ResponseValidator::asNullableBool($body, 'all_passed');
+        $this->results = $rawList === null
             ? null
             : array_map(
                 static fn (array $r): WebhookValidationResult => WebhookValidationResult::fromArray($r),
                 $rawList,
             );
-
-        return new self(
-            data: $body,
-            statusCode: $response->statusCode,
-            headers: $response->headers,
-            rawBody: $response->rawBody,
-            allPassed: ResponseValidator::asNullableBool($body, 'all_passed'),
-            results: $results,
-        );
     }
 }

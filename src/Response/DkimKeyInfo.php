@@ -6,6 +6,7 @@ namespace MailChannels\Response;
 
 use JsonSerializable;
 use MailChannels\Exception\ResponseValidationException;
+use MailChannels\Internal\ResponseValidator;
 
 /**
  * MailChannels-hosted DKIM key metadata. Returned (inside a list or pair)

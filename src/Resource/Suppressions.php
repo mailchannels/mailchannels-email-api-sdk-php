@@ -27,7 +27,7 @@ final class Suppressions extends AbstractResource
             'limit' => $limit,
             'offset' => $offset,
         ]);
-        return SuppressionListResponse::fromResponse(
+        return new SuppressionListResponse(
             $this->request('GET', '/suppression-list', null, $query),
         );
     }
@@ -42,7 +42,7 @@ final class Suppressions extends AbstractResource
             'add_to_sub_accounts' => $addToSubAccounts,
         ]);
         $this->client->config()->logger->info('Creating suppression entries', ['count' => count($entries)]);
-        return SuppressionListResponse::fromResponse(
+        return new SuppressionListResponse(
             $this->request('POST', '/suppression-list', $payload),
         );
     }

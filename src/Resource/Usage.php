@@ -10,6 +10,6 @@ final class Usage extends AbstractResource
 {
     public function retrieve(): UsageResponse
     {
-        return UsageResponse::fromResponse($this->request('GET', '/usage'));
+        return new UsageResponse($this->request('GET', '/usage'));
     }
 }

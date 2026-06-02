@@ -34,7 +34,7 @@ final class SuppressionListResponseTest extends TestCase
             statusCode: 200,
         );
 
-        $typed = SuppressionListResponse::fromResponse($response);
+        $typed = new SuppressionListResponse($response);
 
         $this->assertNotNull($typed->suppressionList);
         $this->assertCount(2, $typed->suppressionList);
@@ -57,14 +57,14 @@ final class SuppressionListResponseTest extends TestCase
 
     public function testFromResponseLeavesListNullWhenBodyEmpty(): void
     {
-        $typed = SuppressionListResponse::fromResponse(new Response(data: [], statusCode: 200));
+        $typed = new SuppressionListResponse(new Response(data: [], statusCode: 200));
 
         $this->assertNull($typed->suppressionList);
     }
 
     public function testFromResponseAcceptsEmptyList(): void
     {
-        $typed = SuppressionListResponse::fromResponse(
+        $typed = new SuppressionListResponse(
             new Response(data: ['suppression_list' => []], statusCode: 200),
         );
 
@@ -80,7 +80,7 @@ final class SuppressionListResponseTest extends TestCase
 
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'suppression_list' must be a list");
-        SuppressionListResponse::fromResponse($response);
+        new SuppressionListResponse($response);
     }
 
     public function testFromResponseRejectsEntryWithWrongTypeRecipient(): void
@@ -96,7 +96,7 @@ final class SuppressionListResponseTest extends TestCase
 
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'recipient' must be a string");
-        SuppressionListResponse::fromResponse($response);
+        new SuppressionListResponse($response);
     }
 
     public function testFromResponseRejectsEntryWithWrongTypeSuppressionTypes(): void
@@ -115,7 +115,7 @@ final class SuppressionListResponseTest extends TestCase
 
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'suppression_types' must be a list");
-        SuppressionListResponse::fromResponse($response);
+        new SuppressionListResponse($response);
     }
 
     public function testPreservesHttpMetadata(): void
@@ -127,7 +127,7 @@ final class SuppressionListResponseTest extends TestCase
             rawBody: '{"suppression_list":[]}',
         );
 
-        $typed = SuppressionListResponse::fromResponse($response);
+        $typed = new SuppressionListResponse($response);
 
         $this->assertSame(200, $typed->statusCode);
         $this->assertSame('rid-supp', $typed->requestId());

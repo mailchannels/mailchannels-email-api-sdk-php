@@ -37,7 +37,7 @@ final class MetricsResponsesTest extends TestCase
             ],
         ];
 
-        $typed = MetricsEngagementResponse::fromResponse(new Response(data: $body, statusCode: 200));
+        $typed = new MetricsEngagementResponse(new Response(data: $body, statusCode: 200));
 
         $this->assertSame('2026-05-01T00:00:00Z', $typed->startTime);
         $this->assertSame('2026-05-31T00:00:00Z', $typed->endTime);
@@ -60,7 +60,7 @@ final class MetricsResponsesTest extends TestCase
 
     public function testEngagementResponseLeavesFieldsNullWhenBodyEmpty(): void
     {
-        $typed = MetricsEngagementResponse::fromResponse(new Response(data: [], statusCode: 200));
+        $typed = new MetricsEngagementResponse(new Response(data: [], statusCode: 200));
 
         $this->assertNull($typed->open);
         $this->assertNull($typed->openBuckets);
@@ -71,7 +71,7 @@ final class MetricsResponsesTest extends TestCase
     {
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'open' must be an int");
-        MetricsEngagementResponse::fromResponse(new Response(
+        new MetricsEngagementResponse(new Response(
             data: ['open' => '100'],
             statusCode: 200,
         ));
@@ -90,7 +90,7 @@ final class MetricsResponsesTest extends TestCase
             ],
         ];
 
-        $typed = MetricsPerformanceResponse::fromResponse(new Response(data: $body, statusCode: 200));
+        $typed = new MetricsPerformanceResponse(new Response(data: $body, statusCode: 200));
 
         $this->assertSame(1000, $typed->processed);
         $this->assertSame(950, $typed->delivered);
@@ -111,7 +111,7 @@ final class MetricsResponsesTest extends TestCase
             ],
         ];
 
-        $typed = MetricsRecipientBehaviourResponse::fromResponse(new Response(data: $body, statusCode: 200));
+        $typed = new MetricsRecipientBehaviourResponse(new Response(data: $body, statusCode: 200));
 
         $this->assertSame(5, $typed->unsubscribed);
         $this->assertSame(100, $typed->unsubscribeDelivered);
@@ -132,7 +132,7 @@ final class MetricsResponsesTest extends TestCase
             ],
         ];
 
-        $typed = MetricsVolumeResponse::fromResponse(new Response(data: $body, statusCode: 200));
+        $typed = new MetricsVolumeResponse(new Response(data: $body, statusCode: 200));
 
         $this->assertSame(1000, $typed->processed);
         $this->assertSame(950, $typed->delivered);
@@ -166,7 +166,7 @@ final class MetricsResponsesTest extends TestCase
             ],
         ];
 
-        $typed = MetricsSenderResponse::fromResponse(new Response(data: $body, statusCode: 200));
+        $typed = new MetricsSenderResponse(new Response(data: $body, statusCode: 200));
 
         $this->assertSame(50, $typed->limit);
         $this->assertSame(0, $typed->offset);
@@ -185,7 +185,7 @@ final class MetricsResponsesTest extends TestCase
     {
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'senders' must be a list");
-        MetricsSenderResponse::fromResponse(new Response(
+        new MetricsSenderResponse(new Response(
             data: ['senders' => ['name' => 'oops']],
             statusCode: 200,
         ));
@@ -196,7 +196,7 @@ final class MetricsResponsesTest extends TestCase
         // The `buckets` field must be an object, not a list.
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'buckets' must be an associative array");
-        MetricsEngagementResponse::fromResponse(new Response(
+        new MetricsEngagementResponse(new Response(
             data: ['buckets' => ['open', 'click']],
             statusCode: 200,
         ));
@@ -206,7 +206,7 @@ final class MetricsResponsesTest extends TestCase
     {
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'count' must be an int");
-        MetricsEngagementResponse::fromResponse(new Response(
+        new MetricsEngagementResponse(new Response(
             data: ['buckets' => ['open' => [['count' => 'one hundred']]]],
             statusCode: 200,
         ));
@@ -220,19 +220,19 @@ final class MetricsResponsesTest extends TestCase
             headers: ['X-Request-ID' => 'rid-metrics'],
         );
 
-        $engagement = MetricsEngagementResponse::fromResponse($rawResponse);
+        $engagement = new MetricsEngagementResponse($rawResponse);
         $this->assertSame('rid-metrics', $engagement->requestId());
 
-        $performance = MetricsPerformanceResponse::fromResponse($rawResponse);
+        $performance = new MetricsPerformanceResponse($rawResponse);
         $this->assertSame('rid-metrics', $performance->requestId());
 
-        $recipient = MetricsRecipientBehaviourResponse::fromResponse($rawResponse);
+        $recipient = new MetricsRecipientBehaviourResponse($rawResponse);
         $this->assertSame('rid-metrics', $recipient->requestId());
 
-        $volume = MetricsVolumeResponse::fromResponse($rawResponse);
+        $volume = new MetricsVolumeResponse($rawResponse);
         $this->assertSame('rid-metrics', $volume->requestId());
 
-        $senders = MetricsSenderResponse::fromResponse($rawResponse);
+        $senders = new MetricsSenderResponse($rawResponse);
         $this->assertSame('rid-metrics', $senders->requestId());
     }
 

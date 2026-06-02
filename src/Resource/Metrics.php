@@ -23,7 +23,7 @@ final class Metrics extends AbstractResource
         ?string $campaignId = null,
         MetricsInterval|string|null $interval = null,
     ): MetricsEngagementResponse {
-        return MetricsEngagementResponse::fromResponse(
+        return new MetricsEngagementResponse(
             $this->timeSeries('/metrics/engagement', $startTime, $endTime, $campaignId, $interval),
         );
     }
@@ -34,7 +34,7 @@ final class Metrics extends AbstractResource
         ?string $campaignId = null,
         MetricsInterval|string|null $interval = null,
     ): MetricsPerformanceResponse {
-        return MetricsPerformanceResponse::fromResponse(
+        return new MetricsPerformanceResponse(
             $this->timeSeries('/metrics/performance', $startTime, $endTime, $campaignId, $interval),
         );
     }
@@ -45,7 +45,7 @@ final class Metrics extends AbstractResource
         ?string $campaignId = null,
         MetricsInterval|string|null $interval = null,
     ): MetricsRecipientBehaviourResponse {
-        return MetricsRecipientBehaviourResponse::fromResponse(
+        return new MetricsRecipientBehaviourResponse(
             $this->timeSeries('/metrics/recipient-behaviour', $startTime, $endTime, $campaignId, $interval),
         );
     }
@@ -65,7 +65,7 @@ final class Metrics extends AbstractResource
         ?string $campaignId = null,
         MetricsInterval|string|null $interval = null,
     ): MetricsVolumeResponse {
-        return MetricsVolumeResponse::fromResponse(
+        return new MetricsVolumeResponse(
             $this->timeSeries('/metrics/volume', $startTime, $endTime, $campaignId, $interval),
         );
     }
@@ -86,7 +86,7 @@ final class Metrics extends AbstractResource
             'offset' => $offset,
             'sort_order' => $sortOrder,
         ]);
-        return MetricsSenderResponse::fromResponse(
+        return new MetricsSenderResponse(
             $this->request('GET', "/metrics/senders/{$type}", null, $query),
         );
     }

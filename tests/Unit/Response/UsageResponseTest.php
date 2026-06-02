@@ -22,7 +22,7 @@ final class UsageResponseTest extends TestCase
             statusCode: 200,
         );
 
-        $typed = UsageResponse::fromResponse($response);
+        $typed = new UsageResponse($response);
 
         $this->assertSame(1234, $typed->totalUsage);
         $this->assertSame('2026-06-01', $typed->periodStartDate);
@@ -31,7 +31,7 @@ final class UsageResponseTest extends TestCase
 
     public function testFromResponseLeavesFieldsNullWhenBodyEmpty(): void
     {
-        $typed = UsageResponse::fromResponse(new Response(data: [], statusCode: 200));
+        $typed = new UsageResponse(new Response(data: [], statusCode: 200));
 
         $this->assertNull($typed->totalUsage);
         $this->assertNull($typed->periodStartDate);
@@ -47,7 +47,7 @@ final class UsageResponseTest extends TestCase
 
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'total_usage' must be an int");
-        UsageResponse::fromResponse($response);
+        new UsageResponse($response);
     }
 
     public function testFromResponseRejectsWrongTypePeriodStartDate(): void
@@ -59,7 +59,7 @@ final class UsageResponseTest extends TestCase
 
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'period_start_date' must be a string");
-        UsageResponse::fromResponse($response);
+        new UsageResponse($response);
     }
 
     public function testPreservesHttpMetadata(): void
@@ -71,7 +71,7 @@ final class UsageResponseTest extends TestCase
             rawBody: '{"total_usage":42}',
         );
 
-        $typed = UsageResponse::fromResponse($response);
+        $typed = new UsageResponse($response);
 
         $this->assertSame(200, $typed->statusCode);
         $this->assertSame('rid-usage', $typed->requestId());
@@ -85,7 +85,7 @@ final class UsageResponseTest extends TestCase
             statusCode: 200,
         );
 
-        $typed = UsageResponse::fromResponse($response);
+        $typed = new UsageResponse($response);
 
         $this->assertSame(99, $typed->totalUsage);
         $this->assertSame(99, $typed['total_usage']);

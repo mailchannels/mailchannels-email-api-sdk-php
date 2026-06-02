@@ -26,7 +26,7 @@ final class SubAccountResponsesTest extends TestCase
     {
         $body = ['handle' => 'tenant42', 'company_name' => 'ACME Co', 'enabled' => true];
 
-        $typed = SubAccountResponse::fromResponse(new Response(data: $body, statusCode: 201));
+        $typed = new SubAccountResponse(new Response(data: $body, statusCode: 201));
 
         $this->assertInstanceOf(SubAccountDetails::class, $typed->subAccount);
         $this->assertSame('tenant42', $typed->subAccount->handle);
@@ -36,7 +36,7 @@ final class SubAccountResponsesTest extends TestCase
 
     public function testCreateSubAccountResponseLeavesAccountNullOnEmptyBody(): void
     {
-        $typed = SubAccountResponse::fromResponse(new Response(data: [], statusCode: 201));
+        $typed = new SubAccountResponse(new Response(data: [], statusCode: 201));
         $this->assertNull($typed->subAccount);
     }
 
@@ -44,7 +44,7 @@ final class SubAccountResponsesTest extends TestCase
     {
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'enabled' must be a bool");
-        SubAccountResponse::fromResponse(new Response(
+        new SubAccountResponse(new Response(
             data: ['handle' => 't1', 'enabled' => 'true'],
             statusCode: 201,
         ));
@@ -62,7 +62,7 @@ final class SubAccountResponsesTest extends TestCase
             ],
         ];
 
-        $typed = SubAccountListResponse::fromResponse(new Response(data: $body, statusCode: 200));
+        $typed = new SubAccountListResponse(new Response(data: $body, statusCode: 200));
 
         $this->assertNotNull($typed->subAccounts);
         $this->assertCount(2, $typed->subAccounts);
@@ -73,7 +73,7 @@ final class SubAccountResponsesTest extends TestCase
 
     public function testSubAccountListResponseLeavesListNullOnEmptyBody(): void
     {
-        $typed = SubAccountListResponse::fromResponse(new Response(data: [], statusCode: 200));
+        $typed = new SubAccountListResponse(new Response(data: [], statusCode: 200));
         $this->assertNull($typed->subAccounts);
     }
 
@@ -83,7 +83,7 @@ final class SubAccountResponsesTest extends TestCase
     {
         $body = ['id' => 42, 'key' => 'mc-secret-12345'];
 
-        $typed = SubAccountApiKeyResponse::fromResponse(new Response(data: $body, statusCode: 201));
+        $typed = new SubAccountApiKeyResponse(new Response(data: $body, statusCode: 201));
 
         $this->assertInstanceOf(SubAccountApiKey::class, $typed->apiKey);
         $this->assertSame(42, $typed->apiKey->id);
@@ -99,7 +99,7 @@ final class SubAccountResponsesTest extends TestCase
             ],
         ];
 
-        $typed = SubAccountApiKeyListResponse::fromResponse(new Response(data: $body, statusCode: 200));
+        $typed = new SubAccountApiKeyListResponse(new Response(data: $body, statusCode: 200));
 
         $this->assertNotNull($typed->apiKeys);
         $this->assertCount(2, $typed->apiKeys);
@@ -111,7 +111,7 @@ final class SubAccountResponsesTest extends TestCase
     {
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'id' must be an int");
-        SubAccountApiKeyListResponse::fromResponse(new Response(
+        new SubAccountApiKeyListResponse(new Response(
             data: ['data' => [['id' => '42']]],
             statusCode: 200,
         ));
@@ -123,7 +123,7 @@ final class SubAccountResponsesTest extends TestCase
     {
         $body = ['id' => 7, 'smtp_password' => 'p4ssw0rd', 'enabled' => true];
 
-        $typed = SubAccountSmtpPasswordResponse::fromResponse(new Response(data: $body, statusCode: 201));
+        $typed = new SubAccountSmtpPasswordResponse(new Response(data: $body, statusCode: 201));
 
         $this->assertInstanceOf(SubAccountSmtpPassword::class, $typed->smtpPassword);
         $this->assertSame(7, $typed->smtpPassword->id);
@@ -140,7 +140,7 @@ final class SubAccountResponsesTest extends TestCase
             ],
         ];
 
-        $typed = SubAccountSmtpPasswordListResponse::fromResponse(new Response(data: $body, statusCode: 200));
+        $typed = new SubAccountSmtpPasswordListResponse(new Response(data: $body, statusCode: 200));
 
         $this->assertNotNull($typed->smtpPasswords);
         $this->assertCount(2, $typed->smtpPasswords);
@@ -153,7 +153,7 @@ final class SubAccountResponsesTest extends TestCase
     public function testLimitResponseHandlesGetShape(): void
     {
         // GET returns the Limit schema directly: {sends: int}
-        $typed = SubAccountLimitResponse::fromResponse(new Response(
+        $typed = new SubAccountLimitResponse(new Response(
             data: ['sends' => 50000],
             statusCode: 200,
         ));
@@ -164,7 +164,7 @@ final class SubAccountResponsesTest extends TestCase
     public function testLimitResponseHandlesPutWrapperShape(): void
     {
         // PUT returns the LimitUpdateResult schema: {limit: {sends: int}}
-        $typed = SubAccountLimitResponse::fromResponse(new Response(
+        $typed = new SubAccountLimitResponse(new Response(
             data: ['limit' => ['sends' => 100000]],
             statusCode: 200,
         ));
@@ -174,7 +174,7 @@ final class SubAccountResponsesTest extends TestCase
 
     public function testLimitResponseLeavesSendsNullWhenBodyEmpty(): void
     {
-        $typed = SubAccountLimitResponse::fromResponse(new Response(data: [], statusCode: 200));
+        $typed = new SubAccountLimitResponse(new Response(data: [], statusCode: 200));
         $this->assertNull($typed->sends);
     }
 
@@ -182,7 +182,7 @@ final class SubAccountResponsesTest extends TestCase
     {
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'sends' must be an int");
-        SubAccountLimitResponse::fromResponse(new Response(
+        new SubAccountLimitResponse(new Response(
             data: ['sends' => '50000'],
             statusCode: 200,
         ));
@@ -194,13 +194,13 @@ final class SubAccountResponsesTest extends TestCase
     {
         $raw = new Response(data: [], statusCode: 200, headers: ['X-Request-ID' => 'rid-sa']);
 
-        $this->assertSame('rid-sa', SubAccountResponse::fromResponse($raw)->requestId());
-        $this->assertSame('rid-sa', SubAccountListResponse::fromResponse($raw)->requestId());
-        $this->assertSame('rid-sa', SubAccountApiKeyResponse::fromResponse($raw)->requestId());
-        $this->assertSame('rid-sa', SubAccountApiKeyListResponse::fromResponse($raw)->requestId());
-        $this->assertSame('rid-sa', SubAccountSmtpPasswordResponse::fromResponse($raw)->requestId());
-        $this->assertSame('rid-sa', SubAccountSmtpPasswordListResponse::fromResponse($raw)->requestId());
-        $this->assertSame('rid-sa', SubAccountLimitResponse::fromResponse($raw)->requestId());
+        $this->assertSame('rid-sa', (new SubAccountResponse($raw))->requestId());
+        $this->assertSame('rid-sa', (new SubAccountListResponse($raw))->requestId());
+        $this->assertSame('rid-sa', (new SubAccountApiKeyResponse($raw))->requestId());
+        $this->assertSame('rid-sa', (new SubAccountApiKeyListResponse($raw))->requestId());
+        $this->assertSame('rid-sa', (new SubAccountSmtpPasswordResponse($raw))->requestId());
+        $this->assertSame('rid-sa', (new SubAccountSmtpPasswordListResponse($raw))->requestId());
+        $this->assertSame('rid-sa', (new SubAccountLimitResponse($raw))->requestId());
     }
 
     public function testSubAccountDetailsJsonSerializeOmitsNullFields(): void

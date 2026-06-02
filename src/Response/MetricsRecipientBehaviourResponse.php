@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MailChannels\Response;
 
 use MailChannels\Exception\ResponseValidationException;
+use MailChannels\Internal\ResponseValidator;
 use MailChannels\Response;
 
 /**
@@ -16,47 +17,36 @@ use MailChannels\Response;
  */
 final class MetricsRecipientBehaviourResponse extends Response
 {
-    /**
-     * @param array<string, mixed> $data
-     * @param array<string, string> $headers
-     * @param list<MetricsBucket>|null $unsubscribedBuckets
-     * @param list<MetricsBucket>|null $unsubscribeDeliveredBuckets
-     */
-    public function __construct(
-        array $data,
-        int $statusCode,
-        array $headers = [],
-        ?string $rawBody = null,
-        public readonly ?string $startTime = null,
-        public readonly ?string $endTime = null,
-        public readonly ?int $unsubscribed = null,
-        public readonly ?int $unsubscribeDelivered = null,
-        public readonly ?array $unsubscribedBuckets = null,
-        public readonly ?array $unsubscribeDeliveredBuckets = null,
-    ) {
-        parent::__construct($data, $statusCode, $headers, $rawBody);
-    }
+    public readonly ?string $startTime;
+    public readonly ?string $endTime;
+    public readonly ?int $unsubscribed;
+    public readonly ?int $unsubscribeDelivered;
+
+    /** @var list<MetricsBucket>|null */
+    public readonly ?array $unsubscribedBuckets;
+
+    /** @var list<MetricsBucket>|null */
+    public readonly ?array $unsubscribeDeliveredBuckets;
 
     /**
      * @throws ResponseValidationException when a present field has the
      *     wrong type. Missing fields are nulled out.
      */
-    public static function fromResponse(Response $response): self
+    public function __construct(Response $response)
     {
         $body = $response->data;
-        $buckets = ResponseValidator::asNullableAssocArray($body, 'buckets');
-
-        return new self(
-            data: $body,
-            statusCode: $response->statusCode,
-            headers: $response->headers,
-            rawBody: $response->rawBody,
-            startTime: ResponseValidator::asNullableString($body, 'start_time'),
-            endTime: ResponseValidator::asNullableString($body, 'end_time'),
-            unsubscribed: ResponseValidator::asNullableInt($body, 'unsubscribed'),
-            unsubscribeDelivered: ResponseValidator::asNullableInt($body, 'unsubscribe_delivered'),
-            unsubscribedBuckets: MetricsBucket::listFromParent($buckets, 'unsubscribed'),
-            unsubscribeDeliveredBuckets: MetricsBucket::listFromParent($buckets, 'unsubscribe_delivered'),
+        parent::__construct(
+            $response->data,
+            $response->statusCode,
+            $response->headers,
+            $response->rawBody,
         );
+        $buckets = ResponseValidator::asNullableAssocArray($body, 'buckets');
+        $this->startTime = ResponseValidator::asNullableString($body, 'start_time');
+        $this->endTime = ResponseValidator::asNullableString($body, 'end_time');
+        $this->unsubscribed = ResponseValidator::asNullableInt($body, 'unsubscribed');
+        $this->unsubscribeDelivered = ResponseValidator::asNullableInt($body, 'unsubscribe_delivered');
+        $this->unsubscribedBuckets = MetricsBucket::listFromParent($buckets, 'unsubscribed');
+        $this->unsubscribeDeliveredBuckets = MetricsBucket::listFromParent($buckets, 'unsubscribe_delivered');
     }
 }

@@ -27,7 +27,7 @@ final class CheckDomain extends AbstractResource
             'dkim_settings' => $dkimSettings,
         ]);
         $this->client->config()->logger->info('Checking domain configuration', ['domain' => $domain]);
-        return CheckDomainResponse::fromResponse(
+        return new CheckDomainResponse(
             $this->request('POST', '/check-domain', $payload),
         );
     }

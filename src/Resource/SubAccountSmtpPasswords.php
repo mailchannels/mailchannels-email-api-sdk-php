@@ -14,7 +14,7 @@ final class SubAccountSmtpPasswords extends AbstractResource
     {
         SubAccounts::validateHandle($handle);
         $this->client->config()->logger->info('Creating sub-account SMTP password', ['handle' => $handle]);
-        return SubAccountSmtpPasswordResponse::fromResponse(
+        return new SubAccountSmtpPasswordResponse(
             $this->request('POST', "/sub-account/{$handle}/smtp-password"),
         );
     }
@@ -23,7 +23,7 @@ final class SubAccountSmtpPasswords extends AbstractResource
     {
         SubAccounts::validateHandle($handle);
         $this->client->config()->logger->info('Listing sub-account SMTP passwords', ['handle' => $handle]);
-        return SubAccountSmtpPasswordListResponse::fromResponse(
+        return new SubAccountSmtpPasswordListResponse(
             $this->request('GET', "/sub-account/{$handle}/smtp-password"),
         );
     }

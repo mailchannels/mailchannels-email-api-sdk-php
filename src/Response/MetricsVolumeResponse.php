@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MailChannels\Response;
 
 use MailChannels\Exception\ResponseValidationException;
+use MailChannels\Internal\ResponseValidator;
 use MailChannels\Response;
 
 /**
@@ -16,52 +17,42 @@ use MailChannels\Response;
  */
 final class MetricsVolumeResponse extends Response
 {
-    /**
-     * @param array<string, mixed> $data
-     * @param array<string, string> $headers
-     * @param list<MetricsBucket>|null $processedBuckets
-     * @param list<MetricsBucket>|null $deliveredBuckets
-     * @param list<MetricsBucket>|null $droppedBuckets
-     */
-    public function __construct(
-        array $data,
-        int $statusCode,
-        array $headers = [],
-        ?string $rawBody = null,
-        public readonly ?string $startTime = null,
-        public readonly ?string $endTime = null,
-        public readonly ?int $processed = null,
-        public readonly ?int $delivered = null,
-        public readonly ?int $dropped = null,
-        public readonly ?array $processedBuckets = null,
-        public readonly ?array $deliveredBuckets = null,
-        public readonly ?array $droppedBuckets = null,
-    ) {
-        parent::__construct($data, $statusCode, $headers, $rawBody);
-    }
+    public readonly ?string $startTime;
+    public readonly ?string $endTime;
+    public readonly ?int $processed;
+    public readonly ?int $delivered;
+    public readonly ?int $dropped;
+
+    /** @var list<MetricsBucket>|null */
+    public readonly ?array $processedBuckets;
+
+    /** @var list<MetricsBucket>|null */
+    public readonly ?array $deliveredBuckets;
+
+    /** @var list<MetricsBucket>|null */
+    public readonly ?array $droppedBuckets;
 
     /**
      * @throws ResponseValidationException when a present field has the
      *     wrong type. Missing fields are nulled out.
      */
-    public static function fromResponse(Response $response): self
+    public function __construct(Response $response)
     {
         $body = $response->data;
-        $buckets = ResponseValidator::asNullableAssocArray($body, 'buckets');
-
-        return new self(
-            data: $body,
-            statusCode: $response->statusCode,
-            headers: $response->headers,
-            rawBody: $response->rawBody,
-            startTime: ResponseValidator::asNullableString($body, 'start_time'),
-            endTime: ResponseValidator::asNullableString($body, 'end_time'),
-            processed: ResponseValidator::asNullableInt($body, 'processed'),
-            delivered: ResponseValidator::asNullableInt($body, 'delivered'),
-            dropped: ResponseValidator::asNullableInt($body, 'dropped'),
-            processedBuckets: MetricsBucket::listFromParent($buckets, 'processed'),
-            deliveredBuckets: MetricsBucket::listFromParent($buckets, 'delivered'),
-            droppedBuckets: MetricsBucket::listFromParent($buckets, 'dropped'),
+        parent::__construct(
+            $response->data,
+            $response->statusCode,
+            $response->headers,
+            $response->rawBody,
         );
+        $buckets = ResponseValidator::asNullableAssocArray($body, 'buckets');
+        $this->startTime = ResponseValidator::asNullableString($body, 'start_time');
+        $this->endTime = ResponseValidator::asNullableString($body, 'end_time');
+        $this->processed = ResponseValidator::asNullableInt($body, 'processed');
+        $this->delivered = ResponseValidator::asNullableInt($body, 'delivered');
+        $this->dropped = ResponseValidator::asNullableInt($body, 'dropped');
+        $this->processedBuckets = MetricsBucket::listFromParent($buckets, 'processed');
+        $this->deliveredBuckets = MetricsBucket::listFromParent($buckets, 'delivered');
+        $this->droppedBuckets = MetricsBucket::listFromParent($buckets, 'dropped');
     }
 }

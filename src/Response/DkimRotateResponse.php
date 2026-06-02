@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MailChannels\Response;
 
 use MailChannels\Exception\ResponseValidationException;
+use MailChannels\Internal\ResponseValidator;
 use MailChannels\Response;
 
 /**
@@ -16,38 +17,25 @@ use MailChannels\Response;
  */
 final class DkimRotateResponse extends Response
 {
-    /**
-     * @param array<string, mixed> $data
-     * @param array<string, string> $headers
-     */
-    public function __construct(
-        array $data,
-        int $statusCode,
-        array $headers = [],
-        ?string $rawBody = null,
-        public readonly ?DkimKeyInfo $newKey = null,
-        public readonly ?DkimKeyInfo $rotatedKey = null,
-    ) {
-        parent::__construct($data, $statusCode, $headers, $rawBody);
-    }
+    public readonly ?DkimKeyInfo $newKey;
+    public readonly ?DkimKeyInfo $rotatedKey;
 
     /**
      * @throws ResponseValidationException when a present field has the
      *     wrong type. Missing fields are nulled out.
      */
-    public static function fromResponse(Response $response): self
+    public function __construct(Response $response)
     {
         $body = $response->data;
+        parent::__construct(
+            $response->data,
+            $response->statusCode,
+            $response->headers,
+            $response->rawBody,
+        );
         $newKeyData = ResponseValidator::asNullableAssocArray($body, 'new_key');
         $rotatedKeyData = ResponseValidator::asNullableAssocArray($body, 'rotated_key');
-
-        return new self(
-            data: $body,
-            statusCode: $response->statusCode,
-            headers: $response->headers,
-            rawBody: $response->rawBody,
-            newKey: $newKeyData === null ? null : DkimKeyInfo::fromArray($newKeyData),
-            rotatedKey: $rotatedKeyData === null ? null : DkimKeyInfo::fromArray($rotatedKeyData),
-        );
+        $this->newKey = $newKeyData === null ? null : DkimKeyInfo::fromArray($newKeyData);
+        $this->rotatedKey = $rotatedKeyData === null ? null : DkimKeyInfo::fromArray($rotatedKeyData);
     }
 }

@@ -38,7 +38,7 @@ final class DkimKeyListResponseTest extends TestCase
             statusCode: 200,
         );
 
-        $typed = DkimKeyListResponse::fromResponse($response);
+        $typed = new DkimKeyListResponse($response);
 
         $this->assertNotNull($typed->keys);
         $this->assertCount(1, $typed->keys);
@@ -66,14 +66,14 @@ final class DkimKeyListResponseTest extends TestCase
 
     public function testFromResponseLeavesKeysNullWhenBodyEmpty(): void
     {
-        $typed = DkimKeyListResponse::fromResponse(new Response(data: [], statusCode: 200));
+        $typed = new DkimKeyListResponse(new Response(data: [], statusCode: 200));
 
         $this->assertNull($typed->keys);
     }
 
     public function testFromResponseAcceptsEmptyKeysList(): void
     {
-        $typed = DkimKeyListResponse::fromResponse(
+        $typed = new DkimKeyListResponse(
             new Response(data: ['keys' => []], statusCode: 200),
         );
 
@@ -89,7 +89,7 @@ final class DkimKeyListResponseTest extends TestCase
 
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'keys' must be a list");
-        DkimKeyListResponse::fromResponse($response);
+        new DkimKeyListResponse($response);
     }
 
     public function testFromResponseRejectsKeyEntryWithWrongTypeKeyLength(): void
@@ -105,7 +105,7 @@ final class DkimKeyListResponseTest extends TestCase
 
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'key_length' must be an int");
-        DkimKeyListResponse::fromResponse($response);
+        new DkimKeyListResponse($response);
     }
 
     public function testPreservesHttpMetadata(): void
@@ -117,7 +117,7 @@ final class DkimKeyListResponseTest extends TestCase
             rawBody: '{"keys":[]}',
         );
 
-        $typed = DkimKeyListResponse::fromResponse($response);
+        $typed = new DkimKeyListResponse($response);
 
         $this->assertSame(200, $typed->statusCode);
         $this->assertSame('rid-dkim-list', $typed->requestId());
@@ -151,7 +151,7 @@ final class DkimKeyListResponseTest extends TestCase
             statusCode: 200,
         );
 
-        $typed = DkimKeyListResponse::fromResponse($response);
+        $typed = new DkimKeyListResponse($response);
 
         $this->assertNotNull($typed->keys);
         $this->assertSame('2026-06-15T10:00:00Z', $typed->keys[0]->gracePeriodExpiresAt);
@@ -175,7 +175,7 @@ final class DkimKeyListResponseTest extends TestCase
             statusCode: 200,
         );
 
-        $typed = DkimKeyListResponse::fromResponse($response);
+        $typed = new DkimKeyListResponse($response);
 
         $this->assertNotNull($typed->keys);
         $this->assertSame('2026-06-15T10:00:00Z', $typed->keys[0]->gracePeriodExpiresAt);

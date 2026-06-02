@@ -22,7 +22,7 @@ final class Webhooks extends AbstractResource
 {
     public function list(): WebhookListResponse
     {
-        return WebhookListResponse::fromResponse($this->request('GET', '/webhook'));
+        return new WebhookListResponse($this->request('GET', '/webhook'));
     }
 
     public function create(string $endpoint): Response
@@ -83,7 +83,7 @@ final class Webhooks extends AbstractResource
             'limit' => $limit,
             'offset' => $offset,
         ]);
-        return WebhookBatchListResponse::fromResponse(
+        return new WebhookBatchListResponse(
             $this->request('GET', '/webhook-batch', null, $query),
         );
     }
@@ -98,7 +98,7 @@ final class Webhooks extends AbstractResource
             'batch_id' => $batchId,
             'customer_handle' => $customerHandle,
         ]);
-        return WebhookResendResponse::fromResponse(
+        return new WebhookResendResponse(
             $this->request(
                 'POST',
                 "/webhook-batch/{$batchId}/resend",
@@ -113,7 +113,7 @@ final class Webhooks extends AbstractResource
     /** `GET /webhook/public-key?id=...` — does not require an API key. */
     public function publicKey(string $keyId): WebhookPublicKeyResponse
     {
-        return WebhookPublicKeyResponse::fromResponse(
+        return new WebhookPublicKeyResponse(
             $this->request('GET', '/webhook/public-key', null, ['id' => $keyId], requireApiKey: false),
         );
     }
@@ -121,7 +121,7 @@ final class Webhooks extends AbstractResource
     public function validate(?string $requestId = null): WebhookValidationResultsResponse
     {
         $payload = self::compactOrNull(['request_id' => $requestId]);
-        return WebhookValidationResultsResponse::fromResponse(
+        return new WebhookValidationResultsResponse(
             $this->request('POST', '/webhook/validate', $payload),
         );
     }

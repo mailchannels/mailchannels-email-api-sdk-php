@@ -26,33 +26,21 @@ use MailChannels\Response;
  */
 final class DkimKeyResponse extends Response
 {
-    /**
-     * @param array<string, mixed> $data
-     * @param array<string, string> $headers
-     */
-    public function __construct(
-        array $data,
-        int $statusCode,
-        array $headers = [],
-        ?string $rawBody = null,
-        public readonly ?DkimKeyInfo $key = null,
-    ) {
-        parent::__construct($data, $statusCode, $headers, $rawBody);
-    }
+    public readonly ?DkimKeyInfo $key;
 
     /**
      * @throws ResponseValidationException when a present field has the
      *     wrong type. An empty body leaves `$key` null.
      */
-    public static function fromResponse(Response $response): self
+    public function __construct(Response $response)
     {
         $body = $response->data;
-        return new self(
-            data: $body,
-            statusCode: $response->statusCode,
-            headers: $response->headers,
-            rawBody: $response->rawBody,
-            key: $body === [] ? null : DkimKeyInfo::fromArray($body),
+        parent::__construct(
+            $response->data,
+            $response->statusCode,
+            $response->headers,
+            $response->rawBody,
         );
+        $this->key = $body === [] ? null : DkimKeyInfo::fromArray($body);
     }
 }
