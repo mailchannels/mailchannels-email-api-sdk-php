@@ -6,6 +6,7 @@ namespace MailChannels\Resource;
 
 use MailChannels\Exception\ValidationException;
 use MailChannels\Response;
+use MailChannels\Response\SubAccountLimitResponse;
 
 final class SubAccountLimits extends AbstractResource
 {
@@ -14,7 +15,7 @@ final class SubAccountLimits extends AbstractResource
      * documented alias `monthlyLimit` must be provided; the request payload
      * uses `sends`.
      */
-    public function set(string $handle, ?int $sends = null, ?int $monthlyLimit = null): Response
+    public function set(string $handle, ?int $sends = null, ?int $monthlyLimit = null): SubAccountLimitResponse
     {
         SubAccounts::validateHandle($handle);
         $resolved = $sends ?? $monthlyLimit;
@@ -31,13 +32,17 @@ final class SubAccountLimits extends AbstractResource
             );
         }
         $this->client->config()->logger->info('Setting sub-account limit', ['handle' => $handle, 'sends' => $resolved]);
-        return $this->request('PUT', "/sub-account/{$handle}/limit", ['sends' => $resolved]);
+        return SubAccountLimitResponse::fromResponse(
+            $this->request('PUT', "/sub-account/{$handle}/limit", ['sends' => $resolved]),
+        );
     }
 
-    public function retrieve(string $handle): Response
+    public function retrieve(string $handle): SubAccountLimitResponse
     {
         SubAccounts::validateHandle($handle);
-        return $this->request('GET', "/sub-account/{$handle}/limit");
+        return SubAccountLimitResponse::fromResponse(
+            $this->request('GET', "/sub-account/{$handle}/limit"),
+        );
     }
 
     public function delete(string $handle): Response

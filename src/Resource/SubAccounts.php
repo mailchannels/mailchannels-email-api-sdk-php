@@ -7,6 +7,9 @@ namespace MailChannels\Resource;
 use MailChannels\Client;
 use MailChannels\Exception\ValidationException;
 use MailChannels\Response;
+use MailChannels\Response\SubAccountListResponse;
+use MailChannels\Response\SubAccountResponse;
+use MailChannels\Response\UsageResponse;
 
 final class SubAccounts extends AbstractResource
 {
@@ -39,7 +42,7 @@ final class SubAccounts extends AbstractResource
      * `handle` is optional — if omitted, MailChannels assigns one. When
      * provided, it must match {@see self::HANDLE_PATTERN}.
      */
-    public function create(string $companyName, ?string $handle = null): Response
+    public function create(string $companyName, ?string $handle = null): SubAccountResponse
     {
         self::validateCompanyName($companyName);
         if ($handle !== null) {
@@ -47,7 +50,9 @@ final class SubAccounts extends AbstractResource
         }
         $payload = self::compact(['company_name' => $companyName, 'handle' => $handle]);
         $this->client->config()->logger->info('Creating sub-account', ['handle' => $handle]);
-        return $this->request('POST', '/sub-account', $payload);
+        return SubAccountResponse::fromResponse(
+            $this->request('POST', '/sub-account', $payload),
+        );
     }
 
     /**
@@ -95,15 +100,17 @@ final class SubAccounts extends AbstractResource
         }
     }
 
-    public function list(?int $limit = null, ?int $offset = null): Response
+    public function list(?int $limit = null, ?int $offset = null): SubAccountListResponse
     {
-        return $this->request('GET', '/sub-account', null, self::compactOrNull(['limit' => $limit, 'offset' => $offset]));
+        return SubAccountListResponse::fromResponse(
+            $this->request('GET', '/sub-account', null, self::compactOrNull(['limit' => $limit, 'offset' => $offset])),
+        );
     }
 
-    public function retrieveUsage(string $handle): Response
+    public function retrieveUsage(string $handle): UsageResponse
     {
         self::validateHandle($handle);
-        return $this->request('GET', "/sub-account/{$handle}/usage");
+        return UsageResponse::fromResponse($this->request('GET', "/sub-account/{$handle}/usage"));
     }
 
     public function suspend(string $handle): Response

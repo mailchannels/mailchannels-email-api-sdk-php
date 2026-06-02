@@ -73,6 +73,16 @@ For task-oriented examples, start with the [README](../README.md). This file is 
 | `MailChannels\Response\MetricsVolumeResponse` | final class | Typed response for `GET /metrics/volume`. Spec schema: `MetricsVolume`. |
 | `MailChannels\Response\QueuedSendResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Emails::queue()} for the `/send-async` endpoint. The server queues the message and acks with a request id plus a queued-at timestamp — there is **no** message id at this point because delivery hasn't happened yet. The actual per-message identifiers arrive later via webhook events. |
 | `MailChannels\Response\SendResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Emails::send()}. |
+| `MailChannels\Response\SubAccountApiKey` | final class | One sub-account API key record. Spec schema: `APIKey` (renamed to `SubAccountApiKey` to follow PHP conventions and avoid a one-token top-level class name). |
+| `MailChannels\Response\SubAccountApiKeyListResponse` | final class | Typed response for `GET /sub-account/{handle}/api-key`. The API returns a bare JSON array of `APIKey` entries; {@see \MailChannels\Transport} wraps bare arrays under the `data` key during decoding. |
+| `MailChannels\Response\SubAccountApiKeyResponse` | final class | Typed response for `POST /sub-account/{handle}/api-key`. The API returns a single `APIKey` object directly as the response body. Exposes that as `$apiKey`. |
+| `MailChannels\Response\SubAccountDetails` | final class | One sub-account record. Spec schema: `SubAccountDetails`. |
+| `MailChannels\Response\SubAccountLimitResponse` | final class | Typed response for both `GET /sub-account/{handle}/limit` (returns `Limit`: `{"sends": int}`) and `PUT /sub-account/{handle}/limit` (returns `LimitUpdateResult`: `{"limit": {"sends": int}}`). |
+| `MailChannels\Response\SubAccountListResponse` | final class | Typed response for `GET /sub-account`. The API returns a bare JSON array of `SubAccountDetails` entries; {@see \MailChannels\Transport} wraps bare arrays under the `data` key during decoding, and this class extracts the typed list from there. |
+| `MailChannels\Response\SubAccountResponse` | final class | Typed response for `POST /sub-account` (create). The API returns a single `SubAccountDetails` object directly as the response body (no wrapper key). Exposes that as `$subAccount` for typed access. |
+| `MailChannels\Response\SubAccountSmtpPassword` | final class | One sub-account SMTP password record. Spec schema: `SMTPPassword` (renamed for consistency with PHP class-name conventions). |
+| `MailChannels\Response\SubAccountSmtpPasswordListResponse` | final class | Typed response for `GET /sub-account/{handle}/smtp-password`. The API returns a bare JSON array of `SMTPPassword` entries; {@see \MailChannels\Transport} wraps bare arrays under the `data` key during decoding. |
+| `MailChannels\Response\SubAccountSmtpPasswordResponse` | final class | Typed response for `POST /sub-account/{handle}/smtp-password`. The API returns a single `SMTPPassword` object directly as the response body. Exposes that as `$smtpPassword`. |
 | `MailChannels\Response\SuppressionEntry` | final class | One suppression list entry returned by `/suppression-list`. |
 | `MailChannels\Response\SuppressionListResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Suppressions::list()} and {@see \MailChannels\Resource\Suppressions::create()}. |
 | `MailChannels\Response\UsageResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Usage::retrieve()}. |
@@ -1254,13 +1264,13 @@ _final class_ — extends [`MailChannels\Resource\AbstractResource`](#mailchanne
 ```php
 public function create(
     string $handle
-): MailChannels\Response
+): MailChannels\Response\SubAccountApiKeyResponse
 ```
 
 **Parameters:**
 - `$handle` (`string`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\SubAccountApiKeyResponse`
 
 #### `delete()`
 
@@ -1282,13 +1292,13 @@ public function delete(
 ```php
 public function list(
     string $handle
-): MailChannels\Response
+): MailChannels\Response\SubAccountApiKeyListResponse
 ```
 
 **Parameters:**
 - `$handle` (`string`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\SubAccountApiKeyListResponse`
 
 
 ## `MailChannels\Resource\SubAccountLimits`
@@ -1315,13 +1325,13 @@ public function delete(
 ```php
 public function retrieve(
     string $handle
-): MailChannels\Response
+): MailChannels\Response\SubAccountLimitResponse
 ```
 
 **Parameters:**
 - `$handle` (`string`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\SubAccountLimitResponse`
 
 #### `set()`
 
@@ -1330,7 +1340,7 @@ public function set(
     string $handle,
     ?int $sends = null,
     ?int $monthlyLimit = null
-): MailChannels\Response
+): MailChannels\Response\SubAccountLimitResponse
 ```
 
 Set the monthly sending limit for a sub-account. Either `sends` or its documented alias `monthlyLimit` must be provided; the request payload uses `sends`.
@@ -1340,7 +1350,7 @@ Set the monthly sending limit for a sub-account. Either `sends` or its documente
 - `$sends` (`?int`)
 - `$monthlyLimit` (`?int`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\SubAccountLimitResponse`
 
 
 ## `MailChannels\Resource\SubAccountSmtpPasswords`
@@ -1354,13 +1364,13 @@ _final class_ — extends [`MailChannels\Resource\AbstractResource`](#mailchanne
 ```php
 public function create(
     string $handle
-): MailChannels\Response
+): MailChannels\Response\SubAccountSmtpPasswordResponse
 ```
 
 **Parameters:**
 - `$handle` (`string`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\SubAccountSmtpPasswordResponse`
 
 #### `delete()`
 
@@ -1382,13 +1392,13 @@ public function delete(
 ```php
 public function list(
     string $handle
-): MailChannels\Response
+): MailChannels\Response\SubAccountSmtpPasswordListResponse
 ```
 
 **Parameters:**
 - `$handle` (`string`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\SubAccountSmtpPasswordListResponse`
 
 
 ## `MailChannels\Resource\SubAccounts`
@@ -1441,7 +1451,7 @@ public function activate(
 public function create(
     string $companyName,
     ?string $handle = null
-): MailChannels\Response
+): MailChannels\Response\SubAccountResponse
 ```
 
 Create a sub-account. `companyName` is required by the API. `handle` is optional — if omitted, MailChannels assigns one. When provided, it must match {@see self::HANDLE_PATTERN}.
@@ -1450,7 +1460,7 @@ Create a sub-account. `companyName` is required by the API. `handle` is optional
 - `$companyName` (`string`)
 - `$handle` (`?string`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\SubAccountResponse`
 
 #### `delete()`
 
@@ -1471,27 +1481,27 @@ public function delete(
 public function list(
     ?int $limit = null,
     ?int $offset = null
-): MailChannels\Response
+): MailChannels\Response\SubAccountListResponse
 ```
 
 **Parameters:**
 - `$limit` (`?int`)
 - `$offset` (`?int`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\SubAccountListResponse`
 
 #### `retrieveUsage()`
 
 ```php
 public function retrieveUsage(
     string $handle
-): MailChannels\Response
+): MailChannels\Response\UsageResponse
 ```
 
 **Parameters:**
 - `$handle` (`string`)
 
-**Returns:** `MailChannels\Response`
+**Returns:** `MailChannels\Response\UsageResponse`
 
 #### `suspend()`
 
@@ -2848,6 +2858,536 @@ public function requestId(): ?string
 ```
 
 **Returns:** `?string`
+
+
+## `MailChannels\Response\SubAccountApiKey`
+
+_final class_
+
+One sub-account API key record. Spec schema: `APIKey` (renamed to `SubAccountApiKey` to follow PHP conventions and avoid a one-token top-level class name).
+
+`$key` is the raw API key string and is only returned by the create
+endpoint — the list endpoint omits the secret material. Treat it as
+a credential.
+
+Plain value object — not a `Response` subclass.
+
+### Public Properties
+
+- `readonly ?int $id`
+- `readonly ?string $key`
+
+### Constructor
+
+```php
+public function __construct(
+    ?int $id = null,
+    ?string $key = null
+)
+```
+
+**Parameters:**
+- `$id` (`?int`)
+- `$key` (`?string`)
+
+### Methods
+
+#### `fromArray()`
+
+```php
+public static function fromArray(
+    array $data
+): self
+```
+
+**Parameters:**
+- `$data` (`array`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type.
+
+#### `jsonSerialize()`
+
+```php
+public function jsonSerialize(): array
+```
+
+**Returns:** `array<string,` — mixed>
+
+
+## `MailChannels\Response\SubAccountApiKeyListResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response for `GET /sub-account/{handle}/api-key`. The API returns a bare JSON array of `APIKey` entries; {@see \MailChannels\Transport} wraps bare arrays under the `data` key during decoding.
+
+The list endpoint typically omits the secret `$key` material on
+each entry; only `$id` is reliably populated.
+
+### Public Properties
+
+- `readonly ?array $apiKeys`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?array $apiKeys = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$apiKeys` (`list<SubAccountApiKey>|null`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type.
+
+
+## `MailChannels\Response\SubAccountApiKeyResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response for `POST /sub-account/{handle}/api-key`. The API returns a single `APIKey` object directly as the response body. Exposes that as `$apiKey`.
+
+`$apiKey->key` contains the raw key string returned by the create
+endpoint — treat it as a credential. The list endpoint omits the
+secret material.
+
+### Public Properties
+
+- `readonly ?MailChannels\Response\SubAccountApiKey $apiKey`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?MailChannels\Response\SubAccountApiKey $apiKey = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$apiKey` (`?MailChannels\Response\SubAccountApiKey`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type.
+
+
+## `MailChannels\Response\SubAccountDetails`
+
+_final class_
+
+One sub-account record. Spec schema: `SubAccountDetails`.
+
+Plain value object — not a `Response` subclass. Returned inside
+{@see SubAccountListResponse::$subAccounts} or as
+{@see SubAccountResponse::$subAccount}.
+
+### Public Properties
+
+- `readonly ?string $companyName`
+- `readonly ?bool $enabled`
+- `readonly ?string $handle`
+
+### Constructor
+
+```php
+public function __construct(
+    ?string $handle = null,
+    ?string $companyName = null,
+    ?bool $enabled = null
+)
+```
+
+**Parameters:**
+- `$handle` (`?string`)
+- `$companyName` (`?string`)
+- `$enabled` (`?bool`)
+
+### Methods
+
+#### `fromArray()`
+
+```php
+public static function fromArray(
+    array $data
+): self
+```
+
+**Parameters:**
+- `$data` (`array`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type.
+
+#### `jsonSerialize()`
+
+```php
+public function jsonSerialize(): array
+```
+
+**Returns:** `array<string,` — mixed>
+
+
+## `MailChannels\Response\SubAccountLimitResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response for both `GET /sub-account/{handle}/limit` (returns `Limit`: `{"sends": int}`) and `PUT /sub-account/{handle}/limit` (returns `LimitUpdateResult`: `{"limit": {"sends": int}}`).
+
+The two endpoints have semantically equivalent payloads but
+structurally different shapes — GET returns the limit fields at the
+top level, PUT wraps them under a `limit` key. `fromResponse()`
+unwraps the PUT shape transparently so callers see the same typed
+`$sends` property in both cases.
+
+### Public Properties
+
+- `readonly ?int $sends`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?int $sends = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$sends` (`?int`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type.
+
+
+## `MailChannels\Response\SubAccountListResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response for `GET /sub-account`. The API returns a bare JSON array of `SubAccountDetails` entries; {@see \MailChannels\Transport} wraps bare arrays under the `data` key during decoding, and this class extracts the typed list from there.
+
+### Public Properties
+
+- `readonly ?array $subAccounts`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?array $subAccounts = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$subAccounts` (`list<SubAccountDetails>|null`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type.
+
+
+## `MailChannels\Response\SubAccountResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response for `POST /sub-account` (create). The API returns a single `SubAccountDetails` object directly as the response body (no wrapper key). Exposes that as `$subAccount` for typed access.
+
+### Public Properties
+
+- `readonly ?MailChannels\Response\SubAccountDetails $subAccount`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?MailChannels\Response\SubAccountDetails $subAccount = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$subAccount` (`?MailChannels\Response\SubAccountDetails`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type.
+
+
+## `MailChannels\Response\SubAccountSmtpPassword`
+
+_final class_
+
+One sub-account SMTP password record. Spec schema: `SMTPPassword` (renamed for consistency with PHP class-name conventions).
+
+`$smtpPassword` carries the raw password and is only returned by the
+create endpoint — the list endpoint omits the secret. Treat it as a
+credential.
+
+Plain value object — not a `Response` subclass.
+
+### Public Properties
+
+- `readonly ?bool $enabled`
+- `readonly ?int $id`
+- `readonly ?string $smtpPassword`
+
+### Constructor
+
+```php
+public function __construct(
+    ?int $id = null,
+    ?string $smtpPassword = null,
+    ?bool $enabled = null
+)
+```
+
+**Parameters:**
+- `$id` (`?int`)
+- `$smtpPassword` (`?string`)
+- `$enabled` (`?bool`)
+
+### Methods
+
+#### `fromArray()`
+
+```php
+public static function fromArray(
+    array $data
+): self
+```
+
+**Parameters:**
+- `$data` (`array`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type.
+
+#### `jsonSerialize()`
+
+```php
+public function jsonSerialize(): array
+```
+
+**Returns:** `array<string,` — mixed>
+
+
+## `MailChannels\Response\SubAccountSmtpPasswordListResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response for `GET /sub-account/{handle}/smtp-password`. The API returns a bare JSON array of `SMTPPassword` entries; {@see \MailChannels\Transport} wraps bare arrays under the `data` key during decoding.
+
+The list endpoint typically omits the raw `$smtpPassword` material
+on each entry; only `$id` and `$enabled` are reliably populated.
+
+### Public Properties
+
+- `readonly ?array $smtpPasswords`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?array $smtpPasswords = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$smtpPasswords` (`list<SubAccountSmtpPassword>|null`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type.
+
+
+## `MailChannels\Response\SubAccountSmtpPasswordResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response for `POST /sub-account/{handle}/smtp-password`. The API returns a single `SMTPPassword` object directly as the response body. Exposes that as `$smtpPassword`.
+
+`$smtpPassword->smtpPassword` is the raw credential returned by the
+create endpoint — treat as a secret.
+
+### Public Properties
+
+- `readonly ?MailChannels\Response\SubAccountSmtpPassword $smtpPassword`
+
+### Constructor
+
+```php
+public function __construct(
+    array $data,
+    int $statusCode,
+    array $headers = [],
+    ?string $rawBody = null,
+    ?MailChannels\Response\SubAccountSmtpPassword $smtpPassword = null
+)
+```
+
+**Parameters:**
+- `$data` (`array`)
+- `$statusCode` (`int`)
+- `$headers` (`array`)
+- `$rawBody` (`?string`)
+- `$smtpPassword` (`?MailChannels\Response\SubAccountSmtpPassword`)
+
+### Methods
+
+#### `fromResponse()`
+
+```php
+public static function fromResponse(
+    MailChannels\Response $response
+): self
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type.
 
 
 ## `MailChannels\Response\SuppressionEntry`
