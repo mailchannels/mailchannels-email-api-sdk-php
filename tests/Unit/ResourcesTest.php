@@ -105,7 +105,7 @@ final class ResourcesTest extends TestCase
 
     public function testSubAccountsNestedApiKeysCreate(): void
     {
-        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(200, ['id' => 'k1']));
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(200, ['id' => 1, 'key' => 'mc-test-secret']));
         $client = Fixtures::client($http);
         $client->subAccounts->apiKeys->create('tenant42');
         $this->assertStringEndsWith('/sub-account/tenant42/api-key', (string) $http->lastRequest()->getUri());
