@@ -5,8 +5,8 @@ This reference is generated from public class signatures and PHPDoc blocks in `s
 For task-oriented examples, start with the [README](../README.md). This file is the formal public surface reference.
 
 - SDK version: `0.2.0`
-- Top-level exports: `53`
-- Documented public methods: `140`
+- Top-level exports: `52`
+- Documented public methods: `138`
 
 ## Top-Level Exports
 
@@ -59,7 +59,6 @@ For task-oriented examples, start with the [README](../README.md). This file is 
 | `MailChannels\Resource\Webhooks` | final class | Webhook subscription management. For inbound signature verification, see {@see \MailChannels\Webhook\Verifier} — those helpers are stateless and do not need a Client instance. |
 | `MailChannels\Response` | class | Response object returned by SDK calls. Behaves as the decoded JSON body (array-accessible and iterable) while also exposing HTTP metadata. |
 | `MailChannels\Response\QueuedSendResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Emails::queue()} for the `/send-async` endpoint. The server queues the message and acks with a request id plus a queued-at timestamp — there is **no** message id at this point because delivery hasn't happened yet. The actual per-message identifiers arrive later via webhook events. |
-| `MailChannels\Response\ResponseValidator` | final class | Internal helpers used by typed response classes (`SendResponse`, `QueuedSendResponse`, etc.) to extract and type-validate fields out of the decoded response body. Missing fields become `null`; present fields with the wrong type throw {@see ResponseValidationException}. |
 | `MailChannels\Response\SendResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Emails::send()}. |
 | `MailChannels\Transport` | final class | Internal HTTP transport. Builds PSR-7 requests, sends them through a PSR-18 client, and decodes responses into MailChannels\Response — or raises a typed exception from the MailChannels\Exception namespace. |
 | `MailChannels\Version` | final class |  |
@@ -1917,45 +1916,6 @@ Build a QueuedSendResponse from a generic {@see Response}, validating field type
 ```php
 public function requestId(): ?string
 ```
-
-**Returns:** `?string`
-
-
-## `MailChannels\Response\ResponseValidator`
-
-_final class_
-
-Internal helpers used by typed response classes (`SendResponse`, `QueuedSendResponse`, etc.) to extract and type-validate fields out of the decoded response body. Missing fields become `null`; present fields with the wrong type throw {@see ResponseValidationException}.
-
-### Methods
-
-#### `asNullableListOfArrays()`
-
-```php
-public static function asNullableListOfArrays(
-    array $body,
-    string $key
-): ?array
-```
-
-**Parameters:**
-- `$body` (`array`)
-- `$key` (`string`)
-
-**Returns:** `list<array<string,` — mixed>>|null
-
-#### `asNullableString()`
-
-```php
-public static function asNullableString(
-    array $body,
-    string $key
-): ?string
-```
-
-**Parameters:**
-- `$body` (`array`)
-- `$key` (`string`)
 
 **Returns:** `?string`
 

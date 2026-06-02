@@ -41,14 +41,19 @@ function main(): void
     sort($classes);
 
     $reflections = [];
-    $methodCount = 0;
     foreach ($classes as $fqcn) {
         $r = new ReflectionClass($fqcn);
-        $reflections[$fqcn] = $r;
+        if (!isInternal($r->getDocComment() ?: null)) {
+            $reflections[$fqcn] = $r;
+        }
+    }
+
+    $methodCount = 0;
+    foreach ($reflections as $r) {
         $methodCount += countDocumentedMethods($r);
     }
 
-    $output = renderHeader(count($classes), $methodCount);
+    $output = renderHeader(count($reflections), $methodCount);
     $output .= renderExportTable($reflections);
     $output .= "\n";
     foreach ($reflections as $r) {

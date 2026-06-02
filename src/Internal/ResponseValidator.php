@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MailChannels\Response;
+namespace MailChannels\Internal;
 
 use MailChannels\Exception\ResponseValidationException;
 
