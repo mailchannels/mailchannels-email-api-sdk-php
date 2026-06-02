@@ -21,19 +21,7 @@ use MailChannels\Response;
  */
 final class QueuedSendResponse extends Response
 {
-    /**
-     * @param array<string, mixed> $data
-     * @param array<string, string> $headers
-     */
-    public function __construct(
-        array $data,
-        int $statusCode,
-        array $headers = [],
-        ?string $rawBody = null,
-        public readonly ?string $queuedAt = null,
-    ) {
-        parent::__construct($data, $statusCode, $headers, $rawBody);
-    }
+    public readonly ?string $queuedAt;
 
     /**
      * Build a QueuedSendResponse from a generic {@see Response}, validating
@@ -42,16 +30,16 @@ final class QueuedSendResponse extends Response
      * @throws ResponseValidationException when a present field has the
      *     wrong type. Missing fields are nulled out.
      */
-    public static function fromResponse(Response $response): self
+    public function __construct(Response $response)
     {
         $body = $response->data;
-        return new self(
-            data: $body,
-            statusCode: $response->statusCode,
-            headers: $response->headers,
-            rawBody: $response->rawBody,
-            queuedAt: ResponseValidator::asNullableString($body, 'queued_at'),
+        parent::__construct(
+            $response->data,
+            $response->statusCode,
+            $response->headers,
+            $response->rawBody,
         );
+        $this->queuedAt = ResponseValidator::asNullableString($body, 'queued_at');
     }
 
     public function requestId(): ?string

@@ -29,7 +29,7 @@ final class Emails extends AbstractResource
         $payload = self::normalize($params);
         $query = $dryRun ? ['dry-run' => 'true'] : null;
         $this->client->config()->logger->info('Sending email through MailChannels', ['dry_run' => $dryRun]);
-        return SendResponse::fromResponse(
+        return new SendResponse(
             $this->request('POST', '/send', $payload, $query),
         );
     }
@@ -46,7 +46,7 @@ final class Emails extends AbstractResource
     {
         $payload = self::normalize($params);
         $this->client->config()->logger->info('Queueing email through MailChannels /send-async');
-        return QueuedSendResponse::fromResponse(
+        return new QueuedSendResponse(
             $this->request('POST', '/send-async', $payload),
         );
     }

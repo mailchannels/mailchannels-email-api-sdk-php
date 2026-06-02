@@ -24,44 +24,34 @@ use MailChannels\Response;
  */
 final class SendResponse extends Response
 {
-    /**
-     * @param array<string, mixed> $data
-     * @param array<string, string> $headers
-     * @param list<array<string, mixed>>|null $results
-     * @param list<array<string, mixed>>|null $dryRunData
-     */
-    public function __construct(
-        array $data,
-        int $statusCode,
-        array $headers = [],
-        ?string $rawBody = null,
-        public readonly ?string $messageId = null,
-        public readonly ?array $results = null,
-        public readonly ?array $dryRunData = null,
-    ) {
-        parent::__construct($data, $statusCode, $headers, $rawBody);
-    }
+    public readonly ?string $messageId;
+
+    /** @var list<array<string, mixed>>|null */
+    public readonly ?array $results;
+
+    /** @var list<array<string, mixed>>|null */
+    public readonly ?array $dryRunData;
 
     /**
-     * Build a SendResponse from a generic {@see Response}, validating field
-     * types as it goes.
+     * Build a SendResponse from a generic {@see Response}, validating
+     * field types as it goes.
      *
      * @throws ResponseValidationException when a present field has the
      *     wrong type. Missing fields are not errors — they're nulled out
      *     so callers can branch on `dryRunData !== null` etc.
      */
-    public static function fromResponse(Response $response): self
+    public function __construct(Response $response)
     {
         $body = $response->data;
-        return new self(
-            data: $body,
-            statusCode: $response->statusCode,
-            headers: $response->headers,
-            rawBody: $response->rawBody,
-            messageId: ResponseValidator::asNullableString($body, 'message_id'),
-            results: ResponseValidator::asNullableListOfArrays($body, 'results'),
-            dryRunData: ResponseValidator::asNullableListOfArrays($body, 'data'),
+        parent::__construct(
+            $response->data,
+            $response->statusCode,
+            $response->headers,
+            $response->rawBody,
         );
+        $this->messageId = ResponseValidator::asNullableString($body, 'message_id');
+        $this->results = ResponseValidator::asNullableListOfArrays($body, 'results');
+        $this->dryRunData = ResponseValidator::asNullableListOfArrays($body, 'data');
     }
 
     public function requestId(): ?string

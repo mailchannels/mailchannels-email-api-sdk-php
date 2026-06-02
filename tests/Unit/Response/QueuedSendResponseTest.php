@@ -21,7 +21,7 @@ final class QueuedSendResponseTest extends TestCase
             statusCode: 202,
         );
 
-        $typed = QueuedSendResponse::fromResponse($response);
+        $typed = new QueuedSendResponse($response);
 
         $this->assertSame('2026-06-01T12:00:00Z', $typed->queuedAt);
         $this->assertSame('rid-1', $typed->requestId());
@@ -31,7 +31,7 @@ final class QueuedSendResponseTest extends TestCase
     {
         $response = new Response(data: [], statusCode: 202);
 
-        $typed = QueuedSendResponse::fromResponse($response);
+        $typed = new QueuedSendResponse($response);
 
         $this->assertNull($typed->queuedAt);
     }
@@ -45,7 +45,7 @@ final class QueuedSendResponseTest extends TestCase
 
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'queued_at' must be a string");
-        QueuedSendResponse::fromResponse($response);
+        new QueuedSendResponse($response);
     }
 
     public function testPreservesHttpMetadata(): void
@@ -57,7 +57,7 @@ final class QueuedSendResponseTest extends TestCase
             rawBody: '{"queued_at":"2026-06-01T12:00:00Z"}',
         );
 
-        $typed = QueuedSendResponse::fromResponse($response);
+        $typed = new QueuedSendResponse($response);
 
         $this->assertSame(202, $typed->statusCode);
         $this->assertSame('rid-from-header', $typed->requestId());

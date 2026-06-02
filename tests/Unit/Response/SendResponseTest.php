@@ -26,7 +26,7 @@ final class SendResponseTest extends TestCase
             headers: ['X-Request-ID' => 'header-rid'],
         );
 
-        $typed = SendResponse::fromResponse($response);
+        $typed = new SendResponse($response);
 
         $this->assertSame('mid-1', $typed->messageId);
         $this->assertNotNull($typed->results);
@@ -46,7 +46,7 @@ final class SendResponseTest extends TestCase
             statusCode: 200,
         );
 
-        $typed = SendResponse::fromResponse($response);
+        $typed = new SendResponse($response);
 
         $this->assertNotNull($typed->dryRunData);
         $this->assertCount(1, $typed->dryRunData);
@@ -58,7 +58,7 @@ final class SendResponseTest extends TestCase
     {
         $response = new Response(data: [], statusCode: 202);
 
-        $typed = SendResponse::fromResponse($response);
+        $typed = new SendResponse($response);
 
         $this->assertNull($typed->messageId);
         $this->assertNull($typed->results);
@@ -74,7 +74,7 @@ final class SendResponseTest extends TestCase
 
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'message_id' must be a string");
-        SendResponse::fromResponse($response);
+        new SendResponse($response);
     }
 
     public function testFromResponseRejectsResultsThatAreNotAList(): void
@@ -86,7 +86,7 @@ final class SendResponseTest extends TestCase
 
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'results' must be a list");
-        SendResponse::fromResponse($response);
+        new SendResponse($response);
     }
 
     public function testFromResponseRejectsResultsEntryThatIsNotAssoc(): void
@@ -97,7 +97,7 @@ final class SendResponseTest extends TestCase
         );
 
         $this->expectException(ResponseValidationException::class);
-        SendResponse::fromResponse($response);
+        new SendResponse($response);
     }
 
     public function testPreservesHttpMetadataFromOriginalResponse(): void
@@ -109,7 +109,7 @@ final class SendResponseTest extends TestCase
             rawBody: '{"message_id":"mid-2"}',
         );
 
-        $typed = SendResponse::fromResponse($response);
+        $typed = new SendResponse($response);
 
         $this->assertSame(202, $typed->statusCode);
         $this->assertSame('application/json', $typed->headers['Content-Type']);
@@ -124,7 +124,7 @@ final class SendResponseTest extends TestCase
             headers: ['X-Request-ID' => 'header-rid'],
         );
 
-        $typed = SendResponse::fromResponse($response);
+        $typed = new SendResponse($response);
 
         $this->assertSame('body-rid', $typed->requestId());
     }
@@ -137,7 +137,7 @@ final class SendResponseTest extends TestCase
             headers: ['X-Request-ID' => 'header-rid'],
         );
 
-        $typed = SendResponse::fromResponse($response);
+        $typed = new SendResponse($response);
 
         $this->assertSame('header-rid', $typed->requestId());
     }
@@ -149,7 +149,7 @@ final class SendResponseTest extends TestCase
             statusCode: 202,
         );
 
-        $typed = SendResponse::fromResponse($response);
+        $typed = new SendResponse($response);
 
         // Both typed property access and the inherited array-access surface
         // continue to work.

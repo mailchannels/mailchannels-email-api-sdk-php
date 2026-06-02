@@ -6,7 +6,7 @@ For task-oriented examples, start with the [README](../README.md). This file is 
 
 - SDK version: `0.2.0`
 - Top-level exports: `52`
-- Documented public methods: `138`
+- Documented public methods: `136`
 
 ## Top-Level Exports
 
@@ -1876,29 +1876,8 @@ field first, falling back to header inspection.
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?string $queuedAt = null
-)
-```
-
-**Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$queuedAt` (`?string`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
     MailChannels\Response $response
-): self
+)
 ```
 
 Build a QueuedSendResponse from a generic {@see Response}, validating field types as it goes.
@@ -1906,10 +1885,10 @@ Build a QueuedSendResponse from a generic {@see Response}, validating field type
 **Parameters:**
 - `$response` (`MailChannels\Response`)
 
-**Returns:** `self`
-
 **Throws:**
 - ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
+
+### Methods
 
 #### `requestId()`
 
@@ -1947,33 +1926,8 @@ helpers — `$response['message_id']`, `$response->statusCode`,
 
 ```php
 public function __construct(
-    array $data,
-    int $statusCode,
-    array $headers = [],
-    ?string $rawBody = null,
-    ?string $messageId = null,
-    ?array $results = null,
-    ?array $dryRunData = null
-)
-```
-
-**Parameters:**
-- `$data` (`array`)
-- `$statusCode` (`int`)
-- `$headers` (`array`)
-- `$rawBody` (`?string`)
-- `$messageId` (`?string`)
-- `$results` (`?array`)
-- `$dryRunData` (`?array`)
-
-### Methods
-
-#### `fromResponse()`
-
-```php
-public static function fromResponse(
     MailChannels\Response $response
-): self
+)
 ```
 
 Build a SendResponse from a generic {@see Response}, validating field types as it goes.
@@ -1981,10 +1935,10 @@ Build a SendResponse from a generic {@see Response}, validating field types as i
 **Parameters:**
 - `$response` (`MailChannels\Response`)
 
-**Returns:** `self`
-
 **Throws:**
 - ResponseValidationException when a present field has the wrong type. Missing fields are not errors — they're nulled out so callers can branch on `dryRunData !== null` etc.
+
+### Methods
 
 #### `requestId()`
 
