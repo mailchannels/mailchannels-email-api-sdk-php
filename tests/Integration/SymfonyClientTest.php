@@ -23,7 +23,10 @@ final class SymfonyClientTest extends TestCase
     {
         $responses = [
             new MockResponse(
-                json_encode(['message_id' => 'sym-1']) ?: '',
+                json_encode([
+                    'request_id' => 'sym-rid',
+                    'results' => [['index' => 0, 'message_id' => 'sym-1', 'status' => 'sent']],
+                ]) ?: '',
                 ['response_headers' => ['Content-Type' => 'application/json'], 'http_code' => 202],
             ),
         ];
@@ -47,7 +50,9 @@ final class SymfonyClientTest extends TestCase
         ]);
 
         $this->assertSame(202, $response->statusCode);
-        $this->assertSame('sym-1', $response->get('message_id'));
+        $this->assertNotNull($response->results);
+        $this->assertSame('sym-1', $response->results[0]->messageId);
+        $this->assertSame('sym-rid', $response->requestId());
     }
 
     public function testFailureThroughSymfonySurfacesTypedException(): void

@@ -64,7 +64,7 @@ the `baseUrl` constructor argument.
 ```php
 use MailChannels\Client;
 
-$client = new Client(apiKey: 'mc-...');
+$client = new Client(apiKey: '...');
 ```
 
 For multi-tenant services, create one client per credential:
@@ -81,7 +81,7 @@ use MailChannels\Client;
 
 $client = new Client(apiKey: 'mc-...');
 
-$response = $client->emails->send([
+$response = $client->emails->queue([
     'from'    => ['email' => 'sender@example.com', 'name' => 'Priya Patel'],
     'to'      => 'recipient@example.net',
     'subject' => 'Welcome to MailChannels',
@@ -89,16 +89,26 @@ $response = $client->emails->send([
     'html'    => '<p>HTML body.</p>',
 ]);
 
-echo $response->get('message_id');
+echo "Queued at {$response->queuedAt}, request_id={$response->requestId()}\n";
 ```
 
-`$response` is array-accessible and iterable, exposing the decoded JSON body.
-HTTP metadata is also available:
+`queue()` posts to `/send-async`, the recommended path for production
+traffic. The API acknowledges with a queue receipt — a `request_id` and
+`queued_at` timestamp — without waiting for SMTP handoff, so client
+latency stays low. Per-message delivery status arrives later via
+[webhooks](#verifying-inbound-webhooks); the `request_id` ties webhook
+events back to this call.
+
+`$response` is a `MailChannels\Response\QueuedSendResponse` — typed
+properties layered on top of array access and the inherited HTTP
+metadata:
 
 ```php
+$response->queuedAt;       // typed ?string (ISO 8601)
 $response->statusCode;     // 202
-$response->requestId();    // X-Request-ID, if present
+$response->requestId();    // body's request_id, falling back to X-Request-ID
 $response->headers;        // all response headers
+$response['queued_at'];    // array access still works
 ```
 
 ### Strongly-typed payloads
@@ -126,7 +136,7 @@ $params = new EmailParams(
     transactional: true,
 );
 
-$client->emails->send($params);
+$client->emails->queue($params);
 ```
 
 `EmailAddress`, `Content`, `Personalization`, `Attachment`, and `EmailParams`
@@ -134,18 +144,29 @@ all validate at construction. Reserved headers (`From`, `To`, `Subject`,
 `Reply-To`, etc.) raise `MailChannels\Exception\ValidationException` rather
 than silently overriding the structured fields.
 
-### Queued sending (`/send-async`)
+### Synchronous send (`/send`)
 
-The server-side queue endpoint accepts the request immediately and delivers
-in the background:
+Use `send()` when you need per-personalization results in the HTTP
+response (for example to log the message id for each recipient
+immediately), or for dry-runs that return rendered RFC822 bodies:
 
 ```php
-$client->emails->queue($params);
+$response = $client->emails->send($params);
+
+foreach ($response->results ?? [] as $result) {
+    echo $result->messageId, ' (', $result->status, ")\n";
+}
+
+// Dry-run: returns rendered messages instead of sending.
+$preview = $client->emails->send($params, dryRun: true);
+foreach ($preview->dryRunData ?? [] as $rendered) {
+    echo $rendered, "\n";
+}
 ```
 
-This is **server-side** async — the HTTP call itself is still synchronous.
-For client-side parallelism, use your PSR-18 client's pool features (e.g.
-Guzzle's `pool()`) around `Client::emails->send()`.
+Both `queue()` and `send()` are **server-side** operations — the HTTP
+call itself is still synchronous. For client-side parallelism, use
+your PSR-18 client's pool features (e.g. Guzzle's `pool()`).
 
 ## Errors
 

@@ -4,9 +4,9 @@ This reference is generated from public class signatures and PHPDoc blocks in `s
 
 For task-oriented examples, start with the [README](../README.md). This file is the formal public surface reference.
 
-- SDK version: `0.2.0`
-- Top-level exports: `88`
-- Documented public methods: `199`
+- SDK version: `0.3.0`
+- Top-level exports: `89`
+- Documented public methods: `202`
 
 ## Top-Level Exports
 
@@ -73,6 +73,7 @@ For task-oriented examples, start with the [README](../README.md). This file is 
 | `MailChannels\Response\MetricsVolumeResponse` | final class | Typed response for `GET /metrics/volume`. Spec schema: `MetricsVolume`. |
 | `MailChannels\Response\QueuedSendResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Emails::queue()} for the `/send-async` endpoint. The server queues the message and acks with a request id plus a queued-at timestamp — there is **no** message id at this point because delivery hasn't happened yet. The actual per-message identifiers arrive later via webhook events. |
 | `MailChannels\Response\SendResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Emails::send()}. |
+| `MailChannels\Response\SendResult` | final class | One per-personalization result entry returned by `/send`. Spec schema: `SendResult`. |
 | `MailChannels\Response\SubAccountApiKey` | final class | One sub-account API key record. Spec schema: `APIKey` (renamed to `SubAccountApiKey` to follow PHP conventions and avoid a one-token top-level class name). |
 | `MailChannels\Response\SubAccountApiKeyListResponse` | final class | Typed response for `GET /sub-account/{handle}/api-key`. The API returns a bare JSON array of `APIKey` entries; {@see \MailChannels\Transport} wraps bare arrays under the `data` key during decoding. |
 | `MailChannels\Response\SubAccountApiKeyResponse` | final class | Typed response for `POST /sub-account/{handle}/api-key`. The API returns a single `APIKey` object directly as the response body. Exposes that as `$apiKey`. |
@@ -2539,13 +2540,22 @@ _final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
 
 Typed response returned by {@see \MailChannels\Resource\Emails::send()}.
 
-Covers both the normal `/send` success body (`message_id` + optional
-per-recipient `results`) and the dry-run body (a `data` list of rendered
-messages). All typed fields are nullable because the API omits a given
-field whenever it doesn't apply to that response shape.
+Covers two distinct success shapes from `/send`:
+
+- **Normal send (HTTP 202).** Body is a `SendResults` envelope:
+  `{ request_id, results: [SendResult] }`. The per-personalization
+  message ids live inside `$results[i]->messageId` — `/send` does
+  not return a top-level `message_id`.
+- **Dry run (HTTP 200).** Body is a `Message`: `{ data: [string, ...] }`
+  where each entry is a rendered RFC822 message blob, one per
+  personalization. Exposed as `$dryRunData`.
+
+All typed fields are nullable because the API omits a given field
+whenever it doesn't apply to that response shape — branch on which
+one is non-null.
 
 Inherits {@see Response}'s array-access, HTTP-metadata, and raw-body
-helpers — `$response['message_id']`, `$response->statusCode`,
+helpers — `$response['anything']`, `$response->statusCode`,
 `$response->headers`, and `$response->requestId()` all keep working.
 `requestId()` is overridden here to check the response body's
 `request_id` field before falling back to header inspection.
@@ -2553,7 +2563,6 @@ helpers — `$response['message_id']`, `$response->statusCode`,
 ### Public Properties
 
 - `readonly ?array $dryRunData`
-- `readonly ?string $messageId`
 - `readonly ?array $results`
 
 ### Constructor
@@ -2581,6 +2590,72 @@ public function requestId(): ?string
 ```
 
 **Returns:** `?string`
+
+
+## `MailChannels\Response\SendResult`
+
+_final class_
+
+One per-personalization result entry returned by `/send`. Spec schema: `SendResult`.
+
+Plain value object — not a `Response` subclass. Instances live inside
+{@see SendResponse::$results}, one per personalization in the original
+request. `$messageId` is the canonical place to find a message's id —
+the `/send` endpoint does not return a top-level `message_id`.
+
+`$status` carries the spec enum values `'sent'` or `'failed'`. The spec
+notes that `'sent'` is a temporary status; the terminal status arrives
+via webhook events.
+
+### Public Properties
+
+- `readonly ?int $index`
+- `readonly ?string $messageId`
+- `readonly ?string $reason`
+- `readonly ?string $status`
+
+### Constructor
+
+```php
+public function __construct(
+    ?int $index = null,
+    ?string $messageId = null,
+    ?string $reason = null,
+    ?string $status = null
+)
+```
+
+**Parameters:**
+- `$index` (`?int`)
+- `$messageId` (`?string`)
+- `$reason` (`?string`)
+- `$status` (`?string`)
+
+### Methods
+
+#### `fromArray()`
+
+```php
+public static function fromArray(
+    array $data
+): self
+```
+
+**Parameters:**
+- `$data` (`array`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
+
+#### `jsonSerialize()`
+
+```php
+public function jsonSerialize(): array
+```
+
+**Returns:** `array<string,` — mixed>
 
 
 ## `MailChannels\Response\SubAccountApiKey`
@@ -3607,7 +3682,7 @@ _final class_
 
 ### Constants
 
-- `VERSION = '0.2.0'`
+- `VERSION = '0.3.0'`
 
 ### Methods
 

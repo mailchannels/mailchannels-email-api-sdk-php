@@ -6,28 +6,82 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-### Changed
-- `Resource\Emails::send()` now returns `MailChannels\Response\SendResponse`
-  and `Resource\Emails::queue()` now returns
-  `MailChannels\Response\QueuedSendResponse`. Both extend the existing
-  `MailChannels\Response`, so array-access (`$response['message_id']`),
-  iteration, and HTTP-metadata helpers continue to work; the new classes
-  add typed properties — `SendResponse` exposes `$messageId`, `$results`,
-  `$dryRunData`; `QueuedSendResponse` exposes `$queuedAt` (no message id
-  because `/send-async` returns a queue ack before delivery; the per-
-  message identifiers arrive via webhook events). `requestId()` is
-  overridden on both subclasses to prefer the response body's
-  `request_id` field over HTTP headers when present.
-- `MailChannels\Response` is no longer `final` so per-endpoint typed
-  responses can extend it.
+## [0.3.0] - 2026-06-03
 
 ### Added
-- `MailChannels\Response\SendResponse` and
-  `MailChannels\Response\QueuedSendResponse` typed-response value objects
-  for `/send` (normal + dry-run) and `/send-async`.
-- `MailChannels\Exception\ResponseValidationException` raised when a 2xx
-  response body has a field of the wrong type. Missing fields are nulled,
-  not errors — strictness only fires on type mismatches.
+- Typed responses across the SDK. Every modeled endpoint that returns a
+  body now returns a per-endpoint subclass of `MailChannels\Response`,
+  exposing typed read-only properties for each documented field.
+  Inherited array-access, iteration, and HTTP-metadata helpers continue
+  to work on the typed objects. Classes added:
+  - `Emails::send()` → `SendResponse` (with `list<SendResult>|null
+    $results` and `list<string>|null $dryRunData`).
+  - `Emails::queue()` → `QueuedSendResponse` (`?string $queuedAt`).
+  - `Usage::retrieve()` → `UsageResponse`.
+  - `CheckDomain::check()` → `CheckDomainResponse`.
+  - `Suppressions::list()` / `::create()` → `SuppressionListResponse`
+    (with `list<SuppressionEntry>|null`).
+  - `Dkim::create()` / `::list()` / `::rotate()` → `DkimKeyResponse`,
+    `DkimKeyListResponse`, `DkimRotateResponse` (with `DkimKeyInfo`
+    and `DkimDnsRecord` value objects).
+  - `Metrics::*` → `MetricsEngagementResponse`,
+    `MetricsPerformanceResponse`, `MetricsRecipientBehaviourResponse`,
+    `MetricsVolumeResponse`, `MetricsSenderResponse` (with
+    `MetricsBucket` and `MetricsSender` value objects).
+  - `Webhooks::*` → `WebhookListResponse`, `WebhookBatchListResponse`,
+    `WebhookResendResponse`, `WebhookPublicKeyResponse`,
+    `WebhookValidationResultsResponse` (with `WebhookSubscription`,
+    `WebhookBatch`, `WebhookBatchDuration`, `WebhookEndpointResponse`,
+    `WebhookValidationResult` value objects).
+  - `SubAccounts::*` and nested resources → `SubAccountResponse`,
+    `SubAccountListResponse`, `SubAccountApiKeyResponse`,
+    `SubAccountApiKeyListResponse`, `SubAccountSmtpPasswordResponse`,
+    `SubAccountSmtpPasswordListResponse`, `SubAccountLimitResponse`
+    (with `SubAccountDetails`, `SubAccountApiKey`,
+    `SubAccountSmtpPassword` value objects).
+- `MailChannels\Exception\ResponseValidationException` raised when a
+  2xx response body has a field of the wrong type. Missing fields are
+  nulled, not errors — strictness fires only on type mismatches, so the
+  SDK stays forward-compatible with future API additions.
+- `MailChannels\Internal\ResponseValidator` (marked `@internal`) backs
+  the typed-response field extraction with helpers for nullable
+  strings/ints/bools, lists of strings, lists of arrays, and assoc
+  arrays.
+
+### Changed
+- `MailChannels\Response` is no longer `final` so per-endpoint typed
+  responses can extend it. The `requestId()` method is overridden on
+  several typed subclasses to prefer the response body's `request_id`
+  field over HTTP headers when present (e.g. `SendResponse`,
+  `QueuedSendResponse`).
+- Typed responses are constructed via `new TypedResponse($response)`
+  rather than a static factory. The factory form was an early-rollout
+  convention; the constructor form is shorter at every call site and
+  drops one concept from the docs.
+- `Attachment::fromUrl()` adds a remote-URL constructor mirroring the
+  Python SDK's helper. Falls back through caller-supplied content
+  type → server `Content-Type` → filename extension.
+
+### Fixed
+- `SendResponse` now matches the OpenAPI spec. The previous shape
+  modeled a top-level `$messageId` field that does not exist on the
+  wire — `/send` returns `{request_id, results: [SendResult]}`, with
+  per-personalization message ids inside `$results[i]->messageId`.
+  `$dryRunData` is now correctly typed `list<string>|null` (one
+  rendered RFC822 message blob per personalization), not list of
+  arrays.
+  **Breaking:** the `$messageId` property is removed from
+  `SendResponse`. Callers should read
+  `$response->results[0]?->messageId`. The dry-run shape change is
+  also breaking for any caller that was iterating
+  `$response->dryRunData` as arrays.
+- The `mailchannels/mailchannels-php` package can now be installed
+  via Composer; 0.2.0 referenced an internal class
+  (`MailChannels\Response\ResponseValidator`) that didn't exist after
+  the validator moved into `MailChannels\Internal`, so any call into
+  a typed response other than `SendResponse`/`QueuedSendResponse`
+  fatal-errored at runtime. All typed responses now resolve the
+  validator correctly.
 
 ## [0.2.0] - 2026-05-29
 

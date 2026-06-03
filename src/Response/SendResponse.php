@@ -11,25 +11,32 @@ use MailChannels\Response;
 /**
  * Typed response returned by {@see \MailChannels\Resource\Emails::send()}.
  *
- * Covers both the normal `/send` success body (`message_id` + optional
- * per-recipient `results`) and the dry-run body (a `data` list of rendered
- * messages). All typed fields are nullable because the API omits a given
- * field whenever it doesn't apply to that response shape.
+ * Covers two distinct success shapes from `/send`:
+ *
+ * - **Normal send (HTTP 202).** Body is a `SendResults` envelope:
+ *   `{ request_id, results: [SendResult] }`. The per-personalization
+ *   message ids live inside `$results[i]->messageId` — `/send` does
+ *   not return a top-level `message_id`.
+ * - **Dry run (HTTP 200).** Body is a `Message`: `{ data: [string, ...] }`
+ *   where each entry is a rendered RFC822 message blob, one per
+ *   personalization. Exposed as `$dryRunData`.
+ *
+ * All typed fields are nullable because the API omits a given field
+ * whenever it doesn't apply to that response shape — branch on which
+ * one is non-null.
  *
  * Inherits {@see Response}'s array-access, HTTP-metadata, and raw-body
- * helpers — `$response['message_id']`, `$response->statusCode`,
+ * helpers — `$response['anything']`, `$response->statusCode`,
  * `$response->headers`, and `$response->requestId()` all keep working.
  * `requestId()` is overridden here to check the response body's
  * `request_id` field before falling back to header inspection.
  */
 final class SendResponse extends Response
 {
-    public readonly ?string $messageId;
-
-    /** @var list<array<string, mixed>>|null */
+    /** @var list<SendResult>|null */
     public readonly ?array $results;
 
-    /** @var list<array<string, mixed>>|null */
+    /** @var list<string>|null */
     public readonly ?array $dryRunData;
 
     /**
@@ -49,9 +56,14 @@ final class SendResponse extends Response
             $response->headers,
             $response->rawBody,
         );
-        $this->messageId = ResponseValidator::asNullableString($body, 'message_id');
-        $this->results = ResponseValidator::asNullableListOfArrays($body, 'results');
-        $this->dryRunData = ResponseValidator::asNullableListOfArrays($body, 'data');
+        $rawResults = ResponseValidator::asNullableListOfArrays($body, 'results');
+        $this->results = $rawResults === null
+            ? null
+            : array_map(
+                static fn (array $r): SendResult => SendResult::fromArray($r),
+                $rawResults,
+            );
+        $this->dryRunData = ResponseValidator::asNullableListOfStrings($body, 'data');
     }
 
     public function requestId(): ?string

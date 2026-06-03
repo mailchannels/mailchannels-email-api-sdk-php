@@ -24,7 +24,13 @@ final class GuzzleClientTest extends TestCase
     public function testSendThroughRealGuzzleStack(): void
     {
         $mock = new MockHandler([
-            new GuzzleResponse(202, ['X-Request-ID' => 'guz-1'], json_encode(['message_id' => 'mid-99']) ?: ''),
+            new GuzzleResponse(
+                202,
+                ['X-Request-ID' => 'guz-1'],
+                json_encode([
+                    'results' => [['index' => 0, 'message_id' => 'mid-99', 'status' => 'sent']],
+                ]) ?: '',
+            ),
         ]);
         $factory = new GuzzleHttpFactory();
         $guzzle = new GuzzleClient(['handler' => HandlerStack::create($mock)]);
@@ -45,7 +51,8 @@ final class GuzzleClientTest extends TestCase
         ]);
 
         $this->assertSame(202, $response->statusCode);
-        $this->assertSame('mid-99', $response->get('message_id'));
+        $this->assertNotNull($response->results);
+        $this->assertSame('mid-99', $response->results[0]->messageId);
         $this->assertSame('guz-1', $response->requestId());
 
         $lastRequest = $mock->getLastRequest();

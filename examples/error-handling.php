@@ -28,7 +28,8 @@ try {
         'subject' => 'Error handling example',
         'text'    => 'This message demonstrates structured error handling.',
     ]);
-    echo "Sent: message_id={$response->get('message_id')}\n";
+    $first = $response->results[0] ?? null;
+    echo "Sent: request_id={$response->requestId()}, message_id={$first?->messageId}\n";
 } catch (ValidationException $e) {
     // The SDK throws this BEFORE making any HTTP call when payload shape
     // is wrong. Fix your code, not your retry policy.

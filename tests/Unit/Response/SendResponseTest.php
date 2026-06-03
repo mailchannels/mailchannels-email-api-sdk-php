@@ -7,19 +7,19 @@ namespace MailChannels\Tests\Unit\Response;
 use MailChannels\Exception\ResponseValidationException;
 use MailChannels\Response;
 use MailChannels\Response\SendResponse;
+use MailChannels\Response\SendResult;
 use PHPUnit\Framework\TestCase;
 
 final class SendResponseTest extends TestCase
 {
-    public function testFromResponseExtractsTypedFieldsFromNormalSendBody(): void
+    public function testNormalSendBodyExtractsTypedResults(): void
     {
         $response = new Response(
             data: [
-                'message_id' => 'mid-1',
                 'request_id' => 'rid-1',
                 'results' => [
-                    ['recipient' => 'a@example.com', 'status' => 'queued'],
-                    ['recipient' => 'b@example.com', 'status' => 'queued'],
+                    ['index' => 0, 'message_id' => 'mid-a', 'status' => 'sent'],
+                    ['index' => 1, 'message_id' => 'mid-b', 'status' => 'sent'],
                 ],
             ],
             statusCode: 202,
@@ -28,19 +28,23 @@ final class SendResponseTest extends TestCase
 
         $typed = new SendResponse($response);
 
-        $this->assertSame('mid-1', $typed->messageId);
         $this->assertNotNull($typed->results);
         $this->assertCount(2, $typed->results);
-        $this->assertSame('a@example.com', $typed->results[0]['recipient']);
+        $this->assertContainsOnlyInstancesOf(SendResult::class, $typed->results);
+        $this->assertSame('mid-a', $typed->results[0]->messageId);
+        $this->assertSame(0, $typed->results[0]->index);
+        $this->assertSame('sent', $typed->results[0]->status);
+        $this->assertSame('mid-b', $typed->results[1]->messageId);
         $this->assertNull($typed->dryRunData);
     }
 
-    public function testFromResponseExtractsDryRunData(): void
+    public function testDryRunBodyExtractsListOfRenderedMessages(): void
     {
         $response = new Response(
             data: [
                 'data' => [
-                    ['from' => 'sender@example.com', 'rendered' => '...'],
+                    "From: sender@example.com\r\nTo: a@example.com\r\nSubject: hi\r\n\r\nbody A",
+                    "From: sender@example.com\r\nTo: b@example.com\r\nSubject: hi\r\n\r\nbody B",
                 ],
             ],
             statusCode: 200,
@@ -49,35 +53,22 @@ final class SendResponseTest extends TestCase
         $typed = new SendResponse($response);
 
         $this->assertNotNull($typed->dryRunData);
-        $this->assertCount(1, $typed->dryRunData);
-        $this->assertNull($typed->messageId);
+        $this->assertCount(2, $typed->dryRunData);
+        $this->assertStringStartsWith('From: sender@example.com', $typed->dryRunData[0]);
         $this->assertNull($typed->results);
     }
 
-    public function testFromResponseLeavesAllTypedFieldsNullWhenBodyEmpty(): void
+    public function testEmptyBodyLeavesAllTypedFieldsNull(): void
     {
         $response = new Response(data: [], statusCode: 202);
 
         $typed = new SendResponse($response);
 
-        $this->assertNull($typed->messageId);
         $this->assertNull($typed->results);
         $this->assertNull($typed->dryRunData);
     }
 
-    public function testFromResponseRejectsWrongTypeMessageId(): void
-    {
-        $response = new Response(
-            data: ['message_id' => ['not', 'a', 'string']],
-            statusCode: 202,
-        );
-
-        $this->expectException(ResponseValidationException::class);
-        $this->expectExceptionMessage("Response field 'message_id' must be a string");
-        new SendResponse($response);
-    }
-
-    public function testFromResponseRejectsResultsThatAreNotAList(): void
+    public function testRejectsResultsThatAreNotAList(): void
     {
         $response = new Response(
             data: ['results' => ['unexpected_key' => 'value']],
@@ -89,31 +80,44 @@ final class SendResponseTest extends TestCase
         new SendResponse($response);
     }
 
-    public function testFromResponseRejectsResultsEntryThatIsNotAssoc(): void
+    public function testRejectsResultEntryWithWrongTypeIndex(): void
     {
         $response = new Response(
-            data: ['results' => ['plain-string-entry']],
+            data: ['results' => [['index' => 'zero', 'message_id' => 'mid-a']]],
             statusCode: 202,
         );
 
         $this->expectException(ResponseValidationException::class);
+        $this->expectExceptionMessage("Response field 'index' must be an int");
+        new SendResponse($response);
+    }
+
+    public function testRejectsDryRunDataEntryThatIsNotAString(): void
+    {
+        $response = new Response(
+            data: ['data' => ['rendered string', 42]],
+            statusCode: 200,
+        );
+
+        $this->expectException(ResponseValidationException::class);
+        $this->expectExceptionMessage("Response field 'data'[1] must be a string");
         new SendResponse($response);
     }
 
     public function testPreservesHttpMetadataFromOriginalResponse(): void
     {
         $response = new Response(
-            data: ['message_id' => 'mid-2'],
+            data: ['request_id' => 'rid-2'],
             statusCode: 202,
-            headers: ['Content-Type' => 'application/json', 'X-Request-ID' => 'rid-2'],
-            rawBody: '{"message_id":"mid-2"}',
+            headers: ['Content-Type' => 'application/json', 'X-Request-ID' => 'header-rid'],
+            rawBody: '{"request_id":"rid-2"}',
         );
 
         $typed = new SendResponse($response);
 
         $this->assertSame(202, $typed->statusCode);
         $this->assertSame('application/json', $typed->headers['Content-Type']);
-        $this->assertSame('{"message_id":"mid-2"}', $typed->rawBody);
+        $this->assertSame('{"request_id":"rid-2"}', $typed->rawBody);
     }
 
     public function testRequestIdPrefersBodyOverHeaders(): void
@@ -132,7 +136,7 @@ final class SendResponseTest extends TestCase
     public function testRequestIdFallsBackToHeadersWhenBodyMissing(): void
     {
         $response = new Response(
-            data: ['message_id' => 'mid-3'],
+            data: ['results' => []],
             statusCode: 202,
             headers: ['X-Request-ID' => 'header-rid'],
         );
@@ -145,17 +149,22 @@ final class SendResponseTest extends TestCase
     public function testArrayAccessKeepsWorkingOnTypedResponse(): void
     {
         $response = new Response(
-            data: ['message_id' => 'mid-4', 'extra_unmodeled_field' => 'kept'],
+            data: [
+                'request_id' => 'rid-x',
+                'extra_unmodeled_field' => 'kept',
+                'results' => [['index' => 0, 'message_id' => 'mid-x', 'status' => 'sent']],
+            ],
             statusCode: 202,
         );
 
         $typed = new SendResponse($response);
 
-        // Both typed property access and the inherited array-access surface
-        // continue to work.
-        $this->assertSame('mid-4', $typed->messageId);
-        $this->assertSame('mid-4', $typed['message_id']);
-        $this->assertSame('mid-4', $typed->get('message_id'));
+        // Typed property access for the modeled list.
+        $this->assertNotNull($typed->results);
+        $this->assertSame('mid-x', $typed->results[0]->messageId);
+        // Inherited array-access surface continues to work.
+        $this->assertSame('rid-x', $typed['request_id']);
         $this->assertSame('kept', $typed['extra_unmodeled_field']);
+        $this->assertSame('rid-x', $typed->get('request_id'));
     }
 }

@@ -18,9 +18,7 @@ final class EmailsTest extends TestCase
 {
     public function testSendBuildsExpectedPayloadFromShortcutArray(): void
     {
-        $http = (new MockHttpClient())->queue(
-            Fixtures::jsonResponse(202, ['message_id' => 'mid-1'])
-        );
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, []));
         $client = Fixtures::client($http);
 
         $client->emails->send([
@@ -60,7 +58,7 @@ final class EmailsTest extends TestCase
 
     public function testSendWithEmailParamsObject(): void
     {
-        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, ['message_id' => 'mid-2']));
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, []));
         $client = Fixtures::client($http);
 
         $params = new EmailParams(
@@ -81,7 +79,7 @@ final class EmailsTest extends TestCase
 
     public function testQueueHitsSendAsyncEndpoint(): void
     {
-        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, ['message_id' => 'mid-3']));
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, []));
         $client = Fixtures::client($http);
 
         $client->emails->queue([
@@ -155,7 +153,7 @@ final class EmailsTest extends TestCase
 
     public function testCampaignIdAndEnvelopeFromAndTrackingPassThrough(): void
     {
-        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, ['message_id' => 'mid-tracking']));
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, []));
         $client = Fixtures::client($http);
 
         $client->emails->send([

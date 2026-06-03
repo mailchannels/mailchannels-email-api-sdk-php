@@ -30,4 +30,5 @@ $params = new EmailParams(
 
 $response = $client->emails->send($params);
 
-echo "Accepted with message_id={$response->get('message_id')}\n";
+$first = $response->results[0] ?? null;
+echo "Accepted (HTTP {$response->statusCode}), request_id={$response->requestId()}, message_id={$first?->messageId}\n";

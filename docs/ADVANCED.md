@@ -17,28 +17,36 @@ use MailChannels\Response\SendResponse;
 $response = $client->emails->send($params);
 // Static return type: SendResponse (a subclass of Response).
 
-echo $response->messageId;             // typed string|null
-echo $response->statusCode;            // inherited from Response
-echo $response->requestId();           // inherited; checks body's
-                                       // request_id first, then headers
-print_r($response->results);           // typed: list<array<string,mixed>>|null
-print_r($response['message_id']);      // array access still works
+echo $response->statusCode;             // inherited from Response
+echo $response->requestId();            // inherited; checks body's
+                                        // request_id first, then headers
+
+// /send returns one SendResult per personalization — that's where
+// the message id lives. There is no top-level message_id.
+foreach ($response->results ?? [] as $result) {
+    echo $result->messageId, ' (', $result->status, ")\n";
+}
+
+print_r($response['request_id']);       // array access still works
 ```
 
 The typed properties are nullable because the API omits a given field
 whenever it doesn't apply to that response shape — for example, `/send`
-in normal mode populates `messageId` and `results`, while dry-run mode
-populates `dryRunData` instead. Branch on which one is non-null.
+in normal mode populates `results`, while dry-run mode populates
+`dryRunData` (a `list<string>` of rendered RFC822 message blobs)
+instead. Branch on which one is non-null.
 
-Currently typed: `Emails::send()` → `SendResponse`,
-`Emails::queue()` → `QueuedSendResponse`. Other endpoints still return
-the generic `Response` for now.
+Currently typed across the SDK: `Emails::send()` → `SendResponse`,
+`Emails::queue()` → `QueuedSendResponse`, plus typed responses for
+`Usage`, `CheckDomain`, `Suppressions`, `Dkim`, `Metrics`, `Webhooks`,
+and `SubAccounts`. A handful of 204-style endpoints still return the
+generic `Response` because they have no body to type.
 
 ### Response validation
 
 When a typed response is constructed, the SDK validates the *type* of
-every modeled field that's present in the body. If, say,
-`message_id` arrives as an array instead of a string, the SDK throws
+every modeled field that's present in the body. If, say, a
+`SendResult.index` arrives as a string instead of an int, the SDK throws
 `MailChannels\Exception\ResponseValidationException`. **Missing fields
 are not errors** — they're nulled out, so the SDK stays forward-
 compatible when the API adds or omits optional fields.
