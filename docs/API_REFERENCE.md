@@ -4,7 +4,7 @@ This reference is generated from public class signatures and PHPDoc blocks in `s
 
 For task-oriented examples, start with the [README](../README.md). This file is the formal public surface reference.
 
-- SDK version: `0.3.0`
+- SDK version: `0.4.0`
 - Top-level exports: `89`
 - Documented public methods: `202`
 
@@ -1702,16 +1702,14 @@ public function publicKey(
 
 ```php
 public function resendBatch(
-    int $batchId,
-    string $customerHandle
+    int $batchId
 ): MailChannels\Response\WebhookResendResponse
 ```
 
-`POST /webhook-batch/{batch_id}/resend`. Uses `X-Customer-Handle` header for authentication instead of an API key.
+`POST /webhook-batch/{batch_id}/resend` — synchronously re-deliver a failed batch.
 
 **Parameters:**
 - `$batchId` (`int`)
-- `$customerHandle` (`string`)
 
 **Returns:** `MailChannels\Response\WebhookResendResponse`
 
@@ -3682,7 +3680,7 @@ _final class_
 
 ### Constants
 
-- `VERSION = '0.3.0'`
+- `VERSION = '0.4.0'`
 
 ### Methods
 

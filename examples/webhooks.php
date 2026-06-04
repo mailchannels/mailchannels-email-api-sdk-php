@@ -39,8 +39,8 @@ $validation = $client->webhooks->validate(requestId: 'example_validation');
 echo "\nValidation kicked off:\n";
 print_r($validation->toArray());
 
-// 4) Look at recent batches that failed delivery (4xx / 5xx / no_response).
-//    Use resendBatch() to re-deliver a specific failed batch.
+// 4) Look at recent batches that failed delivery (4xx / 5xx / no_response),
+//    then resend the first one if any are found.
 $failed = $client->webhooks->batches(
     statuses: [
         WebhookBatchStatus::ClientError,
@@ -51,3 +51,10 @@ $failed = $client->webhooks->batches(
 );
 echo "\nFailed batches:\n";
 print_r($failed->toArray());
+
+$batches = $failed->webhookBatches ?? [];
+if (count($batches) > 0 && $batches[0]->batchId !== null) {
+    $resend = $client->webhooks->resendBatch($batches[0]->batchId);
+    echo "\nResend result:\n";
+    print_r($resend->toArray());
+}

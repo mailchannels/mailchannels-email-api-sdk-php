@@ -88,25 +88,12 @@ final class Webhooks extends AbstractResource
         );
     }
 
-    /**
-     * `POST /webhook-batch/{batch_id}/resend`. Uses `X-Customer-Handle`
-     * header for authentication instead of an API key.
-     */
-    public function resendBatch(int $batchId, string $customerHandle): WebhookResendResponse
+    /** `POST /webhook-batch/{batch_id}/resend` — synchronously re-deliver a failed batch. */
+    public function resendBatch(int $batchId): WebhookResendResponse
     {
-        $this->client->config()->logger->info('Resending webhook batch', [
-            'batch_id' => $batchId,
-            'customer_handle' => $customerHandle,
-        ]);
+        $this->client->config()->logger->info('Resending webhook batch', ['batch_id' => $batchId]);
         return new WebhookResendResponse(
-            $this->request(
-                'POST',
-                "/webhook-batch/{$batchId}/resend",
-                null,
-                null,
-                ['X-Customer-Handle' => $customerHandle],
-                requireApiKey: false,
-            ),
+            $this->request('POST', "/webhook-batch/{$batchId}/resend"),
         );
     }
 

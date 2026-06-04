@@ -282,14 +282,14 @@ final class ResourcesTest extends TestCase
         $this->assertSame('base64-ed25519-key', $response->get('key'));
     }
 
-    public function testWebhooksResendBatchUsesCustomerHandleHeaderInsteadOfApiKey(): void
+    public function testWebhooksResendBatchPostsToCorrectUrl(): void
     {
         $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, []));
         $client = Fixtures::client($http);
-        $client->webhooks->resendBatch(42, 'tenant-42');
+        $client->webhooks->resendBatch(42);
         $req = $http->lastRequest();
-        $this->assertFalse($req->hasHeader('X-Api-Key'));
-        $this->assertSame('tenant-42', $req->getHeaderLine('X-Customer-Handle'));
+        $this->assertTrue($req->hasHeader('X-Api-Key'));
+        $this->assertFalse($req->hasHeader('X-Customer-Handle'));
         $this->assertStringEndsWith('/webhook-batch/42/resend', (string) $req->getUri());
     }
 
