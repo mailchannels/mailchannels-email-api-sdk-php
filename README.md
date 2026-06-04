@@ -1,7 +1,10 @@
 # MailChannels PHP SDK
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://img.shields.io/bitbucket/pipelines/mailchannels/mailchannels-email-api-sdk-php/main.svg)](https://bitbucket.org/mailchannels/mailchannels-email-api-sdk-php/pipelines)
+[![Latest Version](https://img.shields.io/packagist/v/mailchannels/mailchannels-php.svg)](https://packagist.org/packages/mailchannels/mailchannels-php)
+[![PHPStan Level Max](https://img.shields.io/badge/PHPStan-max-brightgreen.svg)](https://phpstan.org/)
 [![PHP](https://img.shields.io/badge/PHP-8.1%2B-777BB4.svg)](https://www.php.net/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 > Built and tested against Email API 0.21.1 (base path `/tx/v1`, spec at
 > [docs.mailchannels.net/email-api.yaml](https://docs.mailchannels.net/email-api.yaml)).
