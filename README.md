@@ -6,7 +6,7 @@
 [![PHP](https://img.shields.io/badge/PHP-8.1%2B-777BB4.svg)](https://www.php.net/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-> Built and tested against Email API 0.21.1 (base path `/tx/v1`, spec at
+> Built and tested against Email API 1.0.0 (base path `/tx/v1`, spec at
 > [docs.mailchannels.net/email-api.yaml](https://docs.mailchannels.net/email-api.yaml)).
 
 `mailchannels/mailchannels-php` is the official PHP SDK for the

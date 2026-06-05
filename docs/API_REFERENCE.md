@@ -4,7 +4,7 @@ This reference is generated from public class signatures and PHPDoc blocks in `s
 
 For task-oriented examples, start with the [README](../README.md). This file is the formal public surface reference.
 
-- SDK version: `0.4.0`
+- SDK version: `1.0.0`
 - Top-level exports: `89`
 - Documented public methods: `202`
 
@@ -3680,7 +3680,7 @@ _final class_
 
 ### Constants
 
-- `VERSION = '0.4.0'`
+- `VERSION = '1.0.0'`
 
 ### Methods
 

@@ -6,6 +6,31 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-06-05
+
+### Changed
+- Promoted to **stable**. The public API surface is now under SemVer
+  guarantees — breaking changes will only happen on major version
+  bumps. No code changes from `0.4.0`; this release is the
+  declaration of stability and aligns the SDK with the Email API
+  reaching `1.0.0` itself.
+- README "Built and tested against Email API" reference updated from
+  `0.21.1` to `1.0.0`.
+
+## [0.4.0] - 2026-06-05
+
+### Fixed
+- `Resource\Webhooks::resendBatch()` now authenticates via the standard
+  `X-Api-Key` header. The previous version sent `X-Customer-Handle` and
+  suppressed the API key — that was a misreading of the spec; the
+  endpoint accepts the same auth as every other endpoint. **Breaking:**
+  the `$customerHandle` parameter is removed from the method signature.
+
+### Added
+- README badges for Bitbucket Pipelines build status, the current
+  Packagist version, and the PHPStan level. Quick visual signal of
+  release health on the package landing page.
+
 ## [0.3.0] - 2026-06-03
 
 ### Added

@@ -50,13 +50,16 @@
         "test:coverage": "phpunit --coverage-clover=coverage.xml --coverage-text",
         "check-coverage": "php scripts/check-coverage.php coverage.xml 85",
         "api-reference": "php scripts/generate-api-reference.php",
+        "api-version": "php scripts/update-api-version.php",
         "phpstan": "phpstan analyse src tests --level=max --memory-limit=512M",
         "ci": [
             "@phpstan",
             "@test:coverage",
             "@check-coverage",
             "@api-reference",
-            "git diff --exit-code -- docs/API_REFERENCE.md"
+            "git diff --exit-code -- docs/API_REFERENCE.md",
+            "@api-version",
+            "git diff --exit-code -- README.md"
         ]
     },
     "config": {

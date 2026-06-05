@@ -18,6 +18,8 @@ definitions:
           - composer check-coverage
           - composer api-reference
           - git diff --exit-code -- docs/API_REFERENCE.md
+          - composer api-version
+          - git diff --exit-code -- README.md
 
     - step: &php81
         name: Tests (PHP 8.1)
