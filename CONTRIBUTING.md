@@ -101,6 +101,20 @@ When the spec changes:
 3. Update `docs/API_COVERAGE.md` if any routes were added or removed.
 4. Add or adjust tests around the changed contract.
 
+## Agent skill documentation
+
+The `.agents/skills/mailchannels-php/` directory contains the Markdown
+documentation read by customer's AI coding agents. It mirrors the public API
+surface, please keep it in sync with any changes.
+
+After editing any Markdown under `.agents/`, verify that every PHP snippet
+still passes PHPStan at level max:
+
+```bash
+python3 scripts/check_skill_snippets.py
+python3 scripts/check_skill_snippets.py webhooks.md
+```
+
 ## Releasing
 
 Releases are cut by the SDK maintainer. The release process bumps the
