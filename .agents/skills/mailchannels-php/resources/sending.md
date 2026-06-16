@@ -155,10 +155,34 @@ client's concurrency features.
   headers) **must** have exactly one recipient per personalization and be
   DKIM-signed. See [unsubscribe](unsubscribe.md).
 - **`campaignId`**: ≤ 48 UTF-8 characters and **no spaces** (server-side API limit — the SDK does not validate this client-side).
+- **Click tracking** only rewrites `<a>` tags whose URL is non-empty, starts with `http`/`https`, and does not have `clicktracking="off"`.
 - **No server-side idempotency.** Retrying after a transient failure can
   produce duplicate sends. Build idempotency into the caller (e.g. a
   unique `campaignId` + recipient-set check) when at-most-once delivery
   matters.
+
+## Tracking
+
+```php
+$client->emails->queue(
+    new EmailParams(
+        from: new EmailAddress('sender@example.com'),
+        subject: 'Tracked',
+        personalizations: [
+            new Personalization(to: ['recipient@example.net']),
+        ],
+        content: [
+            Content::html('<p>Hello <a href="https://example.com">click here</a></p>'),
+        ],
+        trackingSettings: [
+            'open_tracking'  => ['enable' => true],
+            'click_tracking' => ['enable' => true],
+        ],
+    )
+);
+```
+
+Open and click tracking require a subscription that supports them.
 
 ## Reading The Response
 
