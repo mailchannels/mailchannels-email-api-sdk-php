@@ -80,12 +80,12 @@ PHPSTAN_LEVEL = "max"
 # when EITHER the identifier or the message fragment matches. The message
 # fragment is the fallback for PHPStan builds that omit the identifier tag.
 # See module docstring for the rationale behind each entry.
-SUPPRESSED_ERRORS: tuple[tuple[str, str], ...] = (
+SUPPRESSED_ERRORS: list[tuple[str, str]] = [
     (
         "expr.resultUnused",
         "on a separate line does not do anything",
     ),
-)
+]
 
 PHP_BLOCK = re.compile(
     r"^```php[ \t]*\n(?P<body>.*?)\n^```[ \t]*$",
@@ -210,6 +210,9 @@ _SUPPRESSED_RE = re.compile(
 
 def filter_suppressed(output: str) -> str:
     """Strip lines matching any suppressed identifier or message fragment."""
+    if len(SUPPRESSED_ERRORS) < 1:
+        return output
+
     return "\n".join(
         line for line in output.splitlines() if not _SUPPRESSED_RE.search(line)
     )
@@ -483,11 +486,13 @@ def main(argv: list[str] | None = None) -> int:
         if lint_result.returncode == 0:
             logger.info("[ ok ] %s (%d block%s)",
                         rel, len(all_blocks), "" if len(all_blocks) == 1 else "s")
-        else:
+        elif lint_result.returncode == 1:
             failed.append(str(rel))
             logger.error("[FAIL] %s (%d block%s)\n%s",
                          rel, len(all_blocks), "" if len(all_blocks) == 1 else "s",
                          output.rstrip() or "(no output)")
+        else:
+            return lint_result.returncode
 
     logger.info(
         "\nChecked %d file%s / %d block%s. %d failed.",
