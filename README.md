@@ -332,6 +332,63 @@ The SDK never logs API keys or request bodies.
   key lifecycle, and a Cloudflare DNS publication recipe.
 - [`examples/`](examples/) — runnable scripts for each endpoint group.
 
+## Using with an AI agent
+
+This repository ships a complete agent skill at
+[`.agents/skills/mailchannels-php/`](.agents/skills/mailchannels-php/).
+It teaches an AI coding agent how to use the `mailchannels/mailchannels-php`
+package correctly by breaking the documentation down into focused
+per-topic files with a decision tree so the agent loads only the
+parts the task actually needs.
+
+Layout:
+
+```
+.agents/skills/mailchannels-php/
+├── SKILL.md              # entry point: scope, decision tree, conventions
+└── resources/            # focused recipes (sending, attachments, webhooks, …)
+```
+
+Every file is plain Markdown. The skill works with any agent that can be
+pointed at a directory of context files — Claude Code, Cursor, Codex CLI,
+Aider, Continue, and similar tools all consume it without modification.
+
+### Install
+
+The skill ships inside the `mailchannels/mailchannels-php` Composer package.
+Once the SDK is installed in your project, copy the skill directory wherever
+your agent looks for skills, rules, or context files:
+
+```bash
+composer require mailchannels/mailchannels-php
+
+# Replace the destination with your agent's path:
+mkdir -p <your-agent-skills-dir>
+cp -r vendor/mailchannels/mailchannels-php/.agents/skills/mailchannels-php <your-agent-skills-dir>/
+```
+
+Re-run the copy after upgrading the SDK so the skill stays in step with the
+installed version:
+
+```bash
+composer update mailchannels/mailchannels-php
+cp -r vendor/mailchannels/mailchannels-php/.agents/skills/mailchannels-php <your-agent-skills-dir>/
+```
+
+Common destinations:
+
+| Agent | Where to put it |
+| --- | --- |
+| Claude Code | `.claude/skills/` (project) or `~/.claude/skills/` (user) |
+| Cursor | `.cursor/rules/` (or attach files inline with `@`) |
+| Codex CLI | referenced from the project's `AGENTS.md` |
+| Aider | referenced from the conventions file in `.aider.conf.yml` |
+| Continue | registered as a custom context provider |
+
+If your tool isn't listed, look for the equivalent of "skill", "rule",
+"context bundle", or "conventions file" — any mechanism that lets the agent
+read a directory of Markdown will work.
+
 ## Development
 
 ```bash
