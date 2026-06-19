@@ -6,6 +6,14 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-06-19
+
+- Added a new AI agent Skill under .agents/skills/mailchannels-php/ to guide AI agents using this sdk.
+  It provides a summary of the API surface, examples, and instructions that might not be obvious from
+  the public API alone.
+- README "Using with an AI agent" section added to highlight the new skill and provide instructions
+  for its installation and usage.
+
 ## [1.0.0] - 2026-06-05
 
 ### Changed
