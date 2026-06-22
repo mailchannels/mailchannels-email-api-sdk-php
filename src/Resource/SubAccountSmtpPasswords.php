@@ -14,8 +14,9 @@ final class SubAccountSmtpPasswords extends AbstractResource
     {
         SubAccounts::validateHandle($handle);
         $this->client->config()->logger->info('Creating sub-account SMTP password', ['handle' => $handle]);
+        $path = self::path('sub-account', $handle, 'smtp-password');
         return new SubAccountSmtpPasswordResponse(
-            $this->request('POST', "/sub-account/{$handle}/smtp-password"),
+            $this->request('POST', $path),
         );
     }
 
@@ -23,8 +24,9 @@ final class SubAccountSmtpPasswords extends AbstractResource
     {
         SubAccounts::validateHandle($handle);
         $this->client->config()->logger->info('Listing sub-account SMTP passwords', ['handle' => $handle]);
+        $path = self::path('sub-account', $handle, 'smtp-password');
         return new SubAccountSmtpPasswordListResponse(
-            $this->request('GET', "/sub-account/{$handle}/smtp-password"),
+            $this->request('GET', $path),
         );
     }
 
@@ -32,6 +34,7 @@ final class SubAccountSmtpPasswords extends AbstractResource
     {
         SubAccounts::validateHandle($handle);
         $this->client->config()->logger->info('Deleting sub-account SMTP password', ['handle' => $handle, 'password_id' => $passwordId]);
-        return $this->request('DELETE', "/sub-account/{$handle}/smtp-password/{$passwordId}");
+        $path = self::path('sub-account', $handle, 'smtp-password', $passwordId);
+        return $this->request('DELETE', $path);
     }
 }
