@@ -14,7 +14,7 @@ final class SubAccountApiKeys extends AbstractResource
     {
         SubAccounts::validateHandle($handle);
         $this->client->config()->logger->info('Creating sub-account API key', ['handle' => $handle]);
-        $path = self::path('sub-account', $handle, 'api-key');
+        $path = self::encodedPath('sub-account', $handle, 'api-key');
         return new SubAccountApiKeyResponse(
             $this->request('POST', $path),
         );
@@ -24,7 +24,7 @@ final class SubAccountApiKeys extends AbstractResource
     {
         SubAccounts::validateHandle($handle);
         $this->client->config()->logger->info('Listing sub-account API keys', ['handle' => $handle]);
-        $path = self::path('sub-account', $handle, 'api-key');
+        $path = self::encodedPath('sub-account', $handle, 'api-key');
         return new SubAccountApiKeyListResponse(
             $this->request('GET', $path),
         );
@@ -34,7 +34,7 @@ final class SubAccountApiKeys extends AbstractResource
     {
         SubAccounts::validateHandle($handle);
         $this->client->config()->logger->info('Deleting sub-account API key', ['handle' => $handle, 'key_id' => $keyId]);
-        $path = self::path('sub-account', $handle, 'api-key', $keyId);
+        $path = self::encodedPath('sub-account', $handle, 'api-key', $keyId);
         return $this->request('DELETE', $path);
     }
 }

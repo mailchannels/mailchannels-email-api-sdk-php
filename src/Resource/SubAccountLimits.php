@@ -32,7 +32,7 @@ final class SubAccountLimits extends AbstractResource
             );
         }
         $this->client->config()->logger->info('Setting sub-account limit', ['handle' => $handle, 'sends' => $resolved]);
-        $path = self::path('sub-account', $handle, 'limit');
+        $path = self::encodedPath('sub-account', $handle, 'limit');
         return new SubAccountLimitResponse(
             $this->request('PUT', $path, ['sends' => $resolved]),
         );
@@ -41,7 +41,7 @@ final class SubAccountLimits extends AbstractResource
     public function retrieve(string $handle): SubAccountLimitResponse
     {
         SubAccounts::validateHandle($handle);
-        $path = self::path('sub-account', $handle, 'limit');
+        $path = self::encodedPath('sub-account', $handle, 'limit');
         return new SubAccountLimitResponse(
             $this->request('GET', $path),
         );
@@ -50,7 +50,7 @@ final class SubAccountLimits extends AbstractResource
     public function delete(string $handle): Response
     {
         SubAccounts::validateHandle($handle);
-        $path = self::path('sub-account', $handle, 'limit');
+        $path = self::encodedPath('sub-account', $handle, 'limit');
         return $this->request('DELETE', $path);
     }
 }

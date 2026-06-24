@@ -110,7 +110,7 @@ final class SubAccounts extends AbstractResource
     public function retrieveUsage(string $handle): UsageResponse
     {
         self::validateHandle($handle);
-        $path = self::path('sub-account', $handle, 'usage');
+        $path = self::encodedPath('sub-account', $handle, 'usage');
         return new UsageResponse($this->request('GET', $path));
     }
 
@@ -118,7 +118,7 @@ final class SubAccounts extends AbstractResource
     {
         self::validateHandle($handle);
         $this->client->config()->logger->info('Suspending sub-account', ['handle' => $handle]);
-        $path = self::path('sub-account', $handle, 'suspend');
+        $path = self::encodedPath('sub-account', $handle, 'suspend');
         return $this->request('POST', $path);
     }
 
@@ -126,7 +126,7 @@ final class SubAccounts extends AbstractResource
     {
         self::validateHandle($handle);
         $this->client->config()->logger->info('Activating sub-account', ['handle' => $handle]);
-        $path = self::path('sub-account', $handle, 'activate');
+        $path = self::encodedPath('sub-account', $handle, 'activate');
         return $this->request('POST', $path);
     }
 
@@ -134,7 +134,7 @@ final class SubAccounts extends AbstractResource
     {
         self::validateHandle($handle);
         $this->client->config()->logger->info('Deleting sub-account', ['handle' => $handle]);
-        $path = self::path('sub-account', $handle);
+        $path = self::encodedPath('sub-account', $handle);
         return $this->request('DELETE', $path);
     }
 }

@@ -62,7 +62,7 @@ abstract class AbstractResource
         return $out === [] ? null : $out;
     }
 
-    protected static function path(string|int ...$segments): string
+    protected static function encodedPath(string|int ...$segments): string
     {
         $encoded = [];
         foreach ($segments as $segment) {

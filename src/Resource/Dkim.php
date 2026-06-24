@@ -26,7 +26,7 @@ final class Dkim extends AbstractResource
             'key_length' => $keyLength,
         ]);
         $this->client->config()->logger->info('Creating DKIM key pair', ['domain' => $domain, 'selector' => $selector]);
-        $path = self::path('domains', $domain, 'dkim-keys');
+        $path = self::encodedPath('domains', $domain, 'dkim-keys');
         return new DkimKeyResponse(
             $this->request('POST', $path, $payload),
         );
@@ -47,7 +47,7 @@ final class Dkim extends AbstractResource
             'limit' => $limit,
             'include_dns_record' => $includeDnsRecord,
         ]);
-        $path = self::path('domains', $domain, 'dkim-keys');
+        $path = self::encodedPath('domains', $domain, 'dkim-keys');
         return new DkimKeyListResponse(
             $this->request('GET', $path, null, $query),
         );
@@ -61,7 +61,7 @@ final class Dkim extends AbstractResource
             'selector' => $selector,
             'status' => $statusValue,
         ]);
-        $path = self::path('domains', $domain, 'dkim-keys', $selector);
+        $path = self::encodedPath('domains', $domain, 'dkim-keys', $selector);
         return $this->request('PATCH', $path, ['status' => $statusValue]);
     }
 
@@ -72,7 +72,7 @@ final class Dkim extends AbstractResource
             'selector' => $selector,
             'new_selector' => $newSelector,
         ]);
-        $path = self::path('domains', $domain, 'dkim-keys', $selector, 'rotate');
+        $path = self::encodedPath('domains', $domain, 'dkim-keys', $selector, 'rotate');
         return new DkimRotateResponse(
             $this->request(
                 'POST',

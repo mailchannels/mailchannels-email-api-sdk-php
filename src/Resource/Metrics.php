@@ -86,7 +86,7 @@ final class Metrics extends AbstractResource
             'offset' => $offset,
             'sort_order' => $sortOrder,
         ]);
-        $path = self::path('metrics', 'senders', $type);
+        $path = self::encodedPath('metrics', 'senders', $type);
         return new MetricsSenderResponse(
             $this->request('GET', $path, null, $query),
         );
