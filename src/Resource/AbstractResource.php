@@ -61,4 +61,13 @@ abstract class AbstractResource
         $out = self::compact($values);
         return $out === [] ? null : $out;
     }
+
+    protected static function encodedPath(string|int ...$segments): string
+    {
+        $encoded = [];
+        foreach ($segments as $segment) {
+            $encoded[] = rawurlencode((string) $segment);
+        }
+        return '/' . implode('/', $encoded);
+    }
 }

@@ -143,6 +143,17 @@ final class ResourcesTest extends TestCase
         $this->assertStringContainsString('/metrics/senders/campaigns', (string) $http->lastRequest()->getUri());
     }
 
+    public function testMetricsSendersEncodesSenderTypePathSegment(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(200, []));
+        $client = Fixtures::client($http);
+        $client->metrics->senders('campaigns/weekly?x=1', startTime: '2026-05-01T00:00:00Z');
+
+        $uri = $http->lastRequest()->getUri();
+        $this->assertSame('/tx/v1/metrics/senders/campaigns%2Fweekly%3Fx%3D1', $uri->getPath());
+        $this->assertStringContainsString('start_time=2026-05-01T00%3A00%3A00Z', $uri->getQuery());
+    }
+
     public function testCheckDomain(): void
     {
         $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(200, ['ok' => true]));
@@ -172,12 +183,64 @@ final class ResourcesTest extends TestCase
         $this->assertSame(['status' => 'retired'], $http->lastJson());
     }
 
+    public function testDkimUpdateStatusEncodesPathSegments(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(200, []));
+        $client = Fixtures::client($http);
+        $client->dkim->updateStatus('example.com/path?x=1', 'selector #1/2', DkimUpdateStatus::Rotated);
+
+        $uri = $http->lastRequest()->getUri();
+        $this->assertSame(
+            '/tx/v1/domains/example.com%2Fpath%3Fx%3D1/dkim-keys/selector%20%231%2F2',
+            $uri->getPath(),
+        );
+        $this->assertSame('', $uri->getQuery());
+    }
+
+    public function testDkimListEncodesDomainBeforeAppendingQuery(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(200, []));
+        $client = Fixtures::client($http);
+        $client->dkim->list('example.com/path?x=1', selector: 'selector #1', status: 'active');
+
+        $uri = $http->lastRequest()->getUri();
+        $this->assertSame('/tx/v1/domains/example.com%2Fpath%3Fx%3D1/dkim-keys', $uri->getPath());
+        $this->assertStringContainsString('selector=selector%20%231', $uri->getQuery());
+        $this->assertStringContainsString('status=active', $uri->getQuery());
+    }
+
+    public function testQuestionMarkInPathSegmentDoesNotLeakIntoQuery(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(200, []));
+        $client = Fixtures::client($http);
+        $client->dkim->list('example.com?injected=1', status: 'active');
+
+        $uri = $http->lastRequest()->getUri();
+        $this->assertSame('/tx/v1/domains/example.com%3Finjected%3D1/dkim-keys', $uri->getPath());
+        $this->assertStringNotContainsString('injected', $uri->getQuery());
+        $this->assertStringContainsString('status=active', $uri->getQuery());
+    }
+
     public function testDkimRotate(): void
     {
         $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(200, []));
         $client = Fixtures::client($http);
         $client->dkim->rotate('example.com', 'mc20260101', 'mc20260601');
         $this->assertSame(['new_key' => ['selector' => 'mc20260601']], $http->lastJson());
+    }
+
+    public function testDkimRotateEncodesExistingPathSegmentsOnly(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(200, []));
+        $client = Fixtures::client($http);
+        $client->dkim->rotate('example.com/path?x=1', 'selector #1/2', 'new/selector?raw=1');
+
+        $uri = $http->lastRequest()->getUri();
+        $this->assertSame(
+            '/tx/v1/domains/example.com%2Fpath%3Fx%3D1/dkim-keys/selector%20%231%2F2/rotate',
+            $uri->getPath(),
+        );
+        $this->assertSame(['new_key' => ['selector' => 'new/selector?raw=1']], $http->lastJson());
     }
 
     public function testSuppressionsListAcceptsEnum(): void
@@ -219,11 +282,38 @@ final class ResourcesTest extends TestCase
     {
         $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(200, []));
         $client = Fixtures::client($http);
-        $client->suppressions->delete('user/name+tag@example.com', SuppressionDeleteSource::All);
+        $client->suppressions->delete('user+tag@example.com/path?x=1', SuppressionDeleteSource::All);
 
-        $uri = (string) $http->lastRequest()->getUri();
-        $this->assertStringContainsString('/suppression-list/recipients/user%2Fname%2Btag%40example.com', $uri);
-        $this->assertStringContainsString('source=all', $uri);
+        $uri = $http->lastRequest()->getUri();
+        $this->assertSame(
+            '/tx/v1/suppression-list/recipients/user%2Btag%40example.com%2Fpath%3Fx%3D1',
+            $uri->getPath(),
+        );
+        $this->assertSame('source=all', $uri->getQuery());
+    }
+
+    public function testSubAccountApiKeyDeleteEncodesKeyIdPathSegment(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(200, []));
+        $client = Fixtures::client($http);
+        $client->subAccounts->apiKeys->delete('tenant42', 'key #1/2%3');
+
+        $this->assertSame(
+            '/tx/v1/sub-account/tenant42/api-key/key%20%231%2F2%253',
+            $http->lastRequest()->getUri()->getPath(),
+        );
+    }
+
+    public function testSubAccountSmtpPasswordDeleteEncodesPasswordIdPathSegment(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(200, []));
+        $client = Fixtures::client($http);
+        $client->subAccounts->smtpPasswords->delete('tenant42', 'smtp #1/2');
+
+        $this->assertSame(
+            '/tx/v1/sub-account/tenant42/smtp-password/smtp%20%231%2F2',
+            $http->lastRequest()->getUri()->getPath(),
+        );
     }
 
     public function testWebhookEndpointMustBeAUrl(): void

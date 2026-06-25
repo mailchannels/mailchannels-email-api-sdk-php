@@ -53,6 +53,7 @@ final class Suppressions extends AbstractResource
             'source' => $source instanceof SuppressionDeleteSource ? $source->value : $source,
         ]);
         $this->client->config()->logger->info('Deleting suppression', ['recipient' => $recipient]);
-        return $this->request('DELETE', '/suppression-list/recipients/' . rawurlencode($recipient), null, $query);
+        $path = self::encodedPath('suppression-list', 'recipients', $recipient);
+        return $this->request('DELETE', $path, null, $query);
     }
 }

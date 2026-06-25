@@ -92,8 +92,9 @@ final class Webhooks extends AbstractResource
     public function resendBatch(int $batchId): WebhookResendResponse
     {
         $this->client->config()->logger->info('Resending webhook batch', ['batch_id' => $batchId]);
+        $path = self::encodedPath('webhook-batch', $batchId, 'resend');
         return new WebhookResendResponse(
-            $this->request('POST', "/webhook-batch/{$batchId}/resend"),
+            $this->request('POST', $path),
         );
     }
 
