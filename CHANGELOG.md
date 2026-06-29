@@ -6,6 +6,14 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-06-25
+
+### Fixed
+- URL-encode path variables across DKIM, metrics, sub-account,
+  suppression, and webhook batch endpoints.
+- Prevent reserved characters in path values from changing URL path
+  structure or leaking into query strings.
+
 ## [1.0.1] - 2026-06-19
 
 - Added a new AI agent Skill under .agents/skills/mailchannels-php/ to guide AI agents using this sdk.
