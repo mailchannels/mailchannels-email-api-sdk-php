@@ -77,6 +77,35 @@ final class EmailsTest extends TestCase
         $this->assertSame([['type' => 'text/plain', 'value' => 'Hi there']], $payload['content']);
     }
 
+    public function testEmailParamsEmitsTrackingAndUnsubscribeSettings(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, []));
+        $client = Fixtures::client($http);
+
+        $params = new EmailParams(
+            from: new EmailAddress('sender@example.com'),
+            subject: 'Tracked',
+            personalizations: [new Personalization(to: ['recipient@example.net'])],
+            content: [Content::plain('Hi there')],
+            trackingSettings: [
+                'click_tracking' => ['enable' => true, 'custom_domain_name' => 'newsletter-clicks'],
+            ],
+            unsubscribeSettings: ['custom_domain_name' => 'newsletter-unsubscribe'],
+        );
+
+        $client->emails->send($params);
+
+        $payload = $http->lastJson();
+        $this->assertSame(
+            ['click_tracking' => ['enable' => true, 'custom_domain_name' => 'newsletter-clicks']],
+            $payload['tracking_settings'],
+        );
+        $this->assertSame(
+            ['custom_domain_name' => 'newsletter-unsubscribe'],
+            $payload['unsubscribe_settings'],
+        );
+    }
+
     public function testQueueHitsSendAsyncEndpoint(): void
     {
         $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, []));
@@ -165,7 +194,10 @@ final class EmailsTest extends TestCase
             'campaign_id' => 'spring-2026',
             'tracking_settings' => [
                 'open_tracking' => ['enable' => true],
-                'click_tracking' => ['enable' => true],
+                'click_tracking' => ['enable' => true, 'custom_domain_name' => 'newsletter-clicks'],
+            ],
+            'unsubscribe_settings' => [
+                'custom_domain_name' => 'newsletter-unsubscribe',
             ],
         ]);
 
@@ -173,8 +205,15 @@ final class EmailsTest extends TestCase
         $this->assertSame('spring-2026', $payload['campaign_id']);
         $this->assertSame(['email' => 'bounces@example.com'], $payload['envelope_from']);
         $this->assertSame(
-            ['open_tracking' => ['enable' => true], 'click_tracking' => ['enable' => true]],
+            [
+                'open_tracking' => ['enable' => true],
+                'click_tracking' => ['enable' => true, 'custom_domain_name' => 'newsletter-clicks'],
+            ],
             $payload['tracking_settings'],
+        );
+        $this->assertSame(
+            ['custom_domain_name' => 'newsletter-unsubscribe'],
+            $payload['unsubscribe_settings'],
         );
     }
 

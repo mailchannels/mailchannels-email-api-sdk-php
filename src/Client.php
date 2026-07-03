@@ -6,6 +6,7 @@ namespace MailChannels;
 
 use MailChannels\Exception\ConfigurationException;
 use MailChannels\Resource\CheckDomain;
+use MailChannels\Resource\CustomTrackingDomains;
 use MailChannels\Resource\Dkim;
 use MailChannels\Resource\Emails;
 use MailChannels\Resource\Metrics;
@@ -35,6 +36,7 @@ final class Client
     public readonly Metrics $metrics;
     public readonly CheckDomain $checkDomain;
     public readonly Dkim $dkim;
+    public readonly CustomTrackingDomains $customTrackingDomains;
     public readonly Suppressions $suppressions;
     public readonly Webhooks $webhooks;
     public readonly Usage $usage;
@@ -80,6 +82,7 @@ final class Client
         $this->metrics = new Metrics($this);
         $this->checkDomain = new CheckDomain($this);
         $this->dkim = new Dkim($this);
+        $this->customTrackingDomains = new CustomTrackingDomains($this);
         $this->suppressions = new Suppressions($this);
         $this->webhooks = new Webhooks($this);
         $this->usage = new Usage($this);

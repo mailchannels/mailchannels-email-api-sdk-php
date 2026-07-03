@@ -1,6 +1,6 @@
 ---
 name: mailchannels-php
-description: PHP SDK for the MailChannels Email API (Packagist `mailchannels/mailchannels-php`; namespace `MailChannels\`). Use when sending or queueing email, working with attachments, mustache templates, unsubscribe, custom headers, DKIM keys, sub-accounts, domain checks, metrics, usage, suppressions, or webhooks (incl. signature verification); also configuring clients & custom PSR-18 HTTP transports, PSR-3 logging, and error handling. Skip when (a) developing the SDK itself — defer to the repo's root AGENTS.md; (b) the user is in a non-PHP language — MailChannels publishes separate SDKs for other ecosystems and the PHP types/idioms here don't apply.
+description: PHP SDK for the MailChannels Email API (Packagist `mailchannels/mailchannels-php`; namespace `MailChannels\`). Use when sending or queueing email, working with attachments, mustache templates, unsubscribe, custom headers, custom tracking domains, DKIM keys, sub-accounts, domain checks, metrics, usage, suppressions, or webhooks (incl. signature verification); also configuring clients & custom PSR-18 HTTP transports, PSR-3 logging, and error handling. Skip when (a) developing the SDK itself — defer to the repo's root AGENTS.md; (b) the user is in a non-PHP language — MailChannels publishes separate SDKs for other ecosystems and the PHP types/idioms here don't apply.
 ---
 
 # MailChannels PHP SDK
@@ -37,8 +37,13 @@ You're about to write PHP SDK code. What does it need to do?
 │   │   → resources/templates.md
 │   ├── …with an unsubscribe link or List-Unsubscribe header?
 │   │   → resources/unsubscribe.md
-│   └── …with custom X-… headers?
-│       → resources/custom-headers.md
+│   ├── …with custom X-… headers?
+│   │   → resources/custom-headers.md
+│   └── …with a custom tracking/unsubscribe domain?
+│       → resources/custom-tracking-domains.md
+│
+├── Register or manage custom tracking domains (click/open/unsubscribe)
+│   → resources/custom-tracking-domains.md
 │
 ├── Manage hosted DKIM keys (create / list / rotate / revoke)
 │   → resources/dkim.md

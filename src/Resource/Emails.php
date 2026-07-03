@@ -105,6 +105,13 @@ final class Emails extends AbstractResource
             );
         }
 
+        if (isset($params['unsubscribe_settings'])) {
+            $payload['unsubscribe_settings'] = self::asAssoc(
+                $params['unsubscribe_settings'],
+                '`unsubscribe_settings`',
+            );
+        }
+
         foreach (['transactional', 'campaign_id', 'dkim_domain', 'dkim_private_key', 'dkim_selector'] as $optional) {
             if (array_key_exists($optional, $params) && $params[$optional] !== null) {
                 $payload[$optional] = $params[$optional];

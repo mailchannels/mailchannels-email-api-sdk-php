@@ -12,6 +12,10 @@ method. The table below maps each endpoint to its SDK call.
 | GET    | `/domains/{domain}/dkim-keys`                       | `$client->dkim->list($domain)`                      |
 | PATCH  | `/domains/{domain}/dkim-keys/{selector}`            | `$client->dkim->updateStatus($domain, $selector, $status)` |
 | POST   | `/domains/{domain}/dkim-keys/{selector}/rotate`     | `$client->dkim->rotate($domain, $selector, $newSelector)` |
+| GET    | `/custom-tracking-domains`                          | `$client->customTrackingDomains->list(...)`         |
+| POST   | `/custom-tracking-domains`                          | `$client->customTrackingDomains->create($name, $hostname, $scope)` |
+| PATCH  | `/custom-tracking-domains/{hostname}/{scope}`       | `$client->customTrackingDomains->update($hostname, $scope, ...)` |
+| DELETE | `/custom-tracking-domains/{hostname}/{scope}`       | `$client->customTrackingDomains->delete($hostname, $scope)` |
 | GET    | `/metrics/engagement`                               | `$client->metrics->engagement(...)`                 |
 | GET    | `/metrics/performance`                              | `$client->metrics->performance(...)`                |
 | GET    | `/metrics/recipient-behaviour`                      | `$client->metrics->recipientBehaviour(...)`         |

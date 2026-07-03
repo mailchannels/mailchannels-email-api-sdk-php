@@ -4,9 +4,9 @@ This reference is generated from public class signatures and PHPDoc blocks in `s
 
 For task-oriented examples, start with the [README](../README.md). This file is the formal public surface reference.
 
-- SDK version: `1.1.0`
-- Top-level exports: `89`
-- Documented public methods: `202`
+- SDK version: `1.2.0`
+- Top-level exports: `95`
+- Documented public methods: `217`
 
 ## Top-Level Exports
 
@@ -14,6 +14,8 @@ For task-oriented examples, start with the [README](../README.md). This file is 
 | --- | --- | --- |
 | `MailChannels\Client` | final class | MailChannels API client. Resources are exposed as readonly properties: |
 | `MailChannels\Config` | final class |  |
+| `MailChannels\Enum\CustomTrackingScope` | enum |  |
+| `MailChannels\Enum\CustomTrackingStatus` | enum |  |
 | `MailChannels\Enum\DkimAlgorithm` | enum |  |
 | `MailChannels\Enum\DkimKeyStatus` | enum |  |
 | `MailChannels\Enum\DkimUpdateStatus` | enum |  |
@@ -47,6 +49,7 @@ For task-oriented examples, start with the [README](../README.md). This file is 
 | `MailChannels\Message\Personalization` | final class |  |
 | `MailChannels\Resource\AbstractResource` | abstract class |  |
 | `MailChannels\Resource\CheckDomain` | final class | `POST /check-domain` — checks DKIM, SPF, sender-domain DNS, and Domain Lockdown status for a domain. |
+| `MailChannels\Resource\CustomTrackingDomains` | final class | Register and manage custom tracking domains — branded hostnames that replace MailChannels' shared domains for click tracking, open tracking, or unsubscribe links. See `docs/CUSTOM_TRACKING.md` for the DNS verification flow. |
 | `MailChannels\Resource\Dkim` | final class |  |
 | `MailChannels\Resource\Emails` | final class | `POST /send` and `POST /send-async`. |
 | `MailChannels\Resource\Metrics` | final class |  |
@@ -59,6 +62,9 @@ For task-oriented examples, start with the [README](../README.md). This file is 
 | `MailChannels\Resource\Webhooks` | final class | Webhook subscription management. For inbound signature verification, see {@see \MailChannels\Webhook\Verifier} — those helpers are stateless and do not need a Client instance. |
 | `MailChannels\Response` | class | Response object returned by SDK calls. Behaves as the decoded JSON body (array-accessible and iterable) while also exposing HTTP metadata. |
 | `MailChannels\Response\CheckDomainResponse` | final class | Typed response returned by {@see \MailChannels\Resource\CheckDomain::check()}. |
+| `MailChannels\Response\CustomTrackingDomain` | final class | A registered MailChannels custom tracking domain. Returned inside a list by {@see \MailChannels\Resource\CustomTrackingDomains::list()}. |
+| `MailChannels\Response\CustomTrackingDomainListResponse` | final class | Typed response returned by {@see \MailChannels\Resource\CustomTrackingDomains::list()}. Spec schema: `CustomTrackingDomainListResponse`. |
+| `MailChannels\Response\CustomTrackingDomainResponse` | final class | Typed response returned by {@see \MailChannels\Resource\CustomTrackingDomains::create()} and {@see \MailChannels\Resource\CustomTrackingDomains::update()}. |
 | `MailChannels\Response\DkimDnsRecord` | final class | One DKIM DNS record suggestion returned by MailChannels — the TXT record you need to publish in your authoritative DNS for the selector to validate. |
 | `MailChannels\Response\DkimKeyInfo` | final class | MailChannels-hosted DKIM key metadata. Returned (inside a list or pair) by the DKIM endpoints. |
 | `MailChannels\Response\DkimKeyListResponse` | final class | Typed response returned by {@see \MailChannels\Resource\Dkim::list()}. Wraps a list of typed {@see DkimKeyInfo} entries. |
@@ -118,6 +124,7 @@ build a {@see Config} explicitly and pass it through {@see self::fromConfig()}.
 ### Public Properties
 
 - `readonly MailChannels\Resource\CheckDomain $checkDomain`
+- `readonly MailChannels\Resource\CustomTrackingDomains $customTrackingDomains`
 - `readonly MailChannels\Resource\Dkim $dkim`
 - `readonly MailChannels\Resource\Emails $emails`
 - `readonly MailChannels\Resource\Metrics $metrics`
@@ -232,6 +239,27 @@ public function withApiKey(
 - `$apiKey` (`string`)
 
 **Returns:** `self`
+
+
+## `MailChannels\Enum\CustomTrackingScope`
+
+_enum_
+
+### Cases
+
+- `Click = 'click'`
+- `Open = 'open'`
+- `Unsubscribe = 'unsubscribe'`
+
+
+## `MailChannels\Enum\CustomTrackingStatus`
+
+_enum_
+
+### Cases
+
+- `Active = 'active'`
+- `Disabled = 'disabled'`
 
 
 ## `MailChannels\Enum\DkimAlgorithm`
@@ -828,6 +856,7 @@ Strongly-typed email payload. Use this when you want compile-time-ish validation
 - `readonly string $subject`
 - `readonly ?array $trackingSettings`
 - `readonly ?bool $transactional`
+- `readonly ?array $unsubscribeSettings`
 
 ### Constructor
 
@@ -846,7 +875,8 @@ public function __construct(
     ?array $trackingSettings = null,
     ?string $dkimDomain = null,
     ?string $dkimPrivateKey = null,
-    ?string $dkimSelector = null
+    ?string $dkimSelector = null,
+    ?array $unsubscribeSettings = null
 )
 ```
 
@@ -865,6 +895,7 @@ public function __construct(
 - `$dkimDomain` (`?string`)
 - `$dkimPrivateKey` (`?string`)
 - `$dkimSelector` (`?string`)
+- `$unsubscribeSettings` (`?array`)
 
 ### Methods
 
@@ -988,6 +1019,87 @@ public function check(
 - `$dkimSettings` (`?array`)
 
 **Returns:** `MailChannels\Response\CheckDomainResponse`
+
+
+## `MailChannels\Resource\CustomTrackingDomains`
+
+_final class_ — extends [`MailChannels\Resource\AbstractResource`](#mailchannelsresourceabstractresource)
+
+Register and manage custom tracking domains — branded hostnames that replace MailChannels' shared domains for click tracking, open tracking, or unsubscribe links. See `docs/CUSTOM_TRACKING.md` for the DNS verification flow.
+
+### Methods
+
+#### `create()`
+
+```php
+public function create(
+    string $name,
+    string $hostname,
+    MailChannels\Enum\CustomTrackingScope|string $scope
+): MailChannels\Response\CustomTrackingDomainResponse
+```
+
+**Parameters:**
+- `$name` (`string`)
+- `$hostname` (`string`)
+- `$scope` (`MailChannels\Enum\CustomTrackingScope|string`)
+
+**Returns:** `MailChannels\Response\CustomTrackingDomainResponse`
+
+#### `delete()`
+
+```php
+public function delete(
+    string $hostname,
+    MailChannels\Enum\CustomTrackingScope|string $scope
+): MailChannels\Response
+```
+
+**Parameters:**
+- `$hostname` (`string`)
+- `$scope` (`MailChannels\Enum\CustomTrackingScope|string`)
+
+**Returns:** `MailChannels\Response`
+
+#### `list()`
+
+```php
+public function list(
+    ?string $name = null,
+    MailChannels\Enum\CustomTrackingStatus|string|null $status = null,
+    MailChannels\Enum\CustomTrackingScope|string|null $scope = null,
+    ?int $limit = null,
+    ?int $offset = null
+): MailChannels\Response\CustomTrackingDomainListResponse
+```
+
+**Parameters:**
+- `$name` (`?string`)
+- `$status` (`MailChannels\Enum\CustomTrackingStatus|string|null`)
+- `$scope` (`MailChannels\Enum\CustomTrackingScope|string|null`)
+- `$limit` (`?int`)
+- `$offset` (`?int`)
+
+**Returns:** `MailChannels\Response\CustomTrackingDomainListResponse`
+
+#### `update()`
+
+```php
+public function update(
+    string $hostname,
+    MailChannels\Enum\CustomTrackingScope|string $scope,
+    ?string $name = null,
+    MailChannels\Enum\CustomTrackingStatus|string|null $status = null
+): MailChannels\Response\CustomTrackingDomainResponse
+```
+
+**Parameters:**
+- `$hostname` (`string`)
+- `$scope` (`MailChannels\Enum\CustomTrackingScope|string`)
+- `$name` (`?string`)
+- `$status` (`MailChannels\Enum\CustomTrackingStatus|string|null`)
+
+**Returns:** `MailChannels\Response\CustomTrackingDomainResponse`
 
 
 ## `MailChannels\Resource\Dkim`
@@ -1923,6 +2035,157 @@ own value objects from the arrays.
 
 - `readonly ?array $checkResults`
 - `readonly ?array $references`
+
+### Constructor
+
+```php
+public function __construct(
+    MailChannels\Response $response
+)
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
+
+
+## `MailChannels\Response\CustomTrackingDomain`
+
+_final class_
+
+A registered MailChannels custom tracking domain. Returned inside a list by {@see \MailChannels\Resource\CustomTrackingDomains::list()}.
+
+Plain value object — not a `Response` subclass. See
+{@see CustomTrackingDomainResponse} for the shape returned by
+`create()`/`update()`, which may represent a domain still pending DNS
+verification rather than one of these fully-registered domains.
+
+### Public Properties
+
+- `readonly ?string $createdAt`
+- `readonly ?string $hostname`
+- `readonly ?string $name`
+- `readonly ?string $scope`
+- `readonly ?string $status`
+
+### Constructor
+
+```php
+public function __construct(
+    ?string $name = null,
+    ?string $hostname = null,
+    ?string $scope = null,
+    ?string $status = null,
+    ?string $createdAt = null
+)
+```
+
+**Parameters:**
+- `$name` (`?string`)
+- `$hostname` (`?string`)
+- `$scope` (`?string`)
+- `$status` (`?string`)
+- `$createdAt` (`?string`)
+
+### Methods
+
+#### `fromArray()`
+
+```php
+public static function fromArray(
+    array $data
+): self
+```
+
+**Parameters:**
+- `$data` (`array`)
+
+**Returns:** `self`
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
+
+#### `jsonSerialize()`
+
+```php
+public function jsonSerialize(): array
+```
+
+**Returns:** `array<string,` — mixed>
+
+
+## `MailChannels\Response\CustomTrackingDomainListResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response returned by {@see \MailChannels\Resource\CustomTrackingDomains::list()}. Spec schema: `CustomTrackingDomainListResponse`.
+
+```php
+$list = $client->customTrackingDomains->list(scope: CustomTrackingScope::Click);
+foreach ($list->customTrackingDomains ?? [] as $domain) {
+    echo $domain->hostname, ' (', $domain->status, ")\n";
+}
+```
+
+### Public Properties
+
+- `readonly ?array $customTrackingDomains`
+- `readonly ?int $total`
+
+### Constructor
+
+```php
+public function __construct(
+    MailChannels\Response $response
+)
+```
+
+**Parameters:**
+- `$response` (`MailChannels\Response`)
+
+**Throws:**
+- ResponseValidationException when a present field has the wrong type. Missing fields are nulled out.
+
+
+## `MailChannels\Response\CustomTrackingDomainResponse`
+
+_final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
+
+Typed response returned by {@see \MailChannels\Resource\CustomTrackingDomains::create()} and {@see \MailChannels\Resource\CustomTrackingDomains::update()}.
+
+Covers two distinct success shapes, mirroring {@see SendResponse}:
+
+- **Registered (HTTP 201/200).** The domain is active immediately:
+  `$name`/`$hostname`/`$scope`/`$status`/`$createdAt` are populated.
+- **DNS setup pending (HTTP 202).** Before completing registration (or
+  re-activating a domain whose DNS verification lapsed), MailChannels
+  requires a CNAME and, the first time a hostname is registered, a TXT
+  ownership record. `$instructions` (plus `$token`/`$txtRecordName`/
+  `$txtRecordValue` when a TXT check is outstanding) describe what to
+  add before retrying.
+
+All typed fields are nullable because the API omits whichever fields
+don't apply to the current shape — branch on `$status !== null` vs
+`$instructions !== null` rather than the HTTP status code.
+
+A `422` response (DNS still not verified on retry) is a real error, not
+an alternate success shape — the SDK raises {@see \MailChannels\Exception\InvalidRequestException}
+for it, with the same pending-verification body available via
+`getResponseBody()`.
+
+### Public Properties
+
+- `readonly ?string $createdAt`
+- `readonly ?string $hostname`
+- `readonly ?string $instructions`
+- `readonly ?string $name`
+- `readonly ?string $scope`
+- `readonly ?string $status`
+- `readonly ?string $token`
+- `readonly ?string $txtRecordName`
+- `readonly ?string $txtRecordValue`
 
 ### Constructor
 
@@ -3695,7 +3958,7 @@ _final class_
 
 ### Constants
 
-- `VERSION = '1.1.0'`
+- `VERSION = '1.2.0'`
 
 ### Methods
 

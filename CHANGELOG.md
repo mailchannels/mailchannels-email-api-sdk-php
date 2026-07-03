@@ -8,6 +8,29 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 Reserved for in-progress work targeting the next release.
 
+## [1.2.0] - 2026-07-03
+
+### Added
+- **Custom Tracking Domains.** A new `CustomTrackingDomains` resource
+  (`list()`, `create()`, `update()`, `delete()`) wraps the
+  `/custom-tracking-domains` endpoints, letting you register a branded
+  hostname for click tracking, open tracking, or unsubscribe links instead
+  of MailChannels' shared domains. Registration requires a CNAME and, on
+  first use, a TXT ownership-verification record; `create()`/`update()`
+  return a `CustomTrackingDomainResponse` covering both the registered and
+  pending-DNS-verification shapes (mirroring `SendResponse`'s precedent for
+  one endpoint with two success shapes) since MailChannels returns either
+  with a 2xx status. New `CustomTrackingScope` (`Click`/`Open`/`Unsubscribe`)
+  and `CustomTrackingStatus` (`Active`/`Disabled`) enums.
+- `tracking_settings` entries (`open_tracking`/`click_tracking`) already
+  passed a `custom_domain_name` key through opaquely, since
+  `tracking_settings` is a plain associative array on both the
+  array-payload and `EmailParams` typed-object paths — no dedicated value
+  class, unlike `Personalization`/`Content`. This release adds the matching
+  `unsubscribe_settings` plumbing (same opaque-array shape, both paths) so
+  `custom_domain_name` can also route unsubscribe links through a
+  registered custom domain.
+
 ## [1.1.0] - 2026-07-03
 
 ### Added

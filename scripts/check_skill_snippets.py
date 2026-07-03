@@ -108,6 +108,8 @@ use GuzzleHttp\Psr7\HttpFactory;
 use MailChannels\Client;
 use MailChannels\Config;
 use Symfony\Component\HttpClient\HttpClient;
+use MailChannels\Enum\CustomTrackingScope;
+use MailChannels\Enum\CustomTrackingStatus;
 use MailChannels\Enum\DkimAlgorithm;
 use MailChannels\Enum\DkimKeyStatus;
 use MailChannels\Enum\DkimUpdateStatus;

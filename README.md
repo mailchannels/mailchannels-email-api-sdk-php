@@ -215,6 +215,11 @@ use MailChannels\Enum\DkimAlgorithm;
 $client->dkim->create('example.com', selector: 'mc1', algorithm: DkimAlgorithm::Rsa);
 $client->dkim->rotate('example.com', 'mc1', 'mc2');
 
+// Custom tracking domains (branded click/open/unsubscribe links)
+use MailChannels\Enum\CustomTrackingScope;
+$client->customTrackingDomains->create(name: 'newsletter-clicks', hostname: 'click.example.com', scope: CustomTrackingScope::Click);
+$client->customTrackingDomains->list(scope: CustomTrackingScope::Click);
+
 // Domain checks (DKIM/SPF/Lockdown)
 $client->checkDomain->check('example.com');
 
@@ -330,6 +335,9 @@ The SDK never logs API keys or request bodies.
   webhook helpers.
 - [`docs/DKIM.md`](docs/DKIM.md) — hosted vs customer-managed DKIM keys,
   key lifecycle, and a Cloudflare DNS publication recipe.
+- [`docs/CUSTOM_TRACKING.md`](docs/CUSTOM_TRACKING.md) — registering
+  branded click/open/unsubscribe tracking domains and the CNAME/TXT DNS
+  verification flow.
 - [`examples/`](examples/) — runnable scripts for each endpoint group.
 
 ## Using with an AI agent

@@ -184,6 +184,39 @@ $client->emails->queue(
 
 Open and click tracking require a subscription that supports them.
 
+### Custom Tracking Domains
+
+Pass `custom_domain_name` inside a `tracking_settings` toggle (or inside
+`unsubscribe_settings`) to route those links through a domain you
+registered instead of the shared MailChannels domain. The name must match
+an **active** custom tracking domain registered for that scope — see
+[custom-tracking-domains](custom-tracking-domains.md) for registration and
+DNS verification.
+
+```php
+$client->emails->queue(
+    new EmailParams(
+        from: new EmailAddress('sender@example.com'),
+        subject: 'Tracked with a custom domain',
+        personalizations: [
+            new Personalization(to: ['recipient@example.net']),
+        ],
+        content: [
+            Content::html('<p>Hello <a href="https://example.com">click here</a></p>'),
+        ],
+        trackingSettings: [
+            'click_tracking' => ['enable' => true, 'custom_domain_name' => 'newsletter-clicks'],
+        ],
+        unsubscribeSettings: ['custom_domain_name' => 'newsletter-unsubscribe'],
+    )
+);
+```
+
+`trackingSettings`/`unsubscribeSettings` are plain associative arrays on
+both the array-payload and typed `EmailParams` forms — there's no
+dedicated `TrackingSettings`/`UnsubscribeSettings` value class, unlike
+`Personalization`/`Content`.
+
 ## Reading The Response
 
 `queue()` returns a `QueuedSendResponse`:

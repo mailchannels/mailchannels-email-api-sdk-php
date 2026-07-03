@@ -27,12 +27,16 @@ final class EmailParams
     /** @var array<string, mixed>|null */
     public readonly ?array $trackingSettings;
 
+    /** @var array<string, mixed>|null */
+    public readonly ?array $unsubscribeSettings;
+
     /**
      * @param iterable<Personalization>      $personalizations
      * @param iterable<Content>              $content
      * @param iterable<Attachment>|null      $attachments
      * @param array<string, string>|null     $headers
      * @param array<string, mixed>|null      $trackingSettings
+     * @param array<string, mixed>|null      $unsubscribeSettings
      */
     public function __construct(
         public readonly EmailAddress $from,
@@ -49,6 +53,7 @@ final class EmailParams
         public readonly ?string $dkimDomain = null,
         public readonly ?string $dkimPrivateKey = null,
         public readonly ?string $dkimSelector = null,
+        ?array $unsubscribeSettings = null,
     ) {
         $pList = is_array($personalizations) ? $personalizations : iterator_to_array($personalizations);
         $cList = is_array($content) ? $content : iterator_to_array($content);
@@ -77,6 +82,7 @@ final class EmailParams
         );
         $this->headers = $headers !== null ? EmailHeaders::validate($headers) : null;
         $this->trackingSettings = $trackingSettings;
+        $this->unsubscribeSettings = $unsubscribeSettings;
     }
 
     /** @return array<string, mixed> */
@@ -111,6 +117,9 @@ final class EmailParams
         }
         if ($this->trackingSettings !== null) {
             $payload['tracking_settings'] = $this->trackingSettings;
+        }
+        if ($this->unsubscribeSettings !== null) {
+            $payload['unsubscribe_settings'] = $this->unsubscribeSettings;
         }
         if ($this->dkimDomain !== null) {
             $payload['dkim_domain'] = $this->dkimDomain;

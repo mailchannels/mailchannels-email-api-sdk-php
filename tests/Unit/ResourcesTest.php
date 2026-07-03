@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace MailChannels\Tests\Unit;
 
+use MailChannels\Enum\CustomTrackingScope;
+use MailChannels\Enum\CustomTrackingStatus;
 use MailChannels\Enum\DkimAlgorithm;
 use MailChannels\Enum\DkimUpdateStatus;
 use MailChannels\Enum\MetricsInterval;
@@ -11,6 +13,7 @@ use MailChannels\Enum\MetricsSenderType;
 use MailChannels\Enum\SuppressionDeleteSource;
 use MailChannels\Enum\SuppressionSource;
 use MailChannels\Enum\WebhookBatchStatus;
+use MailChannels\Exception\InvalidRequestException;
 use MailChannels\Exception\ValidationException;
 use MailChannels\Response;
 use MailChannels\Tests\Support\Fixtures;
@@ -241,6 +244,157 @@ final class ResourcesTest extends TestCase
             $uri->getPath(),
         );
         $this->assertSame(['new_key' => ['selector' => 'new/selector?raw=1']], $http->lastJson());
+    }
+
+    public function testCustomTrackingDomainsListAcceptsFilters(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(200, ['custom_tracking_domains' => [], 'total' => 0]));
+        $client = Fixtures::client($http);
+        $client->customTrackingDomains->list(
+            name: 'newsletter-clicks',
+            status: CustomTrackingStatus::Active,
+            scope: CustomTrackingScope::Click,
+            limit: 10,
+            offset: 0,
+        );
+
+        $query = $http->lastRequest()->getUri()->getQuery();
+        $this->assertStringContainsString('name=newsletter-clicks', $query);
+        $this->assertStringContainsString('status=active', $query);
+        $this->assertStringContainsString('scope=click', $query);
+        $this->assertStringContainsString('limit=10', $query);
+        $this->assertStringContainsString('offset=0', $query);
+        $this->assertStringEndsWith('/custom-tracking-domains', $http->lastRequest()->getUri()->getPath());
+    }
+
+    public function testCustomTrackingDomainsCreate(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(201, [
+            'name' => 'newsletter-clicks',
+            'hostname' => 'click.example.com',
+            'scope' => 'click',
+            'status' => 'active',
+            'created_at' => '2026-07-01T00:00:00Z',
+        ]));
+        $client = Fixtures::client($http);
+
+        $result = $client->customTrackingDomains->create(
+            name: 'newsletter-clicks',
+            hostname: 'click.example.com',
+            scope: CustomTrackingScope::Click,
+        );
+
+        $this->assertSame(
+            ['name' => 'newsletter-clicks', 'hostname' => 'click.example.com', 'scope' => 'click'],
+            $http->lastJson(),
+        );
+        $this->assertSame('POST', $http->lastRequest()->getMethod());
+        $this->assertStringEndsWith('/custom-tracking-domains', (string) $http->lastRequest()->getUri());
+        $this->assertSame('active', $result->status);
+    }
+
+    public function testCustomTrackingDomainsCreateAcceptsPendingDnsSetupResponse(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, [
+            'instructions' => 'Add the TXT and CNAME records, then retry.',
+            'token' => '550e8400-e29b-41d4-a716-446655440000',
+            'txt_record_name' => '_mailchannels-verify.click.example.com',
+            'txt_record_value' => '550e8400-e29b-41d4-a716-446655440000',
+        ]));
+        $client = Fixtures::client($http);
+
+        $result = $client->customTrackingDomains->create(
+            name: 'newsletter-clicks',
+            hostname: 'click.example.com',
+            scope: CustomTrackingScope::Click,
+        );
+
+        $this->assertNull($result->status);
+        $this->assertSame('Add the TXT and CNAME records, then retry.', $result->instructions);
+        $this->assertSame(202, $result->statusCode);
+    }
+
+    public function testCustomTrackingDomainsCreateRaisesInvalidRequestForIncompleteDns(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(422, [
+            'instructions' => 'DNS verification incomplete; check the TXT record.',
+        ]));
+        $client = Fixtures::client($http);
+
+        try {
+            $client->customTrackingDomains->create(
+                name: 'newsletter-clicks',
+                hostname: 'click.example.com',
+                scope: CustomTrackingScope::Click,
+            );
+            $this->fail('Expected InvalidRequestException.');
+        } catch (InvalidRequestException $e) {
+            $this->assertSame(422, $e->getStatusCode());
+            $this->assertIsArray($e->getResponseBody());
+            $this->assertSame(
+                'DNS verification incomplete; check the TXT record.',
+                $e->getResponseBody()['instructions'],
+            );
+        }
+    }
+
+    public function testCustomTrackingDomainsUpdateUsesPatchAndAcceptsPendingResponse(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, [
+            'instructions' => 'Re-verification required.',
+        ]));
+        $client = Fixtures::client($http);
+
+        $result = $client->customTrackingDomains->update(
+            'click.example.com',
+            CustomTrackingScope::Click,
+            status: CustomTrackingStatus::Active,
+        );
+
+        $this->assertSame('PATCH', $http->lastRequest()->getMethod());
+        $this->assertSame(['status' => 'active'], $http->lastJson());
+        $this->assertStringEndsWith('/custom-tracking-domains/click.example.com/click', (string) $http->lastRequest()->getUri());
+        $this->assertNull($result->status);
+        $this->assertSame('Re-verification required.', $result->instructions);
+    }
+
+    public function testCustomTrackingDomainsUpdateEncodesPathSegments(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(200, [
+            'name' => 'n', 'hostname' => 'h', 'scope' => 'click', 'status' => 'active', 'created_at' => 'now',
+        ]));
+        $client = Fixtures::client($http);
+        $client->customTrackingDomains->update('example.com/path?x=1', 'click', name: 'renamed');
+
+        $uri = $http->lastRequest()->getUri();
+        $this->assertSame(
+            '/tx/v1/custom-tracking-domains/example.com%2Fpath%3Fx%3D1/click',
+            $uri->getPath(),
+        );
+        $this->assertSame('', $uri->getQuery());
+    }
+
+    public function testCustomTrackingDomainsDeleteUsesDocumentedPath(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(204, null));
+        $client = Fixtures::client($http);
+        $client->customTrackingDomains->delete('click.example.com', CustomTrackingScope::Click);
+
+        $this->assertSame('DELETE', $http->lastRequest()->getMethod());
+        $this->assertStringEndsWith('/custom-tracking-domains/click.example.com/click', (string) $http->lastRequest()->getUri());
+    }
+
+    public function testCustomTrackingDomainsDeleteEncodesPathSegments(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(204, null));
+        $client = Fixtures::client($http);
+        $client->customTrackingDomains->delete('example.com/path?x=1', 'click');
+
+        $uri = $http->lastRequest()->getUri();
+        $this->assertSame(
+            '/tx/v1/custom-tracking-domains/example.com%2Fpath%3Fx%3D1/click',
+            $uri->getPath(),
+        );
     }
 
     public function testSuppressionsListAcceptsEnum(): void
