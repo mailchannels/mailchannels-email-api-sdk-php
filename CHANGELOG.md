@@ -6,6 +6,21 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+Reserved for in-progress work targeting the next release.
+
+## [1.1.0] - 2026-07-03
+
+### Added
+- `MetricsEngagementResponse` gains `$uniqueOpen`, `$uniqueClick`,
+  `$uniqueOpenTrackingDelivered`, `$uniqueClickTrackingDelivered`, and their
+  matching `*Buckets` breakdowns. Unlike `$open`/`$click`, these count each
+  message at most once regardless of how many times it was opened or
+  clicked, so they're the correct numerator/denominator for open and click
+  rates that can't exceed 100%.
+- `MetricsPerformanceResponse` gains `$complained` and `$complainedBuckets`
+  — a count of messages that triggered a spam complaint, ahead of its
+  rollout on the live Email API spec.
+
 ## [1.0.2] - 2026-06-25
 
 ### Fixed

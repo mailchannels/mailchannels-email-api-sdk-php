@@ -4,7 +4,7 @@ This reference is generated from public class signatures and PHPDoc blocks in `s
 
 For task-oriented examples, start with the [README](../README.md). This file is the formal public surface reference.
 
-- SDK version: `1.0.2`
+- SDK version: `1.1.0`
 - Top-level exports: `89`
 - Documented public methods: `202`
 
@@ -2263,6 +2263,11 @@ Typed response for `GET /metrics/engagement`. Spec schema: `MetricsEngagement`.
 Exposes top-level open/click counts plus their time-series breakdowns
 under the `*Buckets` properties.
 
+`unique*` fields count distinct messages rather than events — a message
+opened five times still counts once toward `$uniqueOpen`, unlike `$open`.
+Divide `$uniqueOpen` by `$uniqueOpenTrackingDelivered` (and the click
+equivalents) to compute open/click rates that can't exceed 100%.
+
 ### Public Properties
 
 - `readonly ?int $click`
@@ -2275,6 +2280,14 @@ under the `*Buckets` properties.
 - `readonly ?int $openTrackingDelivered`
 - `readonly ?array $openTrackingDeliveredBuckets`
 - `readonly ?string $startTime`
+- `readonly ?int $uniqueClick`
+- `readonly ?array $uniqueClickBuckets`
+- `readonly ?int $uniqueClickTrackingDelivered`
+- `readonly ?array $uniqueClickTrackingDeliveredBuckets`
+- `readonly ?int $uniqueOpen`
+- `readonly ?array $uniqueOpenBuckets`
+- `readonly ?int $uniqueOpenTrackingDelivered`
+- `readonly ?array $uniqueOpenTrackingDeliveredBuckets`
 
 ### Constructor
 
@@ -2297,13 +2310,15 @@ _final class_ — extends [`MailChannels\Response`](#mailchannelsresponse)
 
 Typed response for `GET /metrics/performance`. Spec schema: `MetricsPerformance`.
 
-Exposes top-level processed/delivered/bounced counts plus their
-time-series breakdowns under the `*Buckets` properties.
+Exposes top-level processed/delivered/bounced/complained counts plus
+their time-series breakdowns under the `*Buckets` properties.
 
 ### Public Properties
 
 - `readonly ?int $bounced`
 - `readonly ?array $bouncedBuckets`
+- `readonly ?int $complained`
+- `readonly ?array $complainedBuckets`
 - `readonly ?int $delivered`
 - `readonly ?array $deliveredBuckets`
 - `readonly ?string $endTime`
@@ -3680,7 +3695,7 @@ _final class_
 
 ### Constants
 
-- `VERSION = '1.0.2'`
+- `VERSION = '1.1.0'`
 
 ### Methods
 

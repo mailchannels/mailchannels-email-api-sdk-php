@@ -26,6 +26,10 @@ final class MetricsResponsesTest extends TestCase
             'click' => 50,
             'open_tracking_delivered' => 200,
             'click_tracking_delivered' => 180,
+            'unique_open' => 80,
+            'unique_click' => 45,
+            'unique_open_tracking_delivered' => 200,
+            'unique_click_tracking_delivered' => 180,
             'buckets' => [
                 'open' => [
                     ['period_start' => '2026-05-01T00:00:00Z', 'count' => 60],
@@ -34,6 +38,10 @@ final class MetricsResponsesTest extends TestCase
                 'click' => [['period_start' => '2026-05-01T00:00:00Z', 'count' => 50]],
                 'open_tracking_delivered' => [],
                 'click_tracking_delivered' => [],
+                'unique_open' => [['period_start' => '2026-05-01T00:00:00Z', 'count' => 55]],
+                'unique_click' => [['period_start' => '2026-05-01T00:00:00Z', 'count' => 45]],
+                'unique_open_tracking_delivered' => [],
+                'unique_click_tracking_delivered' => [],
             ],
         ];
 
@@ -45,6 +53,10 @@ final class MetricsResponsesTest extends TestCase
         $this->assertSame(50, $typed->click);
         $this->assertSame(200, $typed->openTrackingDelivered);
         $this->assertSame(180, $typed->clickTrackingDelivered);
+        $this->assertSame(80, $typed->uniqueOpen);
+        $this->assertSame(45, $typed->uniqueClick);
+        $this->assertSame(200, $typed->uniqueOpenTrackingDelivered);
+        $this->assertSame(180, $typed->uniqueClickTrackingDelivered);
 
         $this->assertNotNull($typed->openBuckets);
         $this->assertCount(2, $typed->openBuckets);
@@ -56,6 +68,14 @@ final class MetricsResponsesTest extends TestCase
         $this->assertCount(1, $typed->clickBuckets);
         $this->assertSame([], $typed->openTrackingDeliveredBuckets);
         $this->assertSame([], $typed->clickTrackingDeliveredBuckets);
+
+        $this->assertNotNull($typed->uniqueOpenBuckets);
+        $this->assertCount(1, $typed->uniqueOpenBuckets);
+        $this->assertSame(55, $typed->uniqueOpenBuckets[0]->count);
+        $this->assertNotNull($typed->uniqueClickBuckets);
+        $this->assertCount(1, $typed->uniqueClickBuckets);
+        $this->assertSame([], $typed->uniqueOpenTrackingDeliveredBuckets);
+        $this->assertSame([], $typed->uniqueClickTrackingDeliveredBuckets);
     }
 
     public function testEngagementResponseLeavesFieldsNullWhenBodyEmpty(): void
@@ -65,6 +85,11 @@ final class MetricsResponsesTest extends TestCase
         $this->assertNull($typed->open);
         $this->assertNull($typed->openBuckets);
         $this->assertNull($typed->startTime);
+        $this->assertNull($typed->uniqueOpen);
+        $this->assertNull($typed->uniqueClick);
+        $this->assertNull($typed->uniqueOpenTrackingDelivered);
+        $this->assertNull($typed->uniqueClickTrackingDelivered);
+        $this->assertNull($typed->uniqueOpenBuckets);
     }
 
     public function testEngagementResponseRejectsWrongTypeOpen(): void
@@ -83,10 +108,12 @@ final class MetricsResponsesTest extends TestCase
             'processed' => 1000,
             'delivered' => 950,
             'bounced' => 50,
+            'complained' => 3,
             'buckets' => [
                 'processed' => [['period_start' => '2026-05-01T00:00:00Z', 'count' => 1000]],
                 'delivered' => [['period_start' => '2026-05-01T00:00:00Z', 'count' => 950]],
                 'bounced' => [['period_start' => '2026-05-01T00:00:00Z', 'count' => 50]],
+                'complained' => [['period_start' => '2026-05-01T00:00:00Z', 'count' => 3]],
             ],
         ];
 
@@ -95,9 +122,21 @@ final class MetricsResponsesTest extends TestCase
         $this->assertSame(1000, $typed->processed);
         $this->assertSame(950, $typed->delivered);
         $this->assertSame(50, $typed->bounced);
+        $this->assertSame(3, $typed->complained);
         $this->assertNotNull($typed->bouncedBuckets);
         $this->assertCount(1, $typed->bouncedBuckets);
         $this->assertSame(50, $typed->bouncedBuckets[0]->count);
+        $this->assertNotNull($typed->complainedBuckets);
+        $this->assertCount(1, $typed->complainedBuckets);
+        $this->assertSame(3, $typed->complainedBuckets[0]->count);
+    }
+
+    public function testPerformanceResponseLeavesComplainedNullWhenAbsent(): void
+    {
+        $typed = new MetricsPerformanceResponse(new Response(data: [], statusCode: 200));
+
+        $this->assertNull($typed->complained);
+        $this->assertNull($typed->complainedBuckets);
     }
 
     public function testRecipientBehaviourResponseExtractsFields(): void

@@ -6,7 +6,7 @@ namespace MailChannels;
 
 final class Version
 {
-    public const VERSION = '1.0.2';
+    public const VERSION = '1.1.0';
 
     public static function userAgent(): string
     {

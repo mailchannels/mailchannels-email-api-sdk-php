@@ -12,8 +12,8 @@ use MailChannels\Response;
  * Typed response for `GET /metrics/performance`. Spec schema:
  * `MetricsPerformance`.
  *
- * Exposes top-level processed/delivered/bounced counts plus their
- * time-series breakdowns under the `*Buckets` properties.
+ * Exposes top-level processed/delivered/bounced/complained counts plus
+ * their time-series breakdowns under the `*Buckets` properties.
  */
 final class MetricsPerformanceResponse extends Response
 {
@@ -22,6 +22,7 @@ final class MetricsPerformanceResponse extends Response
     public readonly ?int $processed;
     public readonly ?int $delivered;
     public readonly ?int $bounced;
+    public readonly ?int $complained;
 
     /** @var list<MetricsBucket>|null */
     public readonly ?array $processedBuckets;
@@ -31,6 +32,9 @@ final class MetricsPerformanceResponse extends Response
 
     /** @var list<MetricsBucket>|null */
     public readonly ?array $bouncedBuckets;
+
+    /** @var list<MetricsBucket>|null */
+    public readonly ?array $complainedBuckets;
 
     /**
      * @throws ResponseValidationException when a present field has the
@@ -51,8 +55,10 @@ final class MetricsPerformanceResponse extends Response
         $this->processed = ResponseValidator::asNullableInt($body, 'processed');
         $this->delivered = ResponseValidator::asNullableInt($body, 'delivered');
         $this->bounced = ResponseValidator::asNullableInt($body, 'bounced');
+        $this->complained = ResponseValidator::asNullableInt($body, 'complained');
         $this->processedBuckets = MetricsBucket::listFromParent($buckets, 'processed');
         $this->deliveredBuckets = MetricsBucket::listFromParent($buckets, 'delivered');
         $this->bouncedBuckets = MetricsBucket::listFromParent($buckets, 'bounced');
+        $this->complainedBuckets = MetricsBucket::listFromParent($buckets, 'complained');
     }
 }
