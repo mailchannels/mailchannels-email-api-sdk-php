@@ -7,10 +7,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 > Built and tested against Email API 1.3.0 (base path `/tx/v1`, spec at
-> [docs.mailchannels.net/email-api.yaml](https://docs.mailchannels.net/email-api.yaml)).
+> [docs.mailchannels.com/email-api.yaml](https://docs.mailchannels.com/email-api.yaml)).
 
 `mailchannels/mailchannels-php` is the official PHP SDK for the
-[MailChannels Email API](https://docs.mailchannels.net/email-api). It is a
+[MailChannels Email API](https://docs.mailchannels.com/email-api). It is a
 hand-written client built around the
 [PHP-FIG](https://www.php-fig.org/) standards: it depends only on PSR
 interfaces and discovers concrete implementations at runtime, so it works with

@@ -28,8 +28,8 @@ final class CheckDomainResponseTest extends TestCase
                 ],
             ],
             'references' => [
-                'https://docs.mailchannels.net/spf',
-                'https://docs.mailchannels.net/dkim',
+                'https://docs.mailchannels.com/spf',
+                'https://docs.mailchannels.com/dkim',
             ],
         ];
 
@@ -48,7 +48,7 @@ final class CheckDomainResponseTest extends TestCase
         $this->assertSame('mc2', $second['dkim_selector']);
 
         $this->assertSame(
-            ['https://docs.mailchannels.net/spf', 'https://docs.mailchannels.net/dkim'],
+            ['https://docs.mailchannels.com/spf', 'https://docs.mailchannels.com/dkim'],
             $typed->references,
         );
     }
@@ -76,7 +76,7 @@ final class CheckDomainResponseTest extends TestCase
     public function testFromResponseRejectsReferencesContainingNonString(): void
     {
         $response = new Response(
-            data: ['references' => ['https://docs.mailchannels.net/spf', 42]],
+            data: ['references' => ['https://docs.mailchannels.com/spf', 42]],
             statusCode: 200,
         );
 

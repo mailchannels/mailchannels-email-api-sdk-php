@@ -10,14 +10,14 @@ declare(strict_types=1);
  * checks and then `git diff --exit-code -- README.md` catches drift.
  *
  * Source of truth: `info.version` field at
- * `https://docs.mailchannels.net/email-api.yaml`. Fetched fresh each
+ * `https://docs.mailchannels.com/email-api.yaml`. Fetched fresh each
  * run; exits non-zero on network failure or unexpected spec shape so
  * the drift check can't silently pass on stale data.
  */
 
 namespace MailChannels\Scripts\UpdateApiVersion;
 
-const SPEC_URL = 'https://docs.mailchannels.net/email-api.yaml';
+const SPEC_URL = 'https://docs.mailchannels.com/email-api.yaml';
 const README_PATH = __DIR__ . '/../README.md';
 const README_PATTERN = '/(Built and tested against Email API )(\S+)/';
 const NETWORK_TIMEOUT_SECONDS = 10;
