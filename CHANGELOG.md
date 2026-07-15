@@ -8,6 +8,19 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 Reserved for in-progress work targeting the next release.
 
+## [1.3.0] - 2026-07-15
+
+### Added
+- `UsageResponse` (shared by `Usage::retrieve()` and
+  `SubAccounts::retrieveUsage()`) gains `$monthlyLimit` — the effective
+  send cap for the current billing period. A value of `0` means the
+  account cannot send; on a sub-account with no explicit limit set, this
+  reports the parent account's limit rather than `-1` (contrast
+  `SubAccountLimits::retrieve()`, which does return `-1` in that case).
+  Typed `?int` even though the spec marks it required, matching this
+  SDK's existing convention of keeping new response fields nullable so
+  they can never break a caller's mocked test fixtures.
+
 ## [1.2.0] - 2026-07-03
 
 ### Added

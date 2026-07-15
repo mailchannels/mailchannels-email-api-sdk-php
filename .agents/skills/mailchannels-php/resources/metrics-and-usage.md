@@ -80,6 +80,13 @@ $usage = $client->usage->retrieve();
 echo $usage->totalUsage;       // int, messages sent this period
 echo $usage->periodStartDate;  // ISO date string
 echo $usage->periodEndDate;
+echo $usage->monthlyLimit;     // effective cap for the period; 0 means
+                                // the account can't send. For a
+                                // sub-account with no explicit limit set,
+                                // this already resolves to the parent
+                                // account's limit — see sub-accounts.md
+                                // for how that differs from
+                                // limits->retrieve()'s -1.
 ```
 
 For a specific sub-account, use `$client->subAccounts->retrieveUsage($handle)`

@@ -4,7 +4,7 @@ This reference is generated from public class signatures and PHPDoc blocks in `s
 
 For task-oriented examples, start with the [README](../README.md). This file is the formal public surface reference.
 
-- SDK version: `1.2.0`
+- SDK version: `1.3.0`
 - Top-level exports: `95`
 - Documented public methods: `217`
 
@@ -3415,14 +3415,20 @@ Typed response returned by {@see \MailChannels\Resource\Usage::retrieve()}.
 
 `$totalUsage` is the count of accepted send-requests for the current
 billing period; `$periodStartDate` / `$periodEndDate` bracket the period
-the count covers. All fields are nullable — missing fields stay null so
-the SDK stays forward-compatible with future API additions.
+the count covers. `$monthlyLimit` is the effective send cap for that
+period — a value of `0` means the account cannot send; for a sub-account
+with no explicit limit set, this reports the parent account's limit
+rather than `-1` (contrast {@see \MailChannels\Resource\SubAccountLimits::retrieve()},
+which does return `-1` in that case). All fields are nullable — missing
+fields stay null so the SDK stays forward-compatible with future API
+additions.
 
 Inherits {@see Response}'s array-access, HTTP-metadata, and raw-body
 helpers.
 
 ### Public Properties
 
+- `readonly ?int $monthlyLimit`
 - `readonly ?string $periodEndDate`
 - `readonly ?string $periodStartDate`
 - `readonly ?int $totalUsage`
@@ -3958,7 +3964,7 @@ _final class_
 
 ### Constants
 
-- `VERSION = '1.2.0'`
+- `VERSION = '1.3.0'`
 
 ### Methods
 

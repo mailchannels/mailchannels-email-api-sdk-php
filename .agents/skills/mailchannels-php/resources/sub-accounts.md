@@ -82,7 +82,17 @@ $subUsage    = $client->subAccounts->retrieveUsage('clienta');
 echo $parentUsage->totalUsage;          // int, messages sent this period
 echo $parentUsage->periodStartDate;     // ISO date string
 echo $parentUsage->periodEndDate;
+echo $subUsage->monthlyLimit;
 ```
+
+`UsageResponse::$monthlyLimit` (returned by both calls above) is the
+*effective* cap already in force for the period — not the same thing as
+the `monthlyLimit` alias on `limits->set()` above, which just *sets* a
+sub-account's own `sends` limit. A sub-account with no explicit limit set
+returns `-1` from `limits->retrieve()`, but `retrieveUsage()` still
+reports the real number in effect (the parent account's limit) rather
+than `-1`, so use `$monthlyLimit` on the usage response — not
+`limits->retrieve()` — for progress-bar-style "X of Y sent" displays.
 
 ## Sending As A Sub-Account
 

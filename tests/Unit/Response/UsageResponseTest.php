@@ -18,6 +18,7 @@ final class UsageResponseTest extends TestCase
                 'total_usage' => 1234,
                 'period_start_date' => '2026-06-01',
                 'period_end_date' => '2026-06-30',
+                'monthly_limit' => 10000,
             ],
             statusCode: 200,
         );
@@ -27,6 +28,7 @@ final class UsageResponseTest extends TestCase
         $this->assertSame(1234, $typed->totalUsage);
         $this->assertSame('2026-06-01', $typed->periodStartDate);
         $this->assertSame('2026-06-30', $typed->periodEndDate);
+        $this->assertSame(10000, $typed->monthlyLimit);
     }
 
     public function testFromResponseLeavesFieldsNullWhenBodyEmpty(): void
@@ -36,6 +38,7 @@ final class UsageResponseTest extends TestCase
         $this->assertNull($typed->totalUsage);
         $this->assertNull($typed->periodStartDate);
         $this->assertNull($typed->periodEndDate);
+        $this->assertNull($typed->monthlyLimit);
     }
 
     public function testFromResponseRejectsWrongTypeTotalUsage(): void
@@ -47,6 +50,18 @@ final class UsageResponseTest extends TestCase
 
         $this->expectException(ResponseValidationException::class);
         $this->expectExceptionMessage("Response field 'total_usage' must be an int");
+        new UsageResponse($response);
+    }
+
+    public function testFromResponseRejectsWrongTypeMonthlyLimit(): void
+    {
+        $response = new Response(
+            data: ['monthly_limit' => '10000'],  // string instead of int
+            statusCode: 200,
+        );
+
+        $this->expectException(ResponseValidationException::class);
+        $this->expectExceptionMessage("Response field 'monthly_limit' must be an int");
         new UsageResponse($response);
     }
 
