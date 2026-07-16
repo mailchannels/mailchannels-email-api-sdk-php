@@ -397,6 +397,59 @@ class YourService
 }
 ```
 
+## Using with Laravel
+
+This package includes support for Laravel's `Mail` feature via a custom transport.
+
+### Installation
+
+Go to your Laravel project and run the following command to install the package with Composer:
+```bash
+composer require mailchannels/mailchannels-php
+```
+
+If you don't have a PSR-18 http client or PSR-17 factories installed, install them:
+
+For more information, see the [Install section](#install)
+```bash
+composer require symfony/http-client nyholm/psr7
+```
+
+Then add mailchannels to your `mailers` list in `config/mail.php` :
+```php
+'mailers' => [
+    'mailchannels' => [
+        'transport' => 'mailchannels',
+    ]
+]
+```
+
+And add mailchannels to your `services` list in `config/services.php` :
+```php
+return [
+    'mailchannels' => [
+        'api_key' => env('MAILCHANNELS_API_KEY'),
+    ]
+]
+```
+
+Finally, set the `MAIL_MAILER` environment variable to `mailchannels` and set your `MAILCHANNELS_API_KEY` environment variable to your MailChannels API key.
+
+Set in your environment or in your `.env` file:
+```bash
+MAIL_MAILER=mailchannels
+MAILCHANNELS_API_KEY="${MAILCHANNELS_API_KEY}"
+```
+
+### Sending Mail
+
+Send mail using Laravel's `Mail` facade:
+```php
+use Illuminate\Support\Facades\Mail;
+Mail::to('recipient@example.com')->send(new \App\Mail\YourMailable());
+```
+
+
 ## Using with an AI agent
 
 This repository ships a complete agent skill at

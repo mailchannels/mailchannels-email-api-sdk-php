@@ -5,8 +5,8 @@ This reference is generated from public class signatures and PHPDoc blocks in `s
 For task-oriented examples, start with the [README](../README.md). This file is the formal public surface reference.
 
 - SDK version: `1.3.0`
-- Top-level exports: `97`
-- Documented public methods: `220`
+- Top-level exports: `98`
+- Documented public methods: `221`
 
 ## Top-Level Exports
 
@@ -47,6 +47,7 @@ For task-oriented examples, start with the [README](../README.md). This file is 
 | `MailChannels\Message\EmailHeaders` | final class | Helper guarding against custom headers that the MailChannels API controls via structured fields. Mirrors the reserved-headers list in the Python SDK. |
 | `MailChannels\Message\EmailParams` | final class | Strongly-typed email payload. Use this when you want compile-time-ish validation; for quick scripts you can pass a plain array to Emails::send(). |
 | `MailChannels\Message\Personalization` | final class |  |
+| `MailChannels\Plugins\Laravel\MailChannelsServiceProvider` | class |  |
 | `MailChannels\Plugins\Symfony\Transport\MailChannelsApiTransport` | class | Symfony Mailer transport for the MailChannels Email API (https://docs.mailchannels.com). |
 | `MailChannels\Plugins\Symfony\Transport\MailChannelsTransportFactory` | final class | Builds a {@see MailChannelsApiTransport} from a Symfony Mailer DSN, e.g.: |
 | `MailChannels\Resource\AbstractResource` | abstract class |  |
@@ -979,6 +980,21 @@ public function toArray(): array
 ```
 
 **Returns:** `array<string,` — mixed>
+
+
+## `MailChannels\Plugins\Laravel\MailChannelsServiceProvider`
+
+_class_
+
+### Methods
+
+#### `boot()`
+
+```php
+public function boot(): void
+```
+
+**Returns:** `void`
 
 
 ## `MailChannels\Plugins\Symfony\Transport\MailChannelsApiTransport`
