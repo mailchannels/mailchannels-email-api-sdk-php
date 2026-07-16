@@ -1,0 +1,44 @@
+<?php
+
+namespace MailChannels\Symfony\Transport;
+
+use Symfony\Component\Mailer\Exception\UnsupportedSchemeException;
+use Symfony\Component\Mailer\Transport\AbstractTransportFactory;
+use Symfony\Component\Mailer\Transport\Dsn;
+use Symfony\Component\Mailer\Transport\TransportInterface;
+
+/**
+ * Builds a {@see MailChannelsApiTransport} from a Symfony Mailer DSN, e.g.:
+ *
+ *   mailchannels+api://API_KEY@default
+ *
+ * To send via a sub-account, use that sub-account's own API key — i.e. a separate transport/DSN per sub-account.
+ */
+final class MailChannelsTransportFactory extends AbstractTransportFactory
+{
+    public function create(Dsn $dsn): TransportInterface
+    {
+        if (!\in_array($dsn->getScheme(), $this->getSupportedSchemes(), true)) {
+            throw new UnsupportedSchemeException($dsn, 'mailchannels', $this->getSupportedSchemes());
+        }
+
+        $apiKey = $this->getUser($dsn);
+        $host = $dsn->getHost() !== 'default' ? $dsn->getHost() : null;
+        $baseUrl = null;
+        if ($host !== null) {
+            $portString = '';
+            if ($dsn->getPort() !== null) {
+                $portString = ':'.$dsn->getPort();
+            }
+            $baseUrl = sprintf('https://%s%s', $host, $portString);
+        }
+
+        return new MailChannelsApiTransport($apiKey, $baseUrl, dispatcher: $this->dispatcher, logger: $this->logger);
+    }
+
+    /** @return string[] */
+    protected function getSupportedSchemes(): array
+    {
+        return ['mailchannels', 'mailchannels+api'];
+    }
+}
