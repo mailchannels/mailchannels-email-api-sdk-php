@@ -120,8 +120,8 @@ class MailChannelsApiTransport extends AbstractTransport
         $envelopeFrom = $this->toEmailAddress($envelope->getSender());
 
         $to = $this->toEmailAddressArray($this->getTo($email, $envelope));
-        $cc = $this->toEmailAddressArray($email->getCc());
-        $bcc = $this->toEmailAddressArray($email->getBcc());
+        $cc = $this->toEmailAddressArray($email->getCc()) ?: null;
+        $bcc = $this->toEmailAddressArray($email->getBcc()) ?: null;
 
         $personalization = new Personalization(to: $to, cc: $cc, bcc: $bcc);
 
@@ -158,11 +158,11 @@ class MailChannelsApiTransport extends AbstractTransport
         );
     }
 
-    /** @return EmailAddress[]|null */
-    private function toEmailAddressArray(array|null $addresses): ?array {
-        if ($addresses == null) {
-            return null;
-        }
+    /**
+     * @param array<Address> $addresses
+     * @return array<EmailAddress>
+     */
+    private function toEmailAddressArray(array $addresses): array {
         return array_map($this->toEmailAddress(...), $addresses);
     }
 

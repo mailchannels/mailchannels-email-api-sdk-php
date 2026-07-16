@@ -2,6 +2,8 @@
 
 namespace MailChannels\Symfony\Transport;
 
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\Exception\UnsupportedSchemeException;
 use Symfony\Component\Mailer\Transport\AbstractTransportFactory;
 use Symfony\Component\Mailer\Transport\Dsn;
@@ -33,7 +35,11 @@ final class MailChannelsTransportFactory extends AbstractTransportFactory
             $baseUrl = sprintf('https://%s%s', $host, $portString);
         }
 
-        return new MailChannelsApiTransport($apiKey, $baseUrl, dispatcher: $this->dispatcher, logger: $this->logger);
+        $dispatcher = $this->dispatcher instanceof EventDispatcherInterface ? $this->dispatcher : null;
+
+        $logger = $this->logger instanceof LoggerInterface ? $this->logger : null;
+
+        return new MailChannelsApiTransport($apiKey, $baseUrl, dispatcher: $dispatcher, logger: $logger);
     }
 
     /** @return string[] */

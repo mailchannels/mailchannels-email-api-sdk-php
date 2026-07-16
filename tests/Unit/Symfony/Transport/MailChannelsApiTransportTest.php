@@ -53,7 +53,12 @@ class MailChannelsApiTransportTest extends TestCase
             ['type' => 'text/plain', 'value' => 'Hello, world!'],
             ['type' => 'text/html', 'value' => '<p>Hello, world!</p>'],
         ], $payload['content']);
-        $this->assertSame('recipient@example.com', $payload['personalizations'][0]['to'][0]['email']);
+        $expectedPersonalizations = [
+            [
+                "to" => [[ "email" => "recipient@example.com", "name" => "Recipient"]],
+            ],
+        ];
+        $this->assertSame($expectedPersonalizations, $payload['personalizations']);
     }
 
     public function testErrorResponseThrowsHttpTransportExceptionWithApiErrors(): void
@@ -88,13 +93,23 @@ class MailChannelsApiTransportTest extends TestCase
         $transport->send($email);
 
         $payload = $http->lastJson();
-        $this->assertSame(1, count($payload['personalizations'][0]['to']));
-        $this->assertSame('recipient@example.com', $payload['personalizations'][0]['to'][0]['email']);
-        $this->assertSame('cc@example.com', $payload['personalizations'][0]['cc'][0]['email']);
-        $this->assertSame('bcc@example.com', $payload['personalizations'][0]['bcc'][0]['email']);
-        $this->assertSame('reply@example.com', $payload['reply_to']['email']);
-        $this->assertSame('notes.txt', $payload['attachments'][0]['filename']);
-        $this->assertSame(base64_encode('file contents'), $payload['attachments'][0]['content']);
+        $expectedPersonalizations = [
+            [
+                "to" => [[ "email" => "recipient@example.com", 'name' => 'Recipient']],
+                "cc" => [[ "email" => "cc@example.com" ]],
+                "bcc" => [[ "email" => "bcc@example.com" ]]
+            ]
+        ];
+        $expectedAttachments = [
+            [
+                "content" => base64_encode('file contents'),
+                'filename' => 'notes.txt',
+                'type' => 'text/plain',
+            ]
+        ];
+        $this->assertSame($expectedPersonalizations, $payload['personalizations']);
+        $this->assertSame(["email" => 'reply@example.com'], $payload['reply_to']);
+        $this->assertSame($expectedAttachments, $payload['attachments']);
     }
 
     public function testMultipleTos(): void
@@ -115,13 +130,16 @@ class MailChannelsApiTransportTest extends TestCase
         $payload = $http->lastJson();
 
         $expectedPayload = [
-            ["email" => "to@example.com"],
-            ["email" => "to2@example.com", "name" => "recipient"],
-            ["email" => "to3@example.net"],
-            ["email" => "to4@example.net"],
-            ["email" => "to5@example.net", "name" => "Other Recipient"],
+            ["to" => [
+                ["email" => "to@example.com"],
+                ["email" => "to2@example.com", "name" => "recipient"],
+                ["email" => "to3@example.net"],
+                ["email" => "to4@example.net"],
+                ["email" => "to5@example.net", "name" => "Other Recipient"],
+                ]
+            ]
         ];
-        $this->assertSame($expectedPayload, $payload['personalizations'][0]['to']);
+        $this->assertSame($expectedPayload, $payload['personalizations']);
     }
 
     public function testMultipleCC(): void
@@ -142,13 +160,18 @@ class MailChannelsApiTransportTest extends TestCase
         $payload = $http->lastJson();
 
         $expectedPayload = [
-            ["email" => "cc@example.com"],
-            ["email" => "cc2@example.com", "name" => "recipient"],
-            ["email" => "cc3@example.net"],
-            ["email" => "cc4@example.net"],
-            ["email" => "cc5@example.net", "name" => "Other Recipient"],
+            [
+                "to" => [["email" => "recipient@example.com", "name" => "Recipient"]],
+                "cc" => [
+                    ["email" => "cc@example.com"],
+                    ["email" => "cc2@example.com", "name" => "recipient"],
+                    ["email" => "cc3@example.net"],
+                    ["email" => "cc4@example.net"],
+                    ["email" => "cc5@example.net", "name" => "Other Recipient"],
+                ]
+            ]
         ];
-        $this->assertSame($expectedPayload, $payload['personalizations'][0]['cc']);
+        $this->assertSame($expectedPayload, $payload['personalizations']);
     }
 
     public function testMultipleBCC(): void
@@ -169,13 +192,18 @@ class MailChannelsApiTransportTest extends TestCase
         $payload = $http->lastJson();
 
         $expectedPayload = [
-            ["email" => "bcc@example.com"],
-            ["email" => "bcc2@example.com", "name" => "recipient"],
-            ["email" => "bcc3@example.net"],
-            ["email" => "bcc4@example.net"],
-            ["email" => "bcc5@example.net", "name" => "Other Recipient"],
+            [
+                "to" => [["email" => "recipient@example.com", "name" => "Recipient"]],
+                "bcc" => [
+                    ["email" => "bcc@example.com"],
+                    ["email" => "bcc2@example.com", "name" => "recipient"],
+                    ["email" => "bcc3@example.net"],
+                    ["email" => "bcc4@example.net"],
+                    ["email" => "bcc5@example.net", "name" => "Other Recipient"],
+                ]
+            ]
         ];
-        $this->assertSame($expectedPayload, $payload['personalizations'][0]['bcc']);
+        $this->assertSame($expectedPayload, $payload['personalizations']);
     }
 
     public function testMultipleReplyTos(): void
@@ -213,8 +241,13 @@ class MailChannelsApiTransportTest extends TestCase
         $transport->send($email);
 
         $payload = $http->lastJson();
-        $this->assertSame('MailChannelsApiTransportTest.php', $payload['attachments'][0]['filename']);
-        $this->assertSame(base64_encode(file_get_contents(__FILE__)), $payload['attachments'][0]['content']);
+        /** @var list<array{filename: string, content: string}> $attachments */
+        $attachments = $payload['attachments'];
+        $this->assertSame('MailChannelsApiTransportTest.php', $attachments[0]['filename']);
+
+        $contents = file_get_contents(__FILE__);
+        $this->assertNotFalse($contents);
+        $this->assertSame(base64_encode($contents), $attachments[0]['content']);
     }
 
     public function testHeadersArePassedThrough(): void
@@ -233,8 +266,10 @@ class MailChannelsApiTransportTest extends TestCase
         $transport->send($email);
 
         $payload = $http->lastJson();
-        $this->assertSame('Custom Value', $payload['headers']['X-Custom-Header']);
-        $this->assertSame('<12345@example.com> <54321@example.com>', $payload['headers']['References']);
+        /** @var array<string, string> $headers */
+        $headers = $payload['headers'];
+        $this->assertSame('Custom Value', $headers['X-Custom-Header']);
+        $this->assertSame('<12345@example.com> <54321@example.com>', $headers['References']);
     }
 
 
@@ -254,7 +289,9 @@ class MailChannelsApiTransportTest extends TestCase
         $transport->send($email);
 
         $payload = $http->lastJson();
-        $this->assertSame('Custom Value 2', $payload['headers']['X-Custom-Header']);
+        /** @var array<string, string> $headers */
+        $headers = $payload['headers'];
+        $this->assertSame('Custom Value 2', $headers['X-Custom-Header']);
     }
 
     public function testSendWithDkim(): void
@@ -302,10 +339,13 @@ FiXtf/n8ypTJQrKxt6WXo7qVPJl1C2wh68gZGLKV9ao=
             ['type' => 'text/plain', 'value' => 'Hello, world!'],
             ['type' => 'text/html', 'value' => '<p>Hello, world!</p>'],
         ], $payload['content']);
-        $this->assertSame('recipient@example.com', $payload['personalizations'][0]['to'][0]['email']);
+        /** @var list<array{to: list<array{email: string, name?: string}>}> $personalizations */
+        $personalizations = $payload['personalizations'];
+        $this->assertSame('recipient@example.com', $personalizations[0]['to'][0]['email']);
     }
 
-    public function testCustomEnvelope() {
+    public function testCustomEnvelope(): void
+    {
         $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, ['data' => json_encode([
             'request_id' => 'req-1',
             'results' => [['index' => 0, 'status' => 'sent']],
@@ -332,11 +372,14 @@ FiXtf/n8ypTJQrKxt6WXo7qVPJl1C2wh68gZGLKV9ao=
         ], $payload['content']);
 
         // When creating the Envelope it strips the name from all recipients
-        $this->assertSame(['email' => 'recipient2@example.net'], $payload['personalizations'][0]['to'][0]);
-        $this->assertSame(['email' => 'recipient3@example.net'], $payload['personalizations'][0]['to'][1]);
+        /** @var list<array{to: list<array{email: string, name?: string}>}> $personalizations */
+        $personalizations = $payload['personalizations'];
+        $this->assertSame(['email' => 'recipient2@example.net'], $personalizations[0]['to'][0]);
+        $this->assertSame(['email' => 'recipient3@example.net'], $personalizations[0]['to'][1]);
     }
 
-    public function testRecipientInToAndCC() {
+    public function testRecipientInToAndCC(): void
+    {
         $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, ['data' => json_encode([
             'request_id' => 'req-1',
             'results' => [['index' => 0, 'status' => 'sent']],
@@ -364,7 +407,9 @@ FiXtf/n8ypTJQrKxt6WXo7qVPJl1C2wh68gZGLKV9ao=
         // If an Address object is in both `to` and `cc` or `bcc`, we remove it from the `to` field.
         // If the addresses are separate objects, (which happens when the `value is just set with a string) we can tell which is from
         // the `to` list and what is from the `cc` / `bcc` list, and it won't be filtered out
-        $this->assertSame([['email' => 'test2@example.com'], ['email' => 'test3@example.com']], $payload['personalizations'][0]['to']);
-        $this->assertSame([['email' => 'test@example.com'], ['email' => 'test3@example.com']], $payload['personalizations'][0]['cc']);
+        /** @var list<array{to: list<array{email: string, name?: string}>, cc: list<array{email: string, name?: string}>}> $personalizations */
+        $personalizations = $payload['personalizations'];
+        $this->assertSame([['email' => 'test2@example.com'], ['email' => 'test3@example.com']], $personalizations[0]['to']);
+        $this->assertSame([['email' => 'test@example.com'], ['email' => 'test3@example.com']], $personalizations[0]['cc']);
     }
 }
