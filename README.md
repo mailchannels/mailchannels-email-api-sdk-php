@@ -359,7 +359,7 @@ composer require symfony/http-client nyholm/psr7
 Add the service to your `config/services.yaml`:
 ```yaml
 services:
-    MailChannels\Symfony\Transport\MailChannelsTransportFactory:
+    MailChannels\Plugins\Symfony\Transport\MailChannelsTransportFactory:
         tags: ['mailer.transport_factory']
 ```
 

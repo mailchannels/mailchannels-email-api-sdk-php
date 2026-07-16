@@ -1,6 +1,6 @@
 <?php
 
-namespace MailChannels\Symfony\Transport;
+namespace MailChannels\Plugins\Symfony\Transport;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;

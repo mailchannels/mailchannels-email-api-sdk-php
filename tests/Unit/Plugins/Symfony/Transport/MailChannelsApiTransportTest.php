@@ -1,8 +1,8 @@
 <?php
 
-namespace MailChannels\Tests\Unit\Symfony\Transport;
+namespace MailChannels\Tests\Unit\Plugins\Symfony\Transport;
 
-use MailChannels\Symfony\Transport\MailChannelsApiTransport;
+use MailChannels\Plugins\Symfony\Transport\MailChannelsApiTransport;
 use MailChannels\Tests\Support\Fixtures;
 use MailChannels\Tests\Support\MockHttpClient;
 use PHPUnit\Framework\TestCase;

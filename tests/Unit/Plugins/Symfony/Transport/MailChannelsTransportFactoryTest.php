@@ -1,9 +1,9 @@
 <?php
 
-namespace MailChannels\Tests\Unit\Symfony\Transport;
+namespace MailChannels\Tests\Unit\Plugins\Symfony\Transport;
 
-use MailChannels\Symfony\Transport\MailChannelsApiTransport;
-use MailChannels\Symfony\Transport\MailChannelsTransportFactory;
+use MailChannels\Plugins\Symfony\Transport\MailChannelsApiTransport;
+use MailChannels\Plugins\Symfony\Transport\MailChannelsTransportFactory;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Mailer\Exception\UnsupportedSchemeException;
 use Symfony\Component\Mailer\Transport\Dsn;

@@ -1,6 +1,6 @@
 <?php
 
-namespace MailChannels\Symfony\Transport;
+namespace MailChannels\Plugins\Symfony\Transport;
 
 use MailChannels\Client;
 use MailChannels\Exception\MailChannelsException;
