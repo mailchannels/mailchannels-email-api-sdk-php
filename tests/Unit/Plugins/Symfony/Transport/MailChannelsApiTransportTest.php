@@ -272,6 +272,155 @@ class MailChannelsApiTransportTest extends TestCase
         $this->assertSame('<12345@example.com> <54321@example.com>', $headers['References']);
     }
 
+    public function testSendOptionsAreSetFromXMcHeaders(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202,
+            [
+                'request_id' => 'req-1',
+                'results' => [
+                    ["index" => 0, "message_id" => "12345@example.com", "reason" => "delivered", "status" => "sent"]
+                ]
+            ]
+        ));
+
+        $transport = new MailChannelsApiTransport('key', httpClient: $http);
+
+        $email = $this->email();
+        $email->getHeaders()->addTextHeader('x-mailchannels-send-async', 'false');
+        $email->getHeaders()->addTextHeader('x-mailchannels-click-tracking-enabled', 'true');
+        $email->getHeaders()->addTextHeader('x-mailchannels-click-tracking-domain', 'click.example.com');
+        $email->getHeaders()->addTextHeader('x-mailchannels-open-tracking-enabled', 'true');
+        $email->getHeaders()->addTextHeader('x-mailchannels-open-tracking-domain', 'open.example.com');
+        $email->getHeaders()->addTextHeader('x-mailchannels-unsubscribe-domain', 'unsubscribe.example.com');
+        $email->getHeaders()->addTextHeader('x-mailchannels-transactional', 'false');
+        $email->getHeaders()->addTextHeader('x-mailchannels-dkim-domain', 'example.com');
+        $email->getHeaders()->addTextHeader('x-mailchannels-dkim-selector', 'default');
+        $email->getHeaders()->addTextHeader('x-mailchannels-dkim-private-key', 'PRIVATE_KEY');
+        $email->getHeaders()->addTextHeader('x-mailchannels-campaign-id', 'campaign_1');
+        $email->getHeaders()->addTextHeader("x-random-header", "random val");
+
+        $result = $transport->send($email);
+
+        $req = $http->lastRequest();
+        $this->assertStringEndsWith('/tx/v1/send', (string) $req->getUri());
+
+        $payload = $http->lastJson();
+        $this->assertFalse($payload['transactional']);
+        $this->assertSame([
+            'click_tracking' => ['enable' => true, 'custom_domain_name' => 'click.example.com'],
+            'open_tracking' => ['enable' => true, 'custom_domain_name' => 'open.example.com'],
+        ], $payload['tracking_settings']);
+        $this->assertSame(['custom_domain_name' => 'unsubscribe.example.com'], $payload['unsubscribe_settings']);
+        $this->assertSame('example.com', $payload['dkim_domain']);
+        $this->assertSame('default', $payload['dkim_selector']);
+        $this->assertSame('PRIVATE_KEY', $payload['dkim_private_key']);
+        $this->assertSame('campaign_1', $payload['campaign_id']);
+
+        $this->assertEquals(["x-random-header" => "random val"], $payload['headers']);
+
+        $this->assertNotNull($result);
+        $this->assertSame("12345@example.com", $result->getMessageId());
+    }
+
+    public function testSendOptionsAsyncTrue(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, ['data' => json_encode([
+            'request_id' => 'req-1',
+            'results' => [['index' => 0, 'status' => 'sent']],
+        ])]));
+
+        $transport = new MailChannelsApiTransport('key', httpClient: $http);
+
+        $email = $this->email();
+        $email->getHeaders()->addTextHeader('x-mailchannels-send-async', 'true');
+        $email->getHeaders()->addTextHeader("x-random-header", "random val");
+
+        $result = $transport->send($email);
+
+        $req = $http->lastRequest();
+        $this->assertStringEndsWith('/tx/v1/send-async', (string) $req->getUri());
+
+        $payload = $http->lastJson();
+        $this->assertNull($payload['transactional'] ?? null);
+        $this->assertNull($payload['tracking_settings'] ?? null);
+        $this->assertNull($payload['unsubscribe_settings'] ?? null);
+        $this->assertNull($payload['dkim_domain'] ?? null);
+        $this->assertNull($payload['dkim_selector'] ?? null);
+        $this->assertNull($payload['dkim_private_key'] ?? null);
+        $this->assertNull($payload['campaign_id'] ?? null);
+
+        $this->assertEquals(["x-random-header" => "random val"], $payload['headers']);
+
+        // Symfony generates its own messageId, async endpoint doesn't overwrite
+        $this->assertNotNull($result);
+        $this->assertNotEmpty($result->getMessageId());
+    }
+
+    public function testSendOptionsEmptyHeader(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, ['data' => json_encode([
+            'request_id' => 'req-1',
+            'results' => [['index' => 0, 'status' => 'sent']],
+        ])]));
+
+        $transport = new MailChannelsApiTransport('key', httpClient: $http);
+
+        $email = $this->email();
+        $email->getHeaders()->addTextHeader('x-mailchannels-open-tracking-enabled', '');
+        $email->getHeaders()->addTextHeader("x-random-header", "random val");
+
+        $transport->send($email);
+
+        $req = $http->lastRequest();
+
+        $payload = $http->lastJson();
+        $this->assertNull($payload['tracking_settings'] ?? null);
+
+        $this->assertEquals(["x-random-header" => "random val"], $payload['headers']);
+    }
+
+    public function testSendOptionsInvalidBoolHeader(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, ['data' => json_encode([
+            'request_id' => 'req-1',
+            'results' => [['index' => 0, 'status' => 'sent']],
+        ])]));
+
+        $transport = new MailChannelsApiTransport('key', httpClient: $http);
+
+        $this->expectException(TransportException::class);
+
+        $email = $this->email();
+        $email->getHeaders()->addTextHeader('x-mailchannels-open-tracking-enabled', 'not a bool');
+        $email->getHeaders()->addTextHeader("x-random-header", "random val");
+
+        $transport->send($email);
+    }
+
+
+
+    public function testXMcHeadersAreNotPassedThroughAsCustomHeaders(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, ['data' => json_encode([
+            'request_id' => 'req-1',
+            'results' => [['index' => 0, 'status' => 'sent']],
+        ])]));
+
+        $transport = new MailChannelsApiTransport('key', httpClient: $http);
+
+        $email = $this->email();
+        $email->getHeaders()->addTextHeader('X-Custom-Header', 'Custom Value');
+        $email->getHeaders()->addTextHeader('x-mailchannels-send-async', 'true');
+        $email->getHeaders()->addTextHeader('x-mailchannels-open-tracking-enabled', 'true');
+
+        $transport->send($email);
+
+        $payload = $http->lastJson();
+        /** @var array<string, string> $headers */
+        $headers = $payload['headers'];
+        $this->assertSame(['X-Custom-Header' => 'Custom Value'], $headers);
+    }
+
 
     public function testDuplicateHeader(): void
     {
