@@ -340,6 +340,63 @@ The SDK never logs API keys or request bodies.
   verification flow.
 - [`examples/`](examples/) — runnable scripts for each endpoint group.
 
+## Using with Symfony Mailer
+
+### Installation
+
+Install the package with Composer:
+```bash
+composer require mailchannels/mailchannels-php
+```
+
+If you don't have a PSR-18 http client or PSR-17 factories installed, install them:
+
+For more information, see the [Install section](#install)
+```bash
+composer require symfony/http-client nyholm/psr7
+```
+
+Add the service to your `config/services.yaml`:
+```yaml
+services:
+    MailChannels\Plugins\Symfony\Transport\MailChannelsTransportFactory:
+        tags: ['mailer.transport_factory']
+```
+
+Set in your environment or in your `.env` file:
+```bash
+MAILER_DSN=mailchannels+api://${MAILCHANNELS_API_KEY}@default
+```
+
+### Sending Mail
+Send mail using Symfony's `MailerInterface`:
+```php
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
+
+class YourService
+{
+    private MailerInterface $mailer;
+
+    public function __construct(MailerInterface $mailer)
+    {
+        $this->mailer = $mailer;
+    }
+
+    public function sendEmail(): void
+    {
+        $email = (new Email())
+            ->from('sender@example.com')
+            ->to('recipient@example.com')
+            ->subject('Welcome to MailChannels')
+            ->text('Plain-text body.')
+            ->html('<p>HTML body.</p>');
+
+        $this->mailer->send($email);
+    }
+}
+```
+
 ## Using with an AI agent
 
 This repository ships a complete agent skill at

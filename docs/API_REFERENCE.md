@@ -5,8 +5,8 @@ This reference is generated from public class signatures and PHPDoc blocks in `s
 For task-oriented examples, start with the [README](../README.md). This file is the formal public surface reference.
 
 - SDK version: `1.3.0`
-- Top-level exports: `95`
-- Documented public methods: `217`
+- Top-level exports: `97`
+- Documented public methods: `220`
 
 ## Top-Level Exports
 
@@ -47,6 +47,8 @@ For task-oriented examples, start with the [README](../README.md). This file is 
 | `MailChannels\Message\EmailHeaders` | final class | Helper guarding against custom headers that the MailChannels API controls via structured fields. Mirrors the reserved-headers list in the Python SDK. |
 | `MailChannels\Message\EmailParams` | final class | Strongly-typed email payload. Use this when you want compile-time-ish validation; for quick scripts you can pass a plain array to Emails::send(). |
 | `MailChannels\Message\Personalization` | final class |  |
+| `MailChannels\Plugins\Symfony\Transport\MailChannelsApiTransport` | class | Symfony Mailer transport for the MailChannels Email API (https://docs.mailchannels.com). |
+| `MailChannels\Plugins\Symfony\Transport\MailChannelsTransportFactory` | final class | Builds a {@see MailChannelsApiTransport} from a Symfony Mailer DSN, e.g.: |
 | `MailChannels\Resource\AbstractResource` | abstract class |  |
 | `MailChannels\Resource\CheckDomain` | final class | `POST /check-domain` — checks DKIM, SPF, sender-domain DNS, and Domain Lockdown status for a domain. |
 | `MailChannels\Resource\CustomTrackingDomains` | final class | Register and manage custom tracking domains — branded hostnames that replace MailChannels' shared domains for click tracking, open tracking, or unsubscribe links. See `docs/CUSTOM_TRACKING.md` for the DNS verification flow. |
@@ -977,6 +979,77 @@ public function toArray(): array
 ```
 
 **Returns:** `array<string,` — mixed>
+
+
+## `MailChannels\Plugins\Symfony\Transport\MailChannelsApiTransport`
+
+_class_
+
+Symfony Mailer transport for the MailChannels Email API (https://docs.mailchannels.com).
+
+Delegates the actual send to the mailchannels/mailchannels-php SDK's own
+`Client::$emails->queue()` — payload construction, HTTP transport, error
+handling, and response decoding all live in the SDK rather than being
+duplicated here.
+
+### Constructor
+
+```php
+public function __construct(
+    string $apiKey,
+    ?string $baseUrl = null,
+    ?Psr\Http\Client\ClientInterface $httpClient = null,
+    ?Psr\Http\Message\RequestFactoryInterface $requestFactory = null,
+    ?Psr\Http\Message\StreamFactoryInterface $streamFactory = null,
+    ?Psr\EventDispatcher\EventDispatcherInterface $dispatcher = null,
+    ?Psr\Log\LoggerInterface $logger = null
+)
+```
+
+**Parameters:**
+- `$apiKey` (`string`)
+- `$baseUrl` (`?string`)
+- `$httpClient` (`?Psr\Http\Client\ClientInterface`)
+- `$requestFactory` (`?Psr\Http\Message\RequestFactoryInterface`)
+- `$streamFactory` (`?Psr\Http\Message\StreamFactoryInterface`)
+- `$dispatcher` (`?Psr\EventDispatcher\EventDispatcherInterface`)
+- `$logger` (`?Psr\Log\LoggerInterface`)
+
+### Methods
+
+#### `__toString()`
+
+```php
+public function __toString(): string
+```
+
+**Returns:** `string`
+
+
+## `MailChannels\Plugins\Symfony\Transport\MailChannelsTransportFactory`
+
+_final class_
+
+Builds a {@see MailChannelsApiTransport} from a Symfony Mailer DSN, e.g.:
+
+mailchannels+api://API_KEY@default
+
+To send via a sub-account, use that sub-account's own API key — i.e. a separate transport/DSN per sub-account.
+
+### Methods
+
+#### `create()`
+
+```php
+public function create(
+    Symfony\Component\Mailer\Transport\Dsn $dsn
+): Symfony\Component\Mailer\Transport\TransportInterface
+```
+
+**Parameters:**
+- `$dsn` (`Symfony\Component\Mailer\Transport\Dsn`)
+
+**Returns:** `Symfony\Component\Mailer\Transport\TransportInterface`
 
 
 ## `MailChannels\Resource\AbstractResource`
