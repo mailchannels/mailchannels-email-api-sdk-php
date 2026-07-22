@@ -420,7 +420,7 @@ $email->getHeaders()->addTextHeader('x-mailchannels-transactional', 'true');
 These each correspond to an argument in the Email API's `send` endpoint.
 See the [Send Endpoint API Specification](https://docs.mailchannels.com/api-reference/send/send-an-email) for details.
 
-The sole exception is `x-mailchannels-async`, which determines if the message is queued or sent immediately.
+The sole exception is `x-mailchannels-send-async`, which determines if the message is queued or sent immediately.
 (This is equivalent to calling `queue()` or `send()` in the SDK. Messages are queued by default.)
 
 | Header                                | Description                                                              |
