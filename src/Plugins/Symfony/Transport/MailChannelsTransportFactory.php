@@ -4,10 +4,12 @@ namespace MailChannels\Plugins\Symfony\Transport;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpClient\Psr18Client;
 use Symfony\Component\Mailer\Exception\UnsupportedSchemeException;
 use Symfony\Component\Mailer\Transport\AbstractTransportFactory;
 use Symfony\Component\Mailer\Transport\Dsn;
 use Symfony\Component\Mailer\Transport\TransportInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Builds a {@see MailChannelsApiTransport} from a Symfony Mailer DSN, e.g.:
@@ -39,7 +41,20 @@ final class MailChannelsTransportFactory extends AbstractTransportFactory
 
         $logger = $this->logger instanceof LoggerInterface ? $this->logger : null;
 
-        return new MailChannelsApiTransport($apiKey, $baseUrl, dispatcher: $dispatcher, logger: $logger);
+        $httpClient = null;
+        if ($this->client instanceof HttpClientInterface && class_exists(Psr18Client::class)) {
+            $httpClient = new Psr18Client($this->client);
+        }
+
+        return new MailChannelsApiTransport(
+            $apiKey,
+            $baseUrl,
+            httpClient: $httpClient,
+            requestFactory: $httpClient,
+            streamFactory: $httpClient,
+            dispatcher: $dispatcher,
+            logger: $logger,
+        );
     }
 
     /** @return string[] */
