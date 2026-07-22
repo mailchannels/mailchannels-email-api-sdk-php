@@ -12,7 +12,9 @@ For each Markdown file under `.agents/skills/mailchannels-php/`:
 4. Concatenate the surviving block lines for that file into a single PHP
    source, preceded by a fixed preamble that provides:
    - `<?php` and `declare(strict_types=1)`.
-   - All SDK `use` imports referenced anywhere in the skill.
+   - Every `use` import referenced anywhere in the skill — SDK classes
+     plus any framework classes (Symfony Mailer, Laravel Mail) used by
+     the plugin integration docs.
    - Typed stub functions whose return types let PHPStan infer the correct
      static type for key variables without executing any code.
      See "Documentation Dummies" below.
@@ -105,9 +107,14 @@ declare(strict_types=1);
 
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Psr7\HttpFactory;
+use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Headers;
+use Illuminate\Support\Facades\Mail;
 use MailChannels\Client;
 use MailChannels\Config;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use MailChannels\Enum\CustomTrackingScope;
 use MailChannels\Enum\CustomTrackingStatus;
 use MailChannels\Enum\DkimAlgorithm;
@@ -381,14 +388,21 @@ def run_phpstan(source: str, label: str) -> LintResult:
 
 
 def discover_markdown() -> list[Path]:
-    """Return SKILL.md plus every resource Markdown file, in stable order."""
+    """Return SKILL.md plus every resource Markdown file, in stable order.
+
+    Resource files are discovered recursively, so Markdown nested under
+    subdirectories of ``resources/`` (e.g. ``resources/plugins/``) is
+    included alongside the top-level resource files.
+    """
     files: list[Path] = []
     skill_md = SKILL_DIR / "SKILL.md"
     if skill_md.is_file():
         files.append(skill_md)
     resources = SKILL_DIR / "resources"
     if resources.is_dir():
-        files.extend(sorted(resources.glob("*.md")))
+        files.extend(
+            sorted(resources.rglob("*.md"), key=lambda p: p.relative_to(resources).parts)
+        )
     return files
 
 
