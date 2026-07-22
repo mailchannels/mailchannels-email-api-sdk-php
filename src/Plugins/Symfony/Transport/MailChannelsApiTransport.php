@@ -223,15 +223,22 @@ class MailChannelsApiTransport extends AbstractTransport
         $attachments = [];
 
         foreach ($email->getAttachments() as $attachment) {
-            $headers = $attachment->getPreparedHeaders();
-            $filename = $headers->getHeaderParameter('Content-Disposition', 'filename');
-            $contentType = $headers->get('Content-Type')?->getBody();
+            $filename = $attachment->getFilename() ?? 'attachment';
+            $contentType = $attachment->getContentType();
+            $disposition = $attachment->getDisposition();
+            $contentId = null;
+            // If a content-id is set, the API will treat it as an inline attachment,
+            // so we should only set it when we want that behaviour
+            if ($disposition === 'inline') {
+                $contentId = $attachment->getContentId();
+            }
 
             $attachments[] = new Attachment(
                 // Symfony's DataPart already Base64-encodes the body; MailChannels expects that encoding as-is.
                 content: str_replace("\r\n", '', $attachment->bodyToString()),
-                filename: $filename ?? 'attachment',
-                type: is_string($contentType) ? $contentType : null,
+                filename: $filename,
+                type: $contentType,
+                contentId: $contentId
             );
         }
 
