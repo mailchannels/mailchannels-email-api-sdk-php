@@ -88,7 +88,8 @@ class MailChannelsApiTransportTest extends TestCase
             ->cc('cc@example.com')
             ->bcc('bcc@example.com')
             ->replyTo('reply@example.com')
-            ->attach('file contents', 'notes.txt', 'text/plain');
+            ->attach('file contents', 'notes.txt', 'text/plain')
+            ->embed('file contents 2', 'notes-inline.txt', 'text/plain');
 
         $transport->send($email);
 
@@ -100,16 +101,27 @@ class MailChannelsApiTransportTest extends TestCase
                 "bcc" => [[ "email" => "bcc@example.com" ]]
             ]
         ];
-        $expectedAttachments = [
-            [
+        $regularAttachment = [
                 "content" => base64_encode('file contents'),
                 'filename' => 'notes.txt',
                 'type' => 'text/plain',
-            ]
+        ];
+        $inlineAttachment = [
+                "content" => base64_encode('file contents 2'),
+                "filename" => 'notes-inline.txt',
+                "type" => 'text/plain',
+                "content_id" => '',
         ];
         $this->assertSame($expectedPersonalizations, $payload['personalizations']);
         $this->assertSame(["email" => 'reply@example.com'], $payload['reply_to']);
-        $this->assertSame($expectedAttachments, $payload['attachments']);
+
+        /** @var array<int, array<string, mixed>> $attachments */
+        $attachments = $payload['attachments'];
+        $this->assertSame($regularAttachment, $attachments[0]);
+        $this->assertSame($inlineAttachment["content"], $attachments[1]['content']);
+        $this->assertSame($inlineAttachment["filename"], $attachments[1]['filename']);
+        $this->assertSame($inlineAttachment["type"], $attachments[1]['type']);
+        $this->assertNotNull($attachments[1]["content_id"] ?? null);
     }
 
     public function testMultipleTos(): void
