@@ -336,7 +336,12 @@ class MailChannelsApiTransport extends AbstractTransport
             // If a content-id is set, the API will treat it as an inline attachment,
             // so we should only set it when we want that behaviour
             if ($disposition === 'inline') {
-                $contentId = $attachment->getContentId();
+                // Use filename as default if ContentId is not set, required for compatability with laravel < 12.40
+                if ($attachment->hasContentId() || !$attachment->getFilename()) {
+                    $contentId = $attachment->getContentId();
+                } else {
+                    $contentId = $attachment->getFilename();
+                }
             }
 
             $attachments[] = new Attachment(

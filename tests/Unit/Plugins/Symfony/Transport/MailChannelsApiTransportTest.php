@@ -110,7 +110,7 @@ class MailChannelsApiTransportTest extends TestCase
                 "content" => base64_encode('file contents 2'),
                 "filename" => 'notes-inline.txt',
                 "type" => 'text/plain',
-                "content_id" => '',
+                "content_id" => 'notes-inline.txt',
         ];
         $this->assertSame($expectedPersonalizations, $payload['personalizations']);
         $this->assertSame(["email" => 'reply@example.com'], $payload['reply_to']);
@@ -118,10 +118,51 @@ class MailChannelsApiTransportTest extends TestCase
         /** @var array<int, array<string, mixed>> $attachments */
         $attachments = $payload['attachments'];
         $this->assertSame($regularAttachment, $attachments[0]);
-        $this->assertSame($inlineAttachment["content"], $attachments[1]['content']);
-        $this->assertSame($inlineAttachment["filename"], $attachments[1]['filename']);
-        $this->assertSame($inlineAttachment["type"], $attachments[1]['type']);
-        $this->assertNotNull($attachments[1]["content_id"] ?? null);
+        $this->assertSame($inlineAttachment, $attachments[1]);
+    }
+
+    public function testInlineAttachmentWithGeneratedContentId(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, ['data' => json_encode([
+            'request_id' => 'req-1',
+            'results' => [['index' => 0, 'status' => 'sent']],
+        ])]));
+
+        $transport = new MailChannelsApiTransport('key', httpClient: $http);
+
+        $embeddedPart = (new DataPart('file contents 2', 'notes-inline.txt', 'text/plain'))->asInline();
+        // Getting the content id also generates it if not already set
+        $cid = $embeddedPart->getContentId();
+
+        $email = $this->email()
+            ->attach('file contents', 'notes.txt', 'text/plain')
+            ->addPart($embeddedPart);
+
+        $transport->send($email);
+
+        $payload = $http->lastJson();
+        $expectedPersonalizations = [
+            [
+                "to" => [[ "email" => "recipient@example.com", 'name' => 'Recipient']],
+            ]
+        ];
+        $regularAttachment = [
+            "content" => base64_encode('file contents'),
+            'filename' => 'notes.txt',
+            'type' => 'text/plain',
+        ];
+        $inlineAttachment = [
+            "content" => base64_encode('file contents 2'),
+            "filename" => 'notes-inline.txt',
+            "type" => 'text/plain',
+            "content_id" => $cid,
+        ];
+        $this->assertSame($expectedPersonalizations, $payload['personalizations']);
+
+        /** @var array<int, array<string, mixed>> $attachments */
+        $attachments = $payload['attachments'];
+        $this->assertSame($regularAttachment, $attachments[0]);
+        $this->assertSame($inlineAttachment, $attachments[1]);
     }
 
     public function testMultipleTos(): void
