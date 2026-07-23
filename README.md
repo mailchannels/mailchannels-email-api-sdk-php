@@ -397,6 +397,47 @@ class YourService
 }
 ```
 
+### Additional Arguments
+
+Additional arguments can be passed as headers in the `Email` object.
+These headers will NOT be included in the final email sent to the recipient.
+
+For example, to set the `transactional` flag:
+
+```php
+$email = (new Email())
+  ->from('sender@example.com')
+  ->to('recipient@example.com')
+  ->subject('Welcome to MailChannels')
+  ->text('Plain-text body.')
+  ->html('<p>HTML body.</p>');
+
+$email->getHeaders()->addTextHeader('x-mailchannels-transactional', 'true');
+```
+
+#### List of supported headers:
+
+These each correspond to an argument in the Email API's `send` endpoint.
+See the [Send Endpoint API Specification](https://docs.mailchannels.com/api-reference/send/send-an-email) for details.
+
+The sole exception is `x-mailchannels-send-async`, which determines if the message is queued or sent immediately.
+(This is equivalent to calling `queue()` or `send()` in the SDK. Messages are queued by default.)
+
+| Header                                | Description                                                              |
+|---------------------------------------|--------------------------------------------------------------------------|
+| x-mailchannels-send-async             | Send message asynchronously                                              |
+| x-mailchannels-click-tracking-enabled | Enable click tracking                                                    |
+| x-mailchannels-click-tracking-domain  | Domain for click tracking links to use                                   |
+| x-mailchannels-open-tracking-enabled  | Enable open tracking                                                     |
+| x-mailchannels-open-tracking-domain   | Domain for open tracking links to use                                    |
+| x-mailchannels-unsubscribe-domain     | Domain for unsubscribe links to use                                      |
+| x-mailchannels-transactional          | Whether the mail is transactional or non-transactional (marketing, etc.) |
+| x-mailchannels-dkim-domain            | The domain to use for DKIM signing                                       |
+| x-mailchannels-dkim-selector          | The selector to use for DKIM signing                                     |
+| x-mailchannels-dkim-private-key       | The private key to use for DKIM signing                                  |
+| x-mailchannels-campaign-id            | The campaign that this message is a part of                              |
+
+
 ## Using with Laravel
 
 This package includes support for Laravel's `Mail` feature via a custom transport.
@@ -448,6 +489,26 @@ Send mail using Laravel's `Mail` facade:
 use Illuminate\Support\Facades\Mail;
 Mail::to('recipient@example.com')->send(new \App\Mail\YourMailable());
 ```
+
+### Additional Arguments
+
+Additional arguments can be passed as headers in the `Mailable` object.
+These headers will NOT be included in the final email sent to the recipient.
+
+```php
+class YourMailable extends Mailable
+{
+    // ...
+    public function headers(): Headers
+    {
+        return new Headers(
+            text: ['x-mailchannels-Open-Tracking-Enabled' => "true"]
+        );
+    }
+}
+```
+
+For a full list of supported headers, see the [Symfony Mailer section](#list-of-supported-headers).
 
 
 ## Using with an AI agent

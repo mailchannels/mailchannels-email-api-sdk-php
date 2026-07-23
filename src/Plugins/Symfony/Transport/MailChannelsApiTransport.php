@@ -60,6 +60,20 @@ class MailChannelsApiTransport extends AbstractTransport
 
     private readonly Client $client;
 
+    private const HEADERS_TO_SEND_OPTIONS = [
+        'x-mailchannels-send-async' => ['sendAsync', 'bool'],
+        'x-mailchannels-click-tracking-enabled' => ['clickTrackingEnabled', 'bool'],
+        'x-mailchannels-click-tracking-domain' => ['clickTrackingDomain', 'string'],
+        'x-mailchannels-open-tracking-enabled' => ['openTrackingEnabled', 'bool'],
+        'x-mailchannels-open-tracking-domain' => ['openTrackingDomain', 'string'],
+        'x-mailchannels-unsubscribe-domain' => ['unsubscribeDomain', 'string'],
+        'x-mailchannels-transactional' => ['transactional', 'bool'],
+        'x-mailchannels-dkim-domain' => ['dkimDomain', 'string'],
+        'x-mailchannels-dkim-selector' => ['dkimSelector', 'string'],
+        'x-mailchannels-dkim-private-key' => ['dkimPrivateKey', 'string'],
+        'x-mailchannels-campaign-id' => ['campaignId', 'string'],
+    ];
+
     public function __construct(
         #[\SensitiveParameter] string $apiKey,
         private readonly ?string $baseUrl = null,
@@ -96,25 +110,39 @@ class MailChannelsApiTransport extends AbstractTransport
         try {
             $email = MessageConverter::toEmail($originalMessage);
         } catch (\Exception $e) {
-            throw new TransportException('Unable to convert the message to an email for MailChannels: '.$e->getMessage(), previous: $e);
+            throw new TransportException('Unable to convert the message to an email for MailChannels: ' . $e->getMessage(), previous: $e);
         }
 
         try {
-            $params = $this->getParams($email, $message->getEnvelope());
+            [$params, $sendAsync] = $this->getParamsAndSendOptions($email, $message->getEnvelope());
         } catch (\Exception $e) {
-            throw new TransportException('Unable to create message args for MailChannels API: '.$e->getMessage(), previous: $e);
+            throw new TransportException('Unable to create message args for MailChannels API: ' . $e->getMessage(), previous: $e);
         }
+
 
         try {
-            $response = $this->client->emails->queue($params);
+            if ($sendAsync === false) {
+                $response = $this->client->emails->send($params);
+                $result = $response->results[0] ?? null;
+                if ($result === null) {
+                    throw new TransportException('MailChannels API did not return a message response the sent email, thought it may have still been sent.');
+                }
+                if ($result->messageId !== null) {
+                    $message->setMessageId($result->messageId);
+                }
+            } else {
+                $this->client->emails->queue($params);
+                // This endpoint doesn't return message ids, so we can't update $message
+            }
         } catch (MailChannelsException $e) {
-            throw new TransportException('Unable to queue an email via MailChannels: '.$e->getMessage(), previous: $e);
+            throw new TransportException('Unable to send an email via MailChannels: ' . $e->getMessage(), previous: $e);
         }
-
-        # todo: update $message with message_id for synchronous sends (async endpoint doesn't return mids)
     }
 
-    private function getParams(Email $email, Envelope $envelope): EmailParams
+    /**
+     * @return array{0: EmailParams, 1: bool} Returns the EmailParams object as well as the resolved sendAsync flag
+     */
+    private function getParamsAndSendOptions(Email $email, Envelope $envelope): array
     {
         $from = $this->toEmailAddress($email->getFrom()[0] ?? $envelope->getSender());
         $envelopeFrom = $this->toEmailAddress($envelope->getSender());
@@ -130,9 +158,35 @@ class MailChannelsApiTransport extends AbstractTransport
 
         $attachments = $this->getAttachments($email);
 
-        $headers = $this->getCustomHeaders($email->getHeaders());
+        [$headers, $boolOptions, $stringOptions] = $this->getHeadersAndSendOptions($email->getHeaders());
 
-        return new EmailParams(
+        $trackingSettings = [];
+        if ($boolOptions['clickTrackingEnabled'] ?? false) {
+            $clickTrackingSettings = ['enable' => true];
+            if ($stringOptions['clickTrackingDomain'] ?? false) {
+                $clickTrackingSettings['custom_domain_name'] = $stringOptions['clickTrackingDomain'];
+            }
+            $trackingSettings['click_tracking'] = $clickTrackingSettings;
+        }
+
+        if ($boolOptions['openTrackingEnabled'] ?? false) {
+            $openTrackingSettings = ['enable' => true];
+            if ($stringOptions['openTrackingDomain'] ?? false) {
+                $openTrackingSettings['custom_domain_name'] = $stringOptions['openTrackingDomain'];
+            }
+            $trackingSettings['open_tracking'] = $openTrackingSettings;
+        }
+
+        $unsubscribeSettings = null;
+        if ($stringOptions['unsubscribeDomain'] ?? false) {
+            $unsubscribeSettings = [
+                'custom_domain_name' => $stringOptions['unsubscribeDomain'],
+            ];
+        }
+
+        $sendAsync = $boolOptions['sendAsync'] ?? true;
+
+        return [new EmailParams(
             from: $from,
             subject: (string) $email->getSubject(),
             personalizations: [$personalization],
@@ -141,7 +195,14 @@ class MailChannelsApiTransport extends AbstractTransport
             envelopeFrom: $envelopeFrom,
             headers: $headers ?: null,
             attachments: $attachments ?: null,
-        );
+            transactional: $boolOptions['transactional'] ?? null,
+            campaignId: $stringOptions['campaignId'] ?? null,
+            trackingSettings: $trackingSettings ?: null,
+            dkimDomain: $stringOptions['dkimDomain'] ?? null,
+            dkimPrivateKey: $stringOptions['dkimPrivateKey'] ?? null,
+            dkimSelector: $stringOptions['dkimSelector'] ?? null,
+            unsubscribeSettings: $unsubscribeSettings ?: null
+        ), $sendAsync];
     }
 
     // getRecipients returns merged list of tos, ccs, and bccs.
@@ -171,20 +232,65 @@ class MailChannelsApiTransport extends AbstractTransport
         return new EmailAddress($address->getAddress(), $address->getName() ?: null);
     }
 
-    /** @return array<string, string> */
-    private function getCustomHeaders(Headers $headers): array
+    /** @return array{0: array<string, string>, 1: array<string, bool>, 2: array<string, string>} */
+    private function getHeadersAndSendOptions(Headers $headers): array
     {
         $customHeaders = [];
+        $boolOptions = [];
+        $stringOptions = [];
 
-        foreach ($headers->all() as $name => $header) {
-            if (!$header instanceof HeaderInterface || \in_array($name, self::STRUCTURAL_HEADERS, true)) {
+        foreach ($headers->all() as $header) {
+            if (!$header instanceof HeaderInterface) {
                 continue;
             }
 
-            $customHeaders[$header->getName()] = $header->getBodyAsString();
+            $normalizedName = strtolower($header->getName());
+            if (\in_array($normalizedName, self::STRUCTURAL_HEADERS, true)) {
+                continue;
+            }
+
+            $value = $header->getBodyAsString();
+
+            $parsedOpts = self::HEADERS_TO_SEND_OPTIONS[$normalizedName] ?? null;
+            if ($parsedOpts !== null) {
+                [$optionKey, $type] = $parsedOpts;
+
+                if ($type === 'bool') {
+                    $bool = $this->headerToBool($value);
+                    if ($bool !== null) {
+                        $boolOptions[$optionKey] = $bool;
+                    }
+                } elseif ($type === 'string') {
+                    $stringOptions[$optionKey] = $value;
+                } else {
+                    throw new TransportException("Error parsing mailchannels send options: invalid header type");
+                }
+                continue;
+            }
+
+            $customHeaders[$header->getName()] = $value;
         }
 
-        return $customHeaders;
+        return [$customHeaders, $boolOptions, $stringOptions];
+    }
+
+    private function headerToBool(?string $value): ?bool
+    {
+        $value = trim($value ?? '');
+        if (!$value) {
+            return null;
+        }
+
+        $normalized = strtolower($value);
+        if ($normalized === 'true') {
+            return true;
+        }
+
+        if ($normalized === 'false') {
+            return false;
+        }
+
+        throw new TransportException("Error parsing mailchannels send option header: invalid boolean value '$value'");
     }
 
     /** @return list<Content> */
