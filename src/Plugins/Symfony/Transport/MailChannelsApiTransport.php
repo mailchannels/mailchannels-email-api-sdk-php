@@ -42,17 +42,14 @@ class MailChannelsApiTransport extends AbstractTransport
      * must not be re-sent through the `headers` passthrough.
      */
     private const STRUCTURAL_HEADERS = [
-        'authentication-results',
         'bcc',
         'cc',
         'content-transfer-encoding',
         'content-type',
         'date',
-        'dkim-signature',
         'from',
         'message-id',
         'mime-version',
-        'received',
         'reply-to',
         'subject',
         'to',

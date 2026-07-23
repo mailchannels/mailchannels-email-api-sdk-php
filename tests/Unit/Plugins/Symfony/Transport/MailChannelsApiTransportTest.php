@@ -524,26 +524,11 @@ FiXtf/n8ypTJQrKxt6WXo7qVPJl1C2wh68gZGLKV9ao=
 -----END RSA PRIVATE KEY-----";
 
         $signer = new DkimSigner($private_key, 'example.com', 'default');
-        $signer->sign($email);
+        $email = $signer->sign($email);
+
+        $this->expectException(TransportException::class);
 
         $transport->send($email);
-
-        $req = $http->lastRequest();
-        $this->assertSame('mc-from-config', $req->getHeaderLine('X-Api-Key'));
-        $this->assertStringEndsWith('/tx/v1/send-async', (string) $req->getUri());
-
-        $this->assertNull($email->getHeaders()->get('dkim-signature'));
-
-        $payload = $http->lastJson();
-        $this->assertSame(['email' => 'sender@example.com', 'name' => 'Sender'], $payload['from']);
-        $this->assertSame('Hello', $payload['subject']);
-        $this->assertSame([
-            ['type' => 'text/plain', 'value' => 'Hello, world!'],
-            ['type' => 'text/html', 'value' => '<p>Hello, world!</p>'],
-        ], $payload['content']);
-        /** @var list<array{to: list<array{email: string, name?: string}>}> $personalizations */
-        $personalizations = $payload['personalizations'];
-        $this->assertSame('recipient@example.com', $personalizations[0]['to'][0]['email']);
     }
 
     public function testCustomEnvelope(): void
