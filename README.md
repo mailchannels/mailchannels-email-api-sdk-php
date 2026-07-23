@@ -349,6 +349,12 @@ Install the package with Composer:
 composer require mailchannels/mailchannels-php
 ```
 
+This integration requires `symfony/mailer`. Most
+Symfony applications already have it; if not, install it:
+```bash
+composer require symfony/mailer
+```
+
 If you don't have a PSR-18 http client or PSR-17 factories installed, install them:
 
 For more information, see the [Install section](#install)
@@ -441,6 +447,8 @@ The sole exception is `x-mailchannels-send-async`, which determines if the messa
 ## Using with Laravel
 
 This package includes support for Laravel's `Mail` feature via a custom transport.
+It relies on `illuminate/mail`, which every Laravel application already has via
+`laravel/framework` — no extra install needed.
 
 ### Installation
 
