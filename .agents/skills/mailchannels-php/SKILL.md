@@ -1,6 +1,6 @@
 ---
 name: mailchannels-php
-description: PHP SDK for the MailChannels Email API (Packagist `mailchannels/mailchannels-php`; namespace `MailChannels\`). Use when sending or queueing email, working with attachments, mustache templates, unsubscribe, custom headers, custom tracking domains, DKIM keys, sub-accounts, domain checks, metrics, usage, suppressions, or webhooks (incl. signature verification); also configuring clients & custom PSR-18 HTTP transports, PSR-3 logging, and error handling. Skip when (a) developing the SDK itself — defer to the repo's root AGENTS.md; (b) the user is in a non-PHP language — MailChannels publishes separate SDKs for other ecosystems and the PHP types/idioms here don't apply.
+description: PHP SDK for the MailChannels Email API (Packagist `mailchannels/mailchannels-php`; namespace `MailChannels\`). Use when sending or queueing email, working with attachments, mustache templates, unsubscribe, custom headers, custom tracking domains, DKIM keys, sub-accounts, domain checks, metrics, usage, suppressions, or webhooks (incl. signature verification); also configuring clients & custom PSR-18 HTTP transports, PSR-3 logging, error handling, and the bundled Symfony Mailer transport / Laravel Mail driver integrations. Skip when (a) developing the SDK itself — defer to the repo's root AGENTS.md; (b) the user is in a non-PHP language — MailChannels publishes separate SDKs for other ecosystems and the PHP types/idioms here don't apply.
 ---
 
 # MailChannels PHP SDK
@@ -28,6 +28,12 @@ You're about to write PHP SDK code. What does it need to do?
 ├── Set up the client (API keys, base URL, multi-tenant, PSR-18 HTTP
 │   transport, PSR-3 logging)
 │   → resources/clients-and-transport.md
+│
+├── Send through a framework's mail API instead of using the SDK directly
+│   ├── …Symfony Mailer (`MailerInterface`)?
+│   │   → resources/plugins/symfony-mailer.md
+│   └── …Laravel `Mail` facade / `Mailable`?
+│       → resources/plugins/laravel-mail.md
 │
 ├── Send email
 │   → resources/sending.md
