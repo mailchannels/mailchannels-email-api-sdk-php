@@ -286,4 +286,4 @@ exposes the individual checks as static methods:
   check.
 
 The final `sodium_crypto_sign_verify_detached(...)` step uses libsodium,
-which ships with PHP 8.1+ — no extra Composer dependency required.
+which ships with PHP 8.2+ — no extra Composer dependency required.

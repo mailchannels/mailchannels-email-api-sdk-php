@@ -3,10 +3,10 @@
 [![Build Status](https://img.shields.io/bitbucket/pipelines/mailchannels/mailchannels-email-api-sdk-php/main.svg)](https://bitbucket.org/mailchannels/mailchannels-email-api-sdk-php/pipelines)
 [![Latest Version](https://img.shields.io/packagist/v/mailchannels/mailchannels-php.svg)](https://packagist.org/packages/mailchannels/mailchannels-php)
 [![PHPStan Level Max](https://img.shields.io/badge/PHPStan-max-brightgreen.svg)](https://phpstan.org/)
-[![PHP](https://img.shields.io/badge/PHP-8.1%2B-777BB4.svg)](https://www.php.net/)
+[![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4.svg)](https://www.php.net/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-> Built and tested against Email API 1.4.0 (base path `/tx/v1`, spec at
+> Built and tested against Email API 1.6.0 (base path `/tx/v1`, spec at
 > [docs.mailchannels.com/email-api.yaml](https://docs.mailchannels.com/email-api.yaml)).
 
 `mailchannels/mailchannels-php` is the official PHP SDK for the

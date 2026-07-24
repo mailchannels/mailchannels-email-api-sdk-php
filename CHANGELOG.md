@@ -8,7 +8,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 Reserved for in-progress work targeting the next release.
 
-## [1.4.0] - 2026-07-24
+## [2.0.0] - 2026-07-24
 
 ### Added
 - Symfony transport plugin `MailChannels\Plugins\Symfony\Transport\MailChannelsTransportFactory` for
@@ -16,6 +16,9 @@ Reserved for in-progress work targeting the next release.
   `Mailer` component. Supports DSN `mailchannels+api://API_KEY@default`
 - Laravel service provider plugin `MailChannels\Plugins\Laravel\MailChannelsServiceProvider` for `laravel/framework`.
   It registers the Symfony transport plugin and provides a `mailchannels` mailer driver.
+
+### Dropped
+- Support for PHP 8.1. The SDK now requires PHP 8.2 or later.
 
 ## [1.3.0] - 2026-07-15
 

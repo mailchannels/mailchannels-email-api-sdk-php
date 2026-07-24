@@ -11,7 +11,7 @@ Before opening a new ticket, search existing ones to avoid duplication.
 
 ## Local development
 
-The SDK targets PHP 8.1 or newer.
+The SDK targets PHP 8.2 or newer.
 
 ```bash
 composer install
@@ -40,7 +40,7 @@ CI installs `pcov` automatically.
 
 Tests must pass and PHPStan must remain clean before any change is merged.
 CI (Bitbucket Pipelines, see `bitbucket-pipelines.yml`) runs `composer ci`
-plus a PHP 8.1–8.4 test matrix on every pull request and on merges to
+plus a PHP 8.2–8.4 test matrix on every pull request and on merges to
 `main`.
 
 ### Running a single test
