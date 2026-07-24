@@ -8,6 +8,15 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 Reserved for in-progress work targeting the next release.
 
+## [1.4.0] - 2026-07-24
+
+### Added
+- Symfony transport plugin `MailChannels\Plugins\Symfony\Transport\MailChannelsTransportFactory` for
+  `symfony/mailer`. It wraps the SDK to provide a `MailChannelsTransport` that can be used in Symfony's
+  `Mailer` component. Supports DSN `mailchannels+api://API_KEY@default`
+- Laravel service provider plugin `MailChannels\Plugins\Laravel\MailChannelsServiceProvider` for `laravel/framework`.
+  It registers the Symfony transport plugin and provides a `mailchannels` mailer driver.
+
 ## [1.3.0] - 2026-07-15
 
 ### Added
