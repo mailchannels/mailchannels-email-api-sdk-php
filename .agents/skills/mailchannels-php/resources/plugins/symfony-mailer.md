@@ -96,9 +96,9 @@ $email->getHeaders()->addTextHeader('x-mailchannels-transactional', 'true');
 | Header                                  | `EmailParams` field |
 |-----------------------------------------|------------|
 | `x-mailchannels-send-async`             | Selects `queue()` (`true`, default) vs `send()` (`false`) |
-| `x-mailchannels-click-tracking-enabled` | `trackingSettings['click_tracking'][enabled]` |
+| `x-mailchannels-click-tracking-enable` | `trackingSettings['click_tracking']['enable']` |
 | `x-mailchannels-click-tracking-domain`  | `trackingSettings['click_tracking']['custom_domain_name']` |
-| `x-mailchannels-open-tracking-enabled`  | `trackingSettings['open_tracking'][enabled]` |
+| `x-mailchannels-open-tracking-enable`  | `trackingSettings['open_tracking']['enable']` |
 | `x-mailchannels-open-tracking-domain`   | `trackingSettings['open_tracking']['custom_domain_name']` |
 | `x-mailchannels-unsubscribe-domain`     | `unsubscribeSettings['custom_domain_name']`          |
 | `x-mailchannels-transactional`          | `transactional` |

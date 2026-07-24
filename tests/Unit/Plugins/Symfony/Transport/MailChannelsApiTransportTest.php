@@ -340,9 +340,9 @@ class MailChannelsApiTransportTest extends TestCase
 
         $email = $this->email();
         $email->getHeaders()->addTextHeader('x-mailchannels-send-async', 'false');
-        $email->getHeaders()->addTextHeader('x-mailchannels-click-tracking-enabled', 'true');
+        $email->getHeaders()->addTextHeader('x-mailchannels-click-tracking-enable', 'true');
         $email->getHeaders()->addTextHeader('x-mailchannels-click-tracking-domain', 'click.example.com');
-        $email->getHeaders()->addTextHeader('x-mailchannels-open-tracking-enabled', 'true');
+        $email->getHeaders()->addTextHeader('x-mailchannels-open-tracking-enable', 'true');
         $email->getHeaders()->addTextHeader('x-mailchannels-open-tracking-domain', 'open.example.com');
         $email->getHeaders()->addTextHeader('x-mailchannels-unsubscribe-domain', 'unsubscribe.example.com');
         $email->getHeaders()->addTextHeader('x-mailchannels-transactional', 'false');
@@ -419,7 +419,7 @@ class MailChannelsApiTransportTest extends TestCase
         $transport = new MailChannelsApiTransport('key', httpClient: $http);
 
         $email = $this->email();
-        $email->getHeaders()->addTextHeader('x-mailchannels-open-tracking-enabled', '');
+        $email->getHeaders()->addTextHeader('x-mailchannels-open-tracking-enable', '');
         $email->getHeaders()->addTextHeader("x-random-header", "random val");
 
         $transport->send($email);
@@ -444,7 +444,7 @@ class MailChannelsApiTransportTest extends TestCase
         $this->expectException(TransportException::class);
 
         $email = $this->email();
-        $email->getHeaders()->addTextHeader('x-mailchannels-open-tracking-enabled', 'not a bool');
+        $email->getHeaders()->addTextHeader('x-mailchannels-open-tracking-enable', 'not a bool');
         $email->getHeaders()->addTextHeader("x-random-header", "random val");
 
         $transport->send($email);
@@ -464,7 +464,7 @@ class MailChannelsApiTransportTest extends TestCase
         $email = $this->email();
         $email->getHeaders()->addTextHeader('X-Custom-Header', 'Custom Value');
         $email->getHeaders()->addTextHeader('x-mailchannels-send-async', 'true');
-        $email->getHeaders()->addTextHeader('x-mailchannels-open-tracking-enabled', 'true');
+        $email->getHeaders()->addTextHeader('x-mailchannels-open-tracking-enable', 'true');
 
         $transport->send($email);
 

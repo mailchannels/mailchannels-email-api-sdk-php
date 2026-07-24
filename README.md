@@ -434,19 +434,19 @@ See the [Send Endpoint API Specification](https://docs.mailchannels.com/api-refe
 The sole exception is `x-mailchannels-send-async`, which determines if the message is queued or sent immediately.
 (This is equivalent to calling `queue()` or `send()` in the SDK. Messages are queued by default.)
 
-| Header                                | Description                                                              |
-|---------------------------------------|--------------------------------------------------------------------------|
-| x-mailchannels-send-async             | Send message asynchronously                                              |
-| x-mailchannels-click-tracking-enabled | Enable click tracking                                                    |
-| x-mailchannels-click-tracking-domain  | Domain for click tracking links to use                                   |
-| x-mailchannels-open-tracking-enabled  | Enable open tracking                                                     |
-| x-mailchannels-open-tracking-domain   | Domain for open tracking links to use                                    |
-| x-mailchannels-unsubscribe-domain     | Domain for unsubscribe links to use                                      |
-| x-mailchannels-transactional          | Whether the mail is transactional or non-transactional (marketing, etc.) |
-| x-mailchannels-dkim-domain            | The domain to use for DKIM signing                                       |
-| x-mailchannels-dkim-selector          | The selector to use for DKIM signing                                     |
-| x-mailchannels-dkim-private-key       | The private key to use for DKIM signing                                  |
-| x-mailchannels-campaign-id            | The campaign that this message is a part of                              |
+| Header                               | Description                                                              |
+|--------------------------------------|--------------------------------------------------------------------------|
+| x-mailchannels-send-async            | Send message asynchronously                                              |
+| x-mailchannels-click-tracking-enable | Enable click tracking                                                    |
+| x-mailchannels-click-tracking-domain | Domain for click tracking links to use                                   |
+| x-mailchannels-open-tracking-enable  | Enable open tracking                                                     |
+| x-mailchannels-open-tracking-domain  | Domain for open tracking links to use                                    |
+| x-mailchannels-unsubscribe-domain    | Domain for unsubscribe links to use                                      |
+| x-mailchannels-transactional         | Whether the mail is transactional or non-transactional (marketing, etc.) |
+| x-mailchannels-dkim-domain           | The domain to use for DKIM signing                                       |
+| x-mailchannels-dkim-selector         | The selector to use for DKIM signing                                     |
+| x-mailchannels-dkim-private-key      | The private key to use for DKIM signing                                  |
+| x-mailchannels-campaign-id           | The campaign that this message is a part of                              |
 
 
 ## Using with Laravel
@@ -515,7 +515,7 @@ class YourMailable extends Mailable
     public function headers(): Headers
     {
         return new Headers(
-            text: ['x-mailchannels-Open-Tracking-Enabled' => "true"]
+            text: ['x-mailchannels-open-tracking-enable' => "true"]
         );
     }
 }

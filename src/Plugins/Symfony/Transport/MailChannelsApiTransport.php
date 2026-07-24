@@ -59,9 +59,9 @@ class MailChannelsApiTransport extends AbstractTransport
 
     private const HEADERS_TO_SEND_OPTIONS = [
         'x-mailchannels-send-async' => ['sendAsync', 'bool'],
-        'x-mailchannels-click-tracking-enabled' => ['clickTrackingEnabled', 'bool'],
+        'x-mailchannels-click-tracking-enable' => ['clickTrackingEnable', 'bool'],
         'x-mailchannels-click-tracking-domain' => ['clickTrackingDomain', 'string'],
-        'x-mailchannels-open-tracking-enabled' => ['openTrackingEnabled', 'bool'],
+        'x-mailchannels-open-tracking-enable' => ['openTrackingEnable', 'bool'],
         'x-mailchannels-open-tracking-domain' => ['openTrackingDomain', 'string'],
         'x-mailchannels-unsubscribe-domain' => ['unsubscribeDomain', 'string'],
         'x-mailchannels-transactional' => ['transactional', 'bool'],
@@ -158,7 +158,7 @@ class MailChannelsApiTransport extends AbstractTransport
         [$headers, $boolOptions, $stringOptions] = $this->getHeadersAndSendOptions($email->getHeaders());
 
         $trackingSettings = [];
-        if ($boolOptions['clickTrackingEnabled'] ?? false) {
+        if ($boolOptions['clickTrackingEnable'] ?? false) {
             $clickTrackingSettings = ['enable' => true];
             if ($stringOptions['clickTrackingDomain'] ?? false) {
                 $clickTrackingSettings['custom_domain_name'] = $stringOptions['clickTrackingDomain'];
@@ -166,7 +166,7 @@ class MailChannelsApiTransport extends AbstractTransport
             $trackingSettings['click_tracking'] = $clickTrackingSettings;
         }
 
-        if ($boolOptions['openTrackingEnabled'] ?? false) {
+        if ($boolOptions['openTrackingEnable'] ?? false) {
             $openTrackingSettings = ['enable' => true];
             if ($stringOptions['openTrackingDomain'] ?? false) {
                 $openTrackingSettings['custom_domain_name'] = $stringOptions['openTrackingDomain'];
