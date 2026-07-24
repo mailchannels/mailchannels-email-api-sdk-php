@@ -116,11 +116,20 @@ An empty header value is treated as unset (falls back to the default).
 Any other custom header (e.g. `X-Other-Header`) passes through as-is into
 `headers`. Headers that Symfony's `Email` already represents structurally
 (`From`, `To`, `Cc`, `Bcc`, `Subject`, `Reply-To`, `Date`, `Message-ID`,
-`Content-Type`, `Content-Transfer-Encoding`, `DKIM-Signature`,
-`Authentication-Results`, `Received`, `MIME-Version`) are dropped rather than
-forwarded — they'd otherwise collide with the structured fields the API
-derives them from. If the same custom header is added twice, the **last**
-value wins.
+`Content-Type`, `Content-Transfer-Encoding`, `MIME-Version`) are dropped
+rather than forwarded — they'd otherwise collide with the structured fields
+the API derives them from. If the same custom header is added twice, the
+**last** value wins.
+
+`DKIM-Signature`, `Authentication-Results`, and `Received` are *not*
+structural — Symfony doesn't generate these on its own, so if they're present
+it means something (e.g. Symfony's own `Crypto\DkimSigner`, or a forwarded
+message) added them deliberately. Forwarding them as opaque custom headers
+would be misleading — most notably, it would let a message through looking
+DKIM-signed when MailChannels never saw that signature. The transport instead
+rejects the send with a `TransportException` if any of these three are
+present; strip them from the `Email` yourself first if you have a reason to
+send anyway.
 
 ## Reading The Result
 
@@ -144,8 +153,8 @@ retry logic around `MailerInterface::send()` keeps working unchanged.
   per-recipient header overrides through this transport.
 - DKIM is only reachable via the `x-mailchannels-dkim-*` headers above;
   Symfony's own `Crypto\DkimSigner` middleware is not wired into this
-  transport, and any `DKIM-Signature` header already present on the message
-  is dropped rather than forwarded (MailChannels signs on its own side).
+  transport (MailChannels signs on its own side), and a message signed with
+  it will fail to send — see the note on `DKIM-Signature` above.
   For more information on managing MailChannels DKIM, see [dkim.md](../dkim.md).
 - The DSN-built transport picks up the app's own Symfony `HttpClientInterface`
   automatically (see above), but there's no DSN option to point it at a
