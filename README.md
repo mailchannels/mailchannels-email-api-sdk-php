@@ -421,6 +421,11 @@ $email = (new Email())
 $email->getHeaders()->addTextHeader('x-mailchannels-transactional', 'true');
 ```
 
+NOTE: The MailChannels API will reject messages that have a `DKIM-Signature`
+header set, as the signature will not be accurate to the message being sent.
+To sign messages with DKIM, use the `x-mailchannels-dkim-*` headers to have
+MailChannels sign the message on your behalf.
+
 #### List of supported headers:
 
 These each correspond to an argument in the Email API's `send` endpoint.
@@ -487,7 +492,7 @@ Finally, set the `MAIL_MAILER` environment variable to `mailchannels` and set yo
 Set in your environment or in your `.env` file:
 ```bash
 MAIL_MAILER=mailchannels
-MAILCHANNELS_API_KEY="${MAILCHANNELS_API_KEY}"
+MAILCHANNELS_API_KEY=your-api-key-here
 ```
 
 ### Sending Mail

@@ -527,6 +527,7 @@ FiXtf/n8ypTJQrKxt6WXo7qVPJl1C2wh68gZGLKV9ao=
         $email = $signer->sign($email);
 
         $this->expectException(TransportException::class);
+        $this->expectExceptionMessageMatches("*Custom headers cannot include reserved message headers*");
 
         $transport->send($email);
     }
