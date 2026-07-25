@@ -19,6 +19,9 @@ Reserved for in-progress work targeting the next release.
 
 ### Dropped
 - Support for PHP 8.1. The SDK now requires PHP 8.2 or later.
+- The `disposition` field from attachments. This field was never used by the Email API and is not supported in the SDK.
+  It has been removed from the `Attachment` class. Instead, attachments with a `contentId` set will be treated as inline
+  attachments, and messages without a `contentId` will be treated as regular attachments.
 
 ## [1.3.0] - 2026-07-15
 

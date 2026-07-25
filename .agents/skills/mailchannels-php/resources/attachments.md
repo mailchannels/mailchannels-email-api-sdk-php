@@ -44,14 +44,14 @@ $attachment = Attachment::fromBytes($data, 'report.csv', 'text/csv');
 ## Inline Images (CID References)
 
 For images that should render inside the HTML body rather than as
-downloadable attachments, set `disposition: inline` and a `contentId`:
+downloadable attachments, set a `contentId`, the disposition will automatically
+be set to `inline`
 
 ```php
 $logo = Attachment::fromBytes(
     (string) file_get_contents('/path/to/logo.png'),
     'logo.png',
     'image/png',
-    disposition: Attachment::DISPOSITION_INLINE,
     contentId: 'company-logo',
 );
 
@@ -69,9 +69,6 @@ $client->emails->queue(
     )
 );
 ```
-
-`Attachment::DISPOSITION_INLINE` and `Attachment::DISPOSITION_ATTACHMENT`
-are the two disposition constants.
 
 ## Automatic MIME Type Inference
 

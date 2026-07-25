@@ -577,16 +577,10 @@ _exception_ — extends [`MailChannels\Exception\MailChannelsException`](#mailch
 
 _final class_
 
-### Constants
-
-- `DISPOSITION_ATTACHMENT = 'attachment'`
-- `DISPOSITION_INLINE = 'inline'`
-
 ### Public Properties
 
 - `readonly string $content`
 - `readonly ?string $contentId`
-- `readonly ?string $disposition`
 - `readonly string $filename`
 - `readonly ?string $type`
 
@@ -597,7 +591,6 @@ public function __construct(
     string $content,
     string $filename,
     ?string $type = null,
-    ?string $disposition = null,
     ?string $contentId = null
 )
 ```
@@ -606,7 +599,6 @@ public function __construct(
 - `$content` (`string`)
 - `$filename` (`string`)
 - `$type` (`?string`)
-- `$disposition` (`?string`)
 - `$contentId` (`?string`)
 
 ### Methods
@@ -618,7 +610,6 @@ public static function fromBytes(
     string $data,
     string $filename,
     ?string $contentType = null,
-    string $disposition = 'attachment',
     ?string $contentId = null
 ): self
 ```
@@ -627,7 +618,6 @@ public static function fromBytes(
 - `$data` (`string`)
 - `$filename` (`string`)
 - `$contentType` (`?string`)
-- `$disposition` (`string`)
 - `$contentId` (`?string`)
 
 **Returns:** `self`
