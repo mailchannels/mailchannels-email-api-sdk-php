@@ -287,7 +287,6 @@ final class EmailsTest extends TestCase
         $this->assertSame('note.txt', $arr['filename']);
         $this->assertSame(base64_encode('hello world'), $arr['content']);
         $this->assertSame('text/plain', $arr['type']);
-        $this->assertSame('attachment', $arr['disposition']);
     }
 
     public function testEmailAddressRejectsBadShape(): void

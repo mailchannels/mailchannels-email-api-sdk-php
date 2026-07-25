@@ -5,7 +5,7 @@ description: PHP SDK for the MailChannels Email API (Packagist `mailchannels/mai
 
 # MailChannels PHP SDK
 
-**Package:** `mailchannels/mailchannels-php` (Packagist) | **Namespace:** `MailChannels\` | **PHP:** ≥ 8.1
+**Package:** `mailchannels/mailchannels-php` (Packagist) | **Namespace:** `MailChannels\` | **PHP:** ≥ 8.2
 
 This skill covers *consuming* the SDK from application code. Do not apply it to non-PHP contexts (different SDK, different types/idioms) or to development work on the SDK itself (see repo root `CONTRIBUTING.md`).
 
@@ -80,7 +80,7 @@ You're about to write PHP SDK code. What does it need to do?
 
 ## Code Conventions
 
-- **PHP 8.1+**: use named arguments, enums, readonly properties, and union types throughout.
+- **PHP 8.2+**: use named arguments, enums, readonly properties, and union types throughout.
 - Prefer the **typed object API** (`EmailParams`, `EmailAddress`, `Personalization`, `Content`, `Attachment`) over plain arrays — objects validate at construction and are statically checked by PHPStan.
 - Example addresses use IANA-reserved `example.com` / `example.net` — replace before running.
 

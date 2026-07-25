@@ -16,7 +16,6 @@ final class AttachmentTest extends TestCase
         $this->assertSame(base64_encode('hello world'), $att->content);
         $this->assertSame('note.txt', $att->filename);
         $this->assertSame('text/plain', $att->type);
-        $this->assertSame(Attachment::DISPOSITION_ATTACHMENT, $att->disposition);
         $this->assertNull($att->contentId);
     }
 
@@ -39,7 +38,6 @@ final class AttachmentTest extends TestCase
             content: 'AAA',
             filename: 'x.txt',
             type: 'text/plain',
-            disposition: Attachment::DISPOSITION_INLINE,
             contentId: 'cid-42',
         );
 
@@ -48,7 +46,6 @@ final class AttachmentTest extends TestCase
                 'content' => 'AAA',
                 'filename' => 'x.txt',
                 'type' => 'text/plain',
-                'disposition' => 'inline',
                 'content_id' => 'cid-42',
             ],
             $att->toArray(),

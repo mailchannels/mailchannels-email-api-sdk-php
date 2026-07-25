@@ -8,14 +8,10 @@ use JsonSerializable;
 
 final class Attachment implements JsonSerializable
 {
-    public const DISPOSITION_ATTACHMENT = 'attachment';
-    public const DISPOSITION_INLINE = 'inline';
-
     public function __construct(
         public readonly string $content,
         public readonly string $filename,
         public readonly ?string $type = null,
-        public readonly ?string $disposition = null,
         public readonly ?string $contentId = null,
     ) {
     }
@@ -24,14 +20,12 @@ final class Attachment implements JsonSerializable
         string $data,
         string $filename,
         ?string $contentType = null,
-        string $disposition = self::DISPOSITION_ATTACHMENT,
         ?string $contentId = null,
     ): self {
         return new self(
             content: base64_encode($data),
             filename: $filename,
             type: $contentType ?? self::guessContentType($filename),
-            disposition: $disposition,
             contentId: $contentId,
         );
     }
@@ -45,9 +39,6 @@ final class Attachment implements JsonSerializable
         ];
         if ($this->type !== null) {
             $out['type'] = $this->type;
-        }
-        if ($this->disposition !== null) {
-            $out['disposition'] = $this->disposition;
         }
         if ($this->contentId !== null) {
             $out['content_id'] = $this->contentId;

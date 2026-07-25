@@ -21,16 +21,6 @@ definitions:
           - composer api-version
           - git diff --exit-code -- README.md
 
-    - step: &php81
-        name: Tests (PHP 8.1)
-        run-as-user: 1000
-        caches:
-          - composer
-        script:
-          - sudo update-alternatives --set php /usr/bin/php8.1
-          - composer install --no-interaction --no-progress --prefer-dist
-          - composer test
-
     - step: &php82
         name: Tests (PHP 8.2)
         run-as-user: 1000
@@ -80,7 +70,6 @@ pipelines:
       # becomes installable.
       - step: *checks
       - parallel:
-          - step: *php81
           - step: *php82
           - step: *php83
           - step: *php84
@@ -91,7 +80,6 @@ pipelines:
       # Ad-hoc trigger for the same matrix that runs on main. Useful when
       # validating a feature branch before merging.
       - parallel:
-          - step: *php81
           - step: *php82
           - step: *php83
           - step: *php84
