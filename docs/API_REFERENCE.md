@@ -5,8 +5,8 @@ This reference is generated from public class signatures and PHPDoc blocks in `s
 For task-oriented examples, start with the [README](../README.md). This file is the formal public surface reference.
 
 - SDK version: `2.0.0`
-- Top-level exports: `98`
-- Documented public methods: `221`
+- Top-level exports: `101`
+- Documented public methods: `225`
 
 ## Top-Level Exports
 
@@ -48,8 +48,11 @@ For task-oriented examples, start with the [README](../README.md). This file is 
 | `MailChannels\Message\EmailParams` | final class | Strongly-typed email payload. Use this when you want compile-time-ish validation; for quick scripts you can pass a plain array to Emails::send(). |
 | `MailChannels\Message\Personalization` | final class |  |
 | `MailChannels\Plugins\Laravel\MailChannelsServiceProvider` | class |  |
+| `MailChannels\Plugins\Symfony\RemoteEvent\MailChannelsPayloadConverter` | class |  |
+| `MailChannels\Plugins\Symfony\RemoteEvent\TestEvent` | class |  |
 | `MailChannels\Plugins\Symfony\Transport\MailChannelsApiTransport` | class | Symfony Mailer transport for the MailChannels Email API (https://docs.mailchannels.com). |
 | `MailChannels\Plugins\Symfony\Transport\MailChannelsTransportFactory` | final class | Builds a {@see MailChannelsApiTransport} from a Symfony Mailer DSN, e.g.: |
+| `MailChannels\Plugins\Symfony\Webhook\MailChannelsRequestParser` | class |  |
 | `MailChannels\Resource\AbstractResource` | abstract class |  |
 | `MailChannels\Resource\CheckDomain` | final class | `POST /check-domain` — checks DKIM, SPF, sender-domain DNS, and Domain Lockdown status for a domain. |
 | `MailChannels\Resource\CustomTrackingDomains` | final class | Register and manage custom tracking domains — branded hostnames that replace MailChannels' shared domains for click tracking, open tracking, or unsubscribe links. See `docs/CUSTOM_TRACKING.md` for the DNS verification flow. |
@@ -987,6 +990,58 @@ public function boot(): void
 **Returns:** `void`
 
 
+## `MailChannels\Plugins\Symfony\RemoteEvent\MailChannelsPayloadConverter`
+
+_class_
+
+### Methods
+
+#### `convert()`
+
+```php
+public function convert(
+    array $payload
+): Symfony\Component\RemoteEvent\Event\Mailer\AbstractMailerEvent
+```
+
+**Parameters:**
+- `$payload` (`array`)
+
+**Returns:** `Symfony\Component\RemoteEvent\Event\Mailer\AbstractMailerEvent`
+
+
+## `MailChannels\Plugins\Symfony\RemoteEvent\TestEvent`
+
+_class_
+
+### Constants
+
+- `TEST = 'test'`
+
+### Methods
+
+#### `getMessage()`
+
+```php
+public function getMessage(): string
+```
+
+**Returns:** `string`
+
+#### `setMessage()`
+
+```php
+public function setMessage(
+    string $message
+): void
+```
+
+**Parameters:**
+- `$message` (`string`)
+
+**Returns:** `void`
+
+
 ## `MailChannels\Plugins\Symfony\Transport\MailChannelsApiTransport`
 
 _class_
@@ -1056,6 +1111,22 @@ public function create(
 - `$dsn` (`Symfony\Component\Mailer\Transport\Dsn`)
 
 **Returns:** `Symfony\Component\Mailer\Transport\TransportInterface`
+
+
+## `MailChannels\Plugins\Symfony\Webhook\MailChannelsRequestParser`
+
+_class_
+
+### Constructor
+
+```php
+public function __construct(
+    ?MailChannels\Client $client = null
+)
+```
+
+**Parameters:**
+- `$client` (`?MailChannels\Client`)
 
 
 ## `MailChannels\Resource\AbstractResource`
