@@ -448,6 +448,51 @@ The sole exception is `x-mailchannels-send-async`, which determines if the messa
 | x-mailchannels-dkim-private-key      | The private key to use for DKIM signing                                  |
 | x-mailchannels-campaign-id           | The campaign that this message is a part of                              |
 
+### Webhooks
+
+#### Installation
+
+The webhooks integration requires the following additional packages to be installed:
+
+```bash
+composer require symfony/webhook symfony/remote-event ext-sodium
+```
+
+NOTE: Requires symfony/webhook version 7.2 or higher, as earlier versions to not support batched webhook processing.
+
+Add the service to your `config/services.yaml`:
+```yaml
+services:
+  MailChannels\Plugins\Symfony\Webhook\MailChannelsRequestParser: ~
+```
+
+Add the webhook to your `config/webhooks.yaml`:
+```yaml
+framework:
+  webhook:
+    routing:
+      mailchannels:
+        service: MailChannels\Plugins\Symfony\Webhook\MailChannelsRequestParser
+```
+
+You will now have a webhook route available at `/webhook/mailchannels`.
+
+#### Consuming RemoteEvents
+
+When a webhook is received, it will automatically be parsed into a `Symfony\Component\RemoteEvent\RemoteEvent` object and passed to your controller.
+
+```php
+#[AsRemoteEventConsumer('mailchannels')]  // must match routing name
+final class MailChannelsWebhookConsumer implements ConsumerInterface {
+}
+```
+
+For more information on consuming RemoteEvents, see the [Symfony Webhook documentation](https://symfony.com/doc/current/webhook.html#consuming-the-remoteevent).
+
+Note that we add one extra RemoteEvent type -- `MailChannels\Plugins\Symfony\RemoteEvent\TestEvent`.
+
+This will be sent when you send a test webhook from the MailChannels dashboard or API.
+You can use this to verify that your webhook endpoint is working correctly.
 
 ## Using with Laravel
 
