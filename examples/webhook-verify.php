@@ -59,8 +59,8 @@ if ($params->keyId === null) {
 // require an API key, but creating a Client still wires the same auth /
 // logging chain you'd use for other calls.
 $client = new Client(apiKey: getenv('MAILCHANNELS_API_KEY') ?: '');
-$publicKey = base64_decode((string) $client->webhooks->publicKey($params->keyId)->get('key'), true);
-if ($publicKey === false || strlen($publicKey) !== SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES) {
+$publicKey = parseKey((string) $client->webhooks->publicKey($params->keyId)->get('key'), true);
+if ($publicKey === false) {
     http_response_code(400);
     echo 'invalid public key';
     exit;
@@ -148,4 +148,30 @@ function extract_signature_bytes(string $signatureHeader, string $name): ?string
     }
     $decoded = base64_decode($m['sig'], true);
     return $decoded === false ? null : $decoded;
+}
+
+/**
+ * Parse a PEM-encoded Ed25519 public key into raw bytes. Returns null if the
+ * key is not a valid Ed25519 public key.
+ */
+function parseKey(string $publicKey): string|false
+{
+    $publicKey = str_replace(['-----BEGIN PUBLIC KEY-----', '-----END PUBLIC KEY-----', "\n", "\r", " "], '', $publicKey);
+
+    if (!str_starts_with($publicKey, "MCowBQYDK2VwAyEA")) {
+        return false;
+    }
+
+    $publicKey = substr($publicKey, strlen("MCowBQYDK2VwAyEA"));
+
+    $decodedPublicKey = base64_decode($publicKey, true);
+    if ($decodedPublicKey === false || $decodedPublicKey === '') {
+        return false;
+    }
+
+    if (strlen($decodedPublicKey) !== SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES) {
+        return false;
+    }
+
+    return $decodedPublicKey;
 }

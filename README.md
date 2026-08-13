@@ -278,6 +278,8 @@ if (!Verifier::signatureIsFresh($params)) {
 
 // 4. Verify the signature itself (left to your crypto library, e.g. libsodium).
 $publicKey = $client->webhooks->publicKey($params->keyId)->get('key');
+$publicKey = str_replace(['-----BEGIN PUBLIC KEY-----', '-----END PUBLIC KEY-----', "\n", "\r", " "], '', $publicKey);
+$publicKey = substr($publicKey, strlen("MCowBQYDK2VwAyEA"));
 $signature = base64_decode(/* extract from Signature header */);
 $signedBase = /* RFC 9421 signature base from $params->coveredComponents */;
 

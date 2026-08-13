@@ -119,6 +119,30 @@ if (!is_string($publicKey) || $publicKey === '') {
     return;
 }
 
+/**
+ * Parse a PEM-encoded Ed25519 public key into raw bytes. Returns null if the
+ * key is not a valid Ed25519 public key.
+ */
+$publicKey = str_replace(['-----BEGIN PUBLIC KEY-----', '-----END PUBLIC KEY-----', "\n", "\r", " "], '', $publicKey);
+
+if (!str_starts_with($publicKey, "MCowBQYDK2VwAyEA")) {
+    http_response_code(400);
+    return;
+}
+
+$publicKey = substr($publicKey, strlen("MCowBQYDK2VwAyEA"));
+
+$decodedPublicKey = base64_decode($publicKey, true);
+if ($decodedPublicKey === false || $decodedPublicKey === '') {
+    http_response_code(400);
+    return;
+}
+
+if (strlen($decodedPublicKey) !== SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES) {
+    http_response_code(400);
+    return;
+}
+
 // 5. Build the RFC 9421 signature base and verify the Ed25519 signature.
 $signatureBase = Verifier::buildSignatureBase('POST', $requestUri, $headers, $rawBody, $params);
 
@@ -129,7 +153,6 @@ if (!preg_match('/:[^:]+:$/', $headers['Signature'] ?? '', $m)) {
     return;
 }
 $signatureBytes   = base64_decode(trim($m[0], ':'), true);
-$decodedPublicKey = base64_decode($publicKey, true);
 if ($signatureBytes === false || $signatureBytes === '' || $decodedPublicKey === false || $decodedPublicKey === '') {
     http_response_code(400);
     return;
