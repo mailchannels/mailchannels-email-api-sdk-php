@@ -30,7 +30,7 @@ class MailChannelsRequestParser extends AbstractRequestParser
     // ASN.1 SubjectPublicKeyInfo prefix for an Ed25519 key, base64-encoded. Prepended to key in PEM files.
     private const PEM_PREFIX = "MCowBQYDK2VwAyEA";
 
-    public function __construct(Client $client = null) {
+    public function __construct(?Client $client = null) {
         $this->client = $client ?? new Client();
         $this->converter = new MailChannelsPayloadConverter();
     }
