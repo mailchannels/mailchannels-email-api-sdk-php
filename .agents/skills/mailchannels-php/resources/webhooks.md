@@ -120,8 +120,7 @@ if (!is_string($publicKey) || $publicKey === '') {
 }
 
 /**
- * Parse a PEM-encoded Ed25519 public key into raw bytes. Returns null if the
- * key is not a valid Ed25519 public key.
+ * Parse PEM-encoded Ed25519 public key into raw bytes.
  */
 $publicKey = str_replace(['-----BEGIN PUBLIC KEY-----', '-----END PUBLIC KEY-----', "\n", "\r", " "], '', $publicKey);
 
@@ -153,7 +152,7 @@ if (!preg_match('/:[^:]+:$/', $headers['Signature'] ?? '', $m)) {
     return;
 }
 $signatureBytes   = base64_decode(trim($m[0], ':'), true);
-if ($signatureBytes === false || $signatureBytes === '' || $decodedPublicKey === false || $decodedPublicKey === '') {
+if ($signatureBytes === false || $signatureBytes === '') {
     http_response_code(400);
     return;
 }
