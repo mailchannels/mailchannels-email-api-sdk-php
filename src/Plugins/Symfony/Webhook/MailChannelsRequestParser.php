@@ -56,7 +56,11 @@ class MailChannelsRequestParser extends AbstractRequestParser
             throw new RejectWebhookException(400, 'Content digest mismatch.');
         }
 
-        $params = Verifier::parseSignatureInput($headers['signature-input'] ?? '');
+        try {
+            $params = Verifier::parseSignatureInput($headers['signature-input'] ?? '');
+        } catch (\InvalidArgumentException $e) {
+            throw new RejectWebhookException(400, 'Unable to parse Signature-Input header.', previous: $e);
+        }
         if (!Verifier::signatureIsFresh($params)) {
             throw new RejectWebhookException(400, 'Signature is stale.');
         }
@@ -74,7 +78,11 @@ class MailChannelsRequestParser extends AbstractRequestParser
         if (!is_string($request->getContent()) || !$request->getContent()) {
             throw new RejectWebhookException(400, 'Request body is not a string.');
         }
-        $signatureBase = Verifier::buildSignatureBase('POST', $request->getUri(), $headers, $request->getContent(), $params);
+        try {
+            $signatureBase = Verifier::buildSignatureBase('POST', $request->getUri(), $headers, $request->getContent(), $params);
+        } catch (\InvalidArgumentException $e) {
+            throw new RejectWebhookException(400, 'Unable to build signature base.', previous: $e);
+        }
 
         if (!preg_match('/:[^:]+:$/', $headers['signature'] ?? '', $m)) {
             throw new RejectWebhookException(400, 'Unable to parse Signature header');
