@@ -8,6 +8,18 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 Reserved for in-progress work targeting the next release.
 
+## [2.1.0] - 2026-08-14
+
+### Added
+- Symfony Webhooks integration `MailChannels\Plugins\Symfony\Webhook\MailChannelsRequestParser` for `symfony/webhook`.
+  It wraps the SDK to provide a `MailChannelsRequestParser` that can be used in Symfony's `Webhook` component.
+  Supports route `/webhook/mailchannels` by default.
+    - Note that it requires a **higher** version of Symfony -- 7.2 or higher, than the mailer plugin, as previous
+      versions do not have support for batched webhook processing.
+
+### Fixed
+- Webhook examples now correctly parse MailChannels' public key as a PEM file, instead of trying to read it as raw base64.
+
 ## [2.0.0] - 2026-07-24
 
 ### Added
