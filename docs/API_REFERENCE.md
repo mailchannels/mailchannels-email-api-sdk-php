@@ -4,7 +4,7 @@ This reference is generated from public class signatures and PHPDoc blocks in `s
 
 For task-oriented examples, start with the [README](../README.md). This file is the formal public surface reference.
 
-- SDK version: `2.1.0`
+- SDK version: `2.2.0`
 - Top-level exports: `101`
 - Documented public methods: `225`
 
@@ -1159,7 +1159,8 @@ _final class_ — extends [`MailChannels\Resource\AbstractResource`](#mailchanne
 public function check(
     string $domain,
     ?string $senderId = null,
-    ?array $dkimSettings = null
+    ?array $dkimSettings = null,
+    ?string $envelopeFromDomain = null
 ): MailChannels\Response\CheckDomainResponse
 ```
 
@@ -1167,6 +1168,7 @@ public function check(
 - `$domain` (`string`)
 - `$senderId` (`?string`)
 - `$dkimSettings` (`?array`)
+- `$envelopeFromDomain` (`?string`)
 
 **Returns:** `MailChannels\Response\CheckDomainResponse`
 
@@ -4114,7 +4116,7 @@ _final class_
 
 ### Constants
 
-- `VERSION = '2.1.0'`
+- `VERSION = '2.2.0'`
 
 ### Methods
 

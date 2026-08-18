@@ -17,7 +17,9 @@ $client = new Client(apiKey: $apiKey);
 
 // Basic check: SPF, sender-domain DNS, Domain Lockdown, and the
 // default-discovered DKIM selectors for this domain.
-$result = $client->checkDomain->check($domain);
+// SPF will be checked against envelopeFromDomain if provided.
+$envelopeFromDomain = getenv('MAILCHANNELS_ENVELOPE_FROM_DOMAIN') ?: null;
+$result = $client->checkDomain->check($domain, envelopeFromDomain: $envelopeFromDomain);
 echo "Domain check verdict for {$domain}:\n";
 print_r($result->toArray());
 

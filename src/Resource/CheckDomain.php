@@ -16,7 +16,10 @@ final class CheckDomain extends AbstractResource
     /**
      * @param list<array{domain?: string, selector?: string, private_key?: string}>|null $dkimSettings
      */
-    public function check(string $domain, ?string $senderId = null, ?array $dkimSettings = null): CheckDomainResponse
+    public function check(string $domain,
+                          ?string $senderId = null,
+                          ?array $dkimSettings = null,
+                          ?string $envelopeFromDomain = null): CheckDomainResponse
     {
         if ($domain === '') {
             throw new ValidationException('Domain is required.', errorCode: 'InvalidDomainCheck');
@@ -25,6 +28,7 @@ final class CheckDomain extends AbstractResource
             'domain' => $domain,
             'sender_id' => $senderId,
             'dkim_settings' => $dkimSettings,
+            'envelope_from_domain' => $envelopeFromDomain,
         ]);
         $this->client->config()->logger->info('Checking domain configuration', ['domain' => $domain]);
         return new CheckDomainResponse(

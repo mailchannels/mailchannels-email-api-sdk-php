@@ -45,6 +45,45 @@ if ($checks !== null) {
 $result->references; // support links if anything failed
 ```
 
+## With Envelope-from Domain
+
+SPF is evaluated against the envelope sender domain — the domain of the
+`Envelope-From` address. DKIM, the sender-domain DNS check (A/MX), and Domain
+Lockdown are all evaluated against the sending `domain` (the domain of the
+sender address) regardless of `envelopeFromDomain`.
+
+If your envelope-from domain differs from the domain you pass as `domain`,
+provide it as `envelopeFromDomain` so SPF is checked against the right
+domain — otherwise SPF may fail even though your mail is properly
+
+```php
+$result = $client->checkDomain->check('example.com', 
+                                       envelopeFromDomain:'example.net');
+
+$checks = $result->checkResults; // array<string, mixed>|null
+if ($checks !== null) {
+    /** @var array<string, string> $spf */
+    $spf = $checks['spf'] ?? [];
+    echo $spf['verdict'] . "\n";         // checked on exmaple.net
+
+    /** @var array<string, string> $lockdown */
+    $lockdown = $checks['domain_lockdown'] ?? [];
+    echo $lockdown['verdict'] . "\n";    // checked on exmaple.com
+
+    /** @var array<string, string> $senderDomain */
+    $senderDomain = $checks['sender_domain'] ?? [];
+    echo $senderDomain['verdict'] . "\n"; // checked on exmaple.com
+
+    /** @var list<array<string, string>> $dkimChecks */
+    $dkimChecks = $checks['dkim'] ?? [];
+    foreach ($dkimChecks as $dkim) {      // checked on exmaple.com
+        echo $dkim['dkim_selector'] . ': ' . $dkim['verdict'] . "\n";
+    }
+}
+
+$result->references; // support links if anything failed
+```
+
 ## With Specific DKIM Settings
 
 If you don't pass any `dkimSettings`, MailChannels uses all stored keys for

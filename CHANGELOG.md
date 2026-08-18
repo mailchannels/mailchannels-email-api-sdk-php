@@ -8,6 +8,15 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 Reserved for in-progress work targeting the next release.
 
+## [2.2.0] - 2026-08-18
+
+### Added
+- `CheckDomain.check()` gains `$envelopeFromDomain` — an optional override for 
+  the domain SPF is evaluated against, for callers whose envelope-from domain
+  differs from the sending `$domain`. DKIM, the sender-domain DNS check (A/MX),
+  and domain lockdown are unaffected and always check the sending `$domain`.
+  Without it, SPF is still checked against `$domain` as before.
+
 ## [2.1.0] - 2026-08-14
 
 ### Added
