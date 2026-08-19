@@ -47,14 +47,15 @@ $result->references; // support links if anything failed
 
 ## With Envelope-from Domain
 
-SPF is evaluated against the envelope sender domain — the domain of the
-`Envelope-From` address. DKIM, the sender-domain DNS check (A/MX), and Domain
-Lockdown are all evaluated against the sending `domain` (the domain of the
+SPF and Domain Lockdown are evaluated against the envelope sender domain —
+the domain of the `Envelope-From` address. DKIM and the sender-domain DNS
+check (A/MX) are evaluated against the sending `domain` (the domain of the
 sender address) regardless of `envelopeFromDomain`.
 
 If your envelope-from domain differs from the domain you pass as `domain`,
-provide it as `envelopeFromDomain` so SPF is checked against the right
-domain — otherwise SPF may fail even though your mail is properly
+provide it as `envelopeFromDomain` so SPF and Domain Lockdown are checked
+against the right domain — otherwise SPF or Domain Lockdown failures may
+cause message delivery to fail.
 
 ```php
 $result = $client->checkDomain->check('example.com', 
@@ -68,7 +69,7 @@ if ($checks !== null) {
 
     /** @var array<string, string> $lockdown */
     $lockdown = $checks['domain_lockdown'] ?? [];
-    echo $lockdown['verdict'] . "\n";    // checked on exmaple.com
+    echo $lockdown['verdict'] . "\n";    // checked on exmaple.net
 
     /** @var array<string, string> $senderDomain */
     $senderDomain = $checks['sender_domain'] ?? [];
