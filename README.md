@@ -22,6 +22,13 @@ queued sending (`/send-async`), MailChannels-hosted DKIM, sub-account
 provisioning, suppressions, metrics, webhook enrollment, and RFC 9421
 signature verification.
 
+## Quickstarts and integrations
+
+- [Official PHP quickstart](https://docs.mailchannels.com/email-api/php/quickstart)
+- [Composer package on Packagist](https://packagist.org/packages/mailchannels/mailchannels-php)
+- [Laravel Mail guide](https://docs.mailchannels.com/email-api/laravel)
+- [Symfony Mailer guide](https://docs.mailchannels.com/email-api/symfony)
+
 ## Standards alignment
 
 | PSR    | Where used                                                                    |

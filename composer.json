@@ -1,6 +1,6 @@
 {
     "name": "mailchannels/mailchannels-php",
-    "description": "Official PHP SDK for the MailChannels Email API.",
+    "description": "Official MailChannels Email API SDK for transactional email, with Laravel and Symfony Mailer integrations.",
     "license": "MIT",
     "type": "library",
     "keywords": [
@@ -9,9 +9,13 @@
         "sdk",
         "smtp",
         "psr-7",
-        "psr-18"
+        "psr-18",
+        "email-api",
+        "transactional-email",
+        "laravel",
+        "symfony"
     ],
-    "homepage": "https://www.mailchannels.com/",
+    "homepage": "https://docs.mailchannels.com/email-api/php/quickstart",
     "require": {
         "php": ">=8.2",
         "ext-json": "*",
@@ -85,5 +89,8 @@
             ]
         }
     },
-    "minimum-stability": "stable"
+    "minimum-stability": "stable",
+    "support": {
+        "docs": "https://docs.mailchannels.com/email-api/php/quickstart"
+    }
 }
