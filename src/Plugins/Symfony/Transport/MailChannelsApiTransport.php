@@ -145,8 +145,8 @@ class MailChannelsApiTransport extends AbstractTransport
         $envelopeFrom = $this->toEmailAddress($envelope->getSender());
 
         $to = $this->toEmailAddressArray($this->getTo($email, $envelope));
-        $cc = $this->toEmailAddressArray($email->getCc()) ?: null;
-        $bcc = $this->toEmailAddressArray($email->getBcc()) ?: null;
+        $cc = $this->toEmailAddressArray($this->withinEnvelope($email->getCc(), $envelope)) ?: null;
+        $bcc = $this->toEmailAddressArray($this->withinEnvelope($email->getBcc(), $envelope)) ?: null;
 
         $personalization = new Personalization(to: $to, cc: $cc, bcc: $bcc);
 
@@ -202,18 +202,35 @@ class MailChannelsApiTransport extends AbstractTransport
         ), $sendAsync];
     }
 
-    // getRecipients returns merged list of tos, ccs, and bccs.
-    // But we need to use this instead of $email->getTo() because users can overwrite
-    // the recipient list by modifying the envelope
-    // Note: If an Address object is in both `to` and `cc` or `bcc`, it will be removed from the `to` list.
-    /** @return Address[] */
+    /**
+     * Use mailbox values: explicit envelopes rebuild Address objects and strip names.
+     * Cc/Bcc membership must not depend on PHP object identity.
+     *
+     * @return list<Address>
+     */
     private function getTo(Email $email, Envelope $envelope): array
     {
-        $ccdAndBccd = array_merge($email->getCc(), $email->getBcc());
-        return array_filter(
-            $envelope->getRecipients(),
-            static fn (Address $address) => !\in_array($address, $ccdAndBccd, true)
-        );
+        $copied = array_map(static fn (Address $address): string => $address->getAddress(),
+            array_merge($email->getCc(), $email->getBcc()));
+
+        return array_values(array_filter($envelope->getRecipients(),
+            static fn (Address $address): bool => !\in_array($address->getAddress(), $copied, true)));
+    }
+
+    /**
+     * The delivery envelope is authoritative for every recipient role.
+     * Preserve the header display name only for an allowed mailbox.
+     *
+     * @param array<Address> $addresses
+     * @return list<Address>
+     */
+    private function withinEnvelope(array $addresses, Envelope $envelope): array
+    {
+        $allowed = array_map(static fn (Address $address): string => $address->getAddress(),
+            $envelope->getRecipients());
+
+        return array_values(array_filter($addresses,
+            static fn (Address $address): bool => \in_array($address->getAddress(), $allowed, true)));
     }
 
     /**
