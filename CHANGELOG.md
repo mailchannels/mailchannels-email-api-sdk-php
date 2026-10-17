@@ -8,6 +8,20 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 Reserved for in-progress work targeting the next release.
 
+## [2.2.1] - 2026-10-16
+
+### Fixed
+- The Symfony Mailer transport now treats the delivery envelope as authoritative for
+  Cc and Bcc as well as To. Cc/Bcc addresses removed from the envelope are no longer
+  sent, and recipients are matched by mailbox address, so an envelope rebuilt with
+  new `Address` objects no longer duplicates Cc/Bcc recipients in To.
+
+### Changed
+- Composer metadata: clearer description, `email-api`, `transactional-email`,
+  `laravel` and `symfony` keywords, and the PHP quickstart on docs.mailchannels.com as
+  the homepage. The README links the official quickstart and the Laravel and Symfony
+  integration guides.
+
 ## [2.2.0] - 2026-08-18
 
 ### Added

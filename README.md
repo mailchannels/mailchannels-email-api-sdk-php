@@ -22,6 +22,13 @@ queued sending (`/send-async`), MailChannels-hosted DKIM, sub-account
 provisioning, suppressions, metrics, webhook enrollment, and RFC 9421
 signature verification.
 
+## Quickstarts and integrations
+
+- [Official PHP quickstart](https://docs.mailchannels.com/email-api/php/quickstart)
+- [Composer package on Packagist](https://packagist.org/packages/mailchannels/mailchannels-php)
+- [Laravel Mail guide](https://docs.mailchannels.com/email-api/laravel)
+- [Symfony Mailer guide](https://docs.mailchannels.com/email-api/symfony)
+
 ## Standards alignment
 
 | PSR    | Where used                                                                    |
@@ -377,6 +384,12 @@ MAILER_DSN=mailchannels+api://${MAILCHANNELS_API_KEY}@default
 ```
 
 ### Sending Mail
+The delivery envelope controls all API recipients, including Cc and Bcc. When you override
+recipients (for example, to route test mail to a sandbox), excluded MIME-header recipients are
+not sent. Cc/Bcc roles are matched by mailbox value, not by `Address` object identity.
+A recipient classified as Bcc is never promoted to a visible To address. The API model requires
+at least one To recipient, so a Cc/Bcc-only envelope raises a transport exception before sending.
+
 Send mail using Symfony's `MailerInterface`:
 ```php
 use Symfony\Component\Mailer\MailerInterface;

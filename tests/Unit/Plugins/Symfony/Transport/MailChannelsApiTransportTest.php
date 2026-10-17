@@ -566,6 +566,55 @@ FiXtf/n8ypTJQrKxt6WXo7qVPJl1C2wh68gZGLKV9ao=
         $this->assertSame(['email' => 'recipient3@example.net'], $personalizations[0]['to'][1]);
     }
 
+    public function testEnvelopeOverrideExcludesOriginalCcAndBcc(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, []));
+        $transport = new MailChannelsApiTransport('key', httpClient: $http);
+        $email = $this->email()->cc('excluded-cc@example.com')->bcc('excluded-bcc@example.com');
+        $envelope = new Envelope(new Address('sender@example.com'), [new Address('sandbox@example.com')]);
+
+        $transport->send($email, $envelope);
+
+        $this->assertSame([['to' => [['email' => 'sandbox@example.com']]]], $http->lastJson()['personalizations']);
+        $this->assertCount(1, $http->sentRequests);
+    }
+
+    public function testEnvelopeKeepsOnlyAllowedHeaderRecipientsByMailbox(): void
+    {
+        $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, []));
+        $transport = new MailChannelsApiTransport('key', httpClient: $http);
+        $email = $this->email()
+            ->cc(new Address('allowed-cc@example.com', 'Visible copy'), 'excluded-cc@example.com')
+            ->bcc(new Address('allowed-bcc@example.com', 'Hidden copy'), 'excluded-bcc@example.com');
+        $envelope = new Envelope(new Address('sender@example.com'), [
+            new Address('sandbox@example.com'), new Address('allowed-cc@example.com'),
+            new Address('allowed-bcc@example.com'),
+        ]);
+
+        $transport->send($email, $envelope);
+
+        $this->assertSame([[
+            'to' => [['email' => 'sandbox@example.com']],
+            'cc' => [['email' => 'allowed-cc@example.com', 'name' => 'Visible copy']],
+            'bcc' => [['email' => 'allowed-bcc@example.com', 'name' => 'Hidden copy']],
+        ]], $http->lastJson()['personalizations']);
+    }
+
+    public function testBccOnlyEnvelopeFailsBeforeSendingRatherThanExposingHiddenRecipient(): void
+    {
+        $http = new MockHttpClient();
+        $transport = new MailChannelsApiTransport('key', httpClient: $http);
+        $email = $this->email()->bcc('hidden@example.com');
+        $envelope = new Envelope(new Address('sender@example.com'), [new Address('hidden@example.com')]);
+        try {
+            $transport->send($email, $envelope);
+            $this->fail('An API personalization needs a To recipient.');
+        } catch (TransportException $exception) {
+            $this->assertStringContainsString('at least one `to` recipient', $exception->getMessage());
+        }
+        $this->assertSame([], $http->sentRequests);
+    }
+
     public function testRecipientInToAndCC(): void
     {
         $http = (new MockHttpClient())->queue(Fixtures::jsonResponse(202, ['data' => json_encode([
@@ -592,12 +641,10 @@ FiXtf/n8ypTJQrKxt6WXo7qVPJl1C2wh68gZGLKV9ao=
             ['type' => 'text/html', 'value' => '<p>Hello, world!</p>'],
         ], $payload['content']);
 
-        // If an Address object is in both `to` and `cc` or `bcc`, we remove it from the `to` field.
-        // If the addresses are separate objects, (which happens when the `value is just set with a string) we can tell which is from
-        // the `to` list and what is from the `cc` / `bcc` list, and it won't be filtered out
+        // Equal mailbox values belong to Cc even when represented by different objects.
         /** @var list<array{to: list<array{email: string, name?: string}>, cc: list<array{email: string, name?: string}>}> $personalizations */
         $personalizations = $payload['personalizations'];
-        $this->assertSame([['email' => 'test2@example.com'], ['email' => 'test3@example.com']], $personalizations[0]['to']);
+        $this->assertSame([['email' => 'test2@example.com']], $personalizations[0]['to']);
         $this->assertSame([['email' => 'test@example.com'], ['email' => 'test3@example.com']], $personalizations[0]['cc']);
     }
 }
